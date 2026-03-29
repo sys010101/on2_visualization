@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Username Validator — 3D Code Visualizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020408;font-family:'JetBrains Mono',monospace;color:#e0f0ff;overflow:hidden;touch-action:none}
+#cv{position:fixed;inset:0}
+
+/* TOPBAR */
+#tb{position:fixed;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,rgba(0,10,30,.96),rgba(0,20,50,.88));border-bottom:1px solid rgba(0,180,255,.25);display:flex;align-items:center;justify-content:space-between;padding:0 14px;backdrop-filter:blur(12px);z-index:300}
+#tb h1{font-family:'Orbitron',sans-serif;font-size:clamp(11px,2.3vw,17px);font-weight:900;color:#00d4ff;text-shadow:0 0 20px rgba(0,212,255,.6);letter-spacing:2px}
+.sub{font-size:10px;color:rgba(0,212,255,.42);letter-spacing:1px;margin-top:2px}
+#tb-hint{font-size:10px;color:rgba(200,230,255,.2);letter-spacing:1px}
+
+/* PANELS */
+.panel{position:fixed;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150;transition:opacity .2s,transform .2s}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(0,212,255,.55);margin-bottom:11px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+
+/* STATUS PANEL */
+#sp{left:10px;top:60px;width:220px}
+.sr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.sl{font-size:10px;color:rgba(200,230,255,.45);letter-spacing:1px}
+.sv{font-size:15px;font-weight:700;color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.4);min-width:55px;text-align:right}
+.sv.pass{color:#39ff14;text-shadow:0 0 10px rgba(57,255,20,.4)}
+.sv.fail{color:#ff4444;text-shadow:0 0 10px rgba(255,68,68,.4)}
+.sv.warn{color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,.4)}
+.sv.ac{color:#ff6b35;text-shadow:0 0 10px rgba(255,107,53,.4)}
+
+/* RULE INDICATORS */
+.rule-box{margin-top:8px;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,180,255,.12);background:rgba(0,20,50,.3);margin-bottom:6px;transition:all .3s}
+.rule-box.active{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.08)}
+.rule-box.passed{border-color:rgba(57,255,20,.4);background:rgba(57,255,20,.06)}
+.rule-box.failed{border-color:rgba(255,68,68,.4);background:rgba(255,68,68,.06)}
+.rule-name{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:3px}
+.rule-desc{font-size:9px;color:rgba(200,230,255,.4);line-height:1.4}
+.rule-status{font-size:9px;font-weight:700;margin-top:3px;letter-spacing:1px}
+.rule-status.pass{color:#39ff14}.rule-status.fail{color:#ff4444}.rule-status.checking{color:#ffd700}
+
+/* CODE PANEL */
+#cp{right:10px;top:60px;width:min(480px,52vw);height:calc(100vh - 160px);overflow-y:auto;min-width:200px;min-height:150px}
+/* Resize handles for code panel */
+.cp-resize{position:absolute;z-index:160}
+.cp-resize-left{left:-4px;top:0;width:8px;height:100%;cursor:ew-resize}
+.cp-resize-bottom{left:0;bottom:-4px;width:100%;height:8px;cursor:ns-resize}
+.cp-resize-bl{left:-6px;bottom:-6px;width:14px;height:14px;cursor:nesw-resize}
+.cp-resize-left:hover,.cp-resize-bottom:hover,.cp-resize-bl:hover{background:rgba(0,180,255,.15);border-radius:4px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+.ch .ptitle{margin-bottom:0;border:none;padding:0}
+#cd{font-size:10.5px;line-height:1.45;white-space:pre;overflow-x:auto;overflow-y:hidden}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.nu{color:#b5cea8}.cm{color:rgba(140,170,140,.5);font-style:italic}.vr{color:#9cdcfe}.str{color:#ce9178}.tp{color:#4ec9b0}
+/* Code line highlights */
+.cl{display:block;padding:1px 4px;border-left:3px solid transparent;border-radius:2px;transition:background .15s,border-color .15s}
+.cl-active{background:rgba(255,215,0,.12);border-left-color:rgba(255,215,0,.7)}
+.cl-scan{background:rgba(0,180,255,.10);border-left-color:rgba(0,212,255,.6)}
+.cl-body{background:rgba(57,255,20,.14);border-left-color:#39ff14}
+.cl-fail{background:rgba(255,60,60,.12);border-left-color:rgba(255,80,80,.6)}
+.cl-pass{background:rgba(57,255,20,.10);border-left-color:rgba(57,255,20,.5)}
+.cl-continue{background:rgba(255,107,53,.14);border-left-color:#ff6b35}
+.cl-break{background:rgba(255,215,0,.16);border-left-color:#ffd700}
+.cl-loop{background:rgba(138,43,226,.12);border-left-color:rgba(138,43,226,.6)}
+.annot{font-size:10px;font-style:italic;margin-left:6px;letter-spacing:0}
+.annot-var{color:#ffd700}
+.annot-ok{color:#39ff14;font-weight:700}
+.annot-fail{color:#ff5555;font-weight:700}
+.annot-flow{color:#ff6b35;font-weight:700}
+.annot-info{color:rgba(0,212,255,.7)}
+.exec-ptr{color:#39ff14;font-weight:900;margin-right:2px;text-shadow:0 0 8px rgba(57,255,20,.6)}
+
+/* LEGEND */
+#legend{position:fixed;left:10px;bottom:72px;width:220px;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:12px;backdrop-filter:blur(16px);z-index:150}
+.leg-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.leg-color{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.leg-label{font-size:9px;color:rgba(200,230,255,.5);letter-spacing:.5px}
+
+/* CONTROLS */
+#ctrl{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;flex-wrap:nowrap;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:50px;padding:9px 18px;backdrop-filter:blur(16px);z-index:200}
+.cb{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap;flex-shrink:0}
+.cb:hover,.cb:active{background:rgba(0,212,255,.22);box-shadow:0 0 12px rgba(0,212,255,.3)}
+.cb.on{background:rgba(0,212,255,.28);box-shadow:0 0 18px rgba(0,212,255,.5)}
+.cb.muted{opacity:0.4}
+.cs{width:1px;height:22px;background:rgba(0,180,255,.2);flex-shrink:0}
+.sw{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.sw label{font-size:10px;color:rgba(200,230,255,.45);letter-spacing:1px;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;height:3px;background:rgba(0,180,255,.2);border-radius:2px;outline:none;cursor:pointer;flex-shrink:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.6)}
+.sv2{font-size:13px;font-weight:700;color:#00d4ff;width:30px;text-align:right;flex-shrink:0;display:inline-block}
+
+/* USERNAME INPUT */
+#input-panel{position:fixed;left:50%;top:60px;transform:translateX(-50%);background:rgba(0,8,22,.95);border:1px solid rgba(0,180,255,.25);border-radius:12px;padding:10px 16px;backdrop-filter:blur(16px);z-index:200;display:flex;align-items:center;gap:10px}
+#uname-input{background:rgba(0,4,12,.8);border:1px solid rgba(0,212,255,.3);border-radius:8px;color:#ffeebb;font-family:'JetBrains Mono',monospace;font-size:14px;padding:6px 12px;width:180px;outline:none;caret-color:#00d4ff}
+#uname-input:focus{border-color:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.3)}
+.preset-btn{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);color:rgba(255,215,0,.7);font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 8px;border-radius:12px;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.preset-btn:hover{background:rgba(255,215,0,.18);color:#ffd700}
+.preset-btn.active{background:rgba(255,215,0,.2);border-color:rgba(255,215,0,.5);color:#ffd700}
+
+/* CONCEPT BADGES */
+#concept-badge{position:fixed;right:10px;bottom:14px;background:rgba(0,8,22,.9);border:1px solid rgba(138,43,226,.35);border-radius:10px;padding:10px 16px;text-align:center;z-index:150;backdrop-filter:blur(16px)}
+.concept-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#8a2be2;text-shadow:0 0 12px rgba(138,43,226,.5);letter-spacing:1px}
+.concept-sub{font-size:9px;color:rgba(138,43,226,.5);letter-spacing:1px;margin-top:2px}
+.concept-detail{font-size:10px;color:rgba(200,180,255,.6);margin-top:5px}
+
+/* INFO OVERLAY */
+#info-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,8,22,.97);border:1px solid rgba(0,180,255,.3);border-radius:16px;padding:28px 32px;backdrop-filter:blur(20px);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;width:min(520px,90vw);max-height:80vh;overflow-y:auto}
+#info-overlay.show{opacity:1;pointer-events:auto}
+#info-overlay h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:#00d4ff;margin-bottom:14px;text-align:center}
+#info-overlay h4{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:#ffd700;margin:14px 0 6px}
+#info-overlay p{font-size:10px;color:rgba(200,230,255,.6);line-height:1.7;margin-bottom:6px}
+.info-feat{display:flex;gap:8px;align-items:baseline;margin-bottom:5px}
+.info-key{color:#00d4ff;font-weight:700;min-width:70px;flex-shrink:0;font-size:10px}
+.info-desc{color:rgba(200,230,255,.55);font-size:10px}
+#info-overlay .info-close{text-align:center;margin-top:16px}
+#info-overlay .info-close button{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:10px;padding:6px 20px;border-radius:20px;cursor:pointer;letter-spacing:1px}
+
+/* FLOW INDICATOR */
+#flow-indicator{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;color:#ffd700;text-shadow:0 0 15px rgba(255,215,0,.5);z-index:160;opacity:0;transition:opacity .4s;pointer-events:none;text-align:center}
+#flow-indicator.show{opacity:1}
+#flow-sub{font-size:9px;color:rgba(255,215,0,.5);letter-spacing:1px;margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* COMPLETION FLASH */
+@keyframes flashGreen{0%{opacity:0}20%{opacity:.15}100%{opacity:0}}
+#flash{position:fixed;inset:0;background:#39ff14;pointer-events:none;z-index:400;opacity:0}
+#flash.go{animation:flashGreen .6s ease-out}
+
+/* PULSE ANIMATION */
+@keyframes pulse{0%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.3);filter:brightness(1.8)}100%{transform:scale(1);filter:brightness(1)}}
+.ops-pop{animation:pulse .2s ease-out}
+
+@media(max-width:900px){
+  #cp{display:none}
+  #sp{width:180px}
+  #legend{display:none}
+  #concept-badge{display:none}
+  #input-panel{flex-wrap:wrap;justify-content:center;width:90vw}
+}
+</style>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+<div id="flash"></div>
+
+<!-- TOPBAR -->
+<div id="tb">
+  <div>
+    <h1>USERNAME VALIDATOR VISUALIZER</h1>
+    <div class="sub">do-while &bull; continue &bull; break &bull; sequential validation</div>
+  </div>
+  <div id="tb-hint">Press ? for shortcuts</div>
+</div>
+
+<!-- USERNAME INPUT -->
+<div id="input-panel">
+  <label style="font-size:10px;color:rgba(200,230,255,.5);letter-spacing:1px">USERNAME:</label>
+  <input type="text" id="uname-input" value="player1" maxlength="20" spellcheck="false">
+  <div style="display:flex;gap:4px;flex-wrap:wrap">
+    <button class="preset-btn" data-u="ab1" title="Too short">ab1</button>
+    <button class="preset-btn" data-u="test user1" title="Has space">test user1</button>
+    <button class="preset-btn" data-u="testuser" title="No digit">testuser</button>
+    <button class="preset-btn" data-u="player1" title="Valid!">player1 &#10003;</button>
+  </div>
+</div>
+
+<!-- STATUS PANEL -->
+<div class="panel" id="sp">
+  <div class="ptitle">// STATUS</div>
+  <div class="sr"><span class="sl">LOOP #</span><span class="sv ac" id="s-loop">1</span></div>
+  <div class="sr"><span class="sl">USERNAME</span><span class="sv" id="s-uname" style="font-size:12px">player1</span></div>
+  <div class="sr"><span class="sl">LENGTH</span><span class="sv" id="s-len">7</span></div>
+  <div class="sr"><span class="sl">CHAR INDEX</span><span class="sv" id="s-idx">--</span></div>
+  <div class="sr"><span class="sl">STATUS</span><span class="sv pass" id="s-status">IDLE</span></div>
+
+  <div class="rule-box" id="rule1-box">
+    <div class="rule-name" style="color:#ffd700">RULE 1: LENGTH CHECK</div>
+    <div class="rule-desc">Must be 6-12 characters</div>
+    <div class="rule-status" id="rule1-status"></div>
+  </div>
+  <div class="rule-box" id="rule2-box">
+    <div class="rule-name" style="color:#00d4ff">RULE 2: NO SPACES</div>
+    <div class="rule-desc">Scans each character for spaces</div>
+    <div class="rule-status" id="rule2-status"></div>
+  </div>
+  <div class="rule-box" id="rule3-box">
+    <div class="rule-name" style="color:#39ff14">RULE 3: HAS DIGIT</div>
+    <div class="rule-desc">Scans for at least one digit (0-9)</div>
+    <div class="rule-status" id="rule3-status"></div>
+  </div>
+</div>
+
+<!-- CODE PANEL -->
+<div class="panel" id="cp">
+  <div class="cp-resize cp-resize-left" data-resize="left"></div>
+  <div class="cp-resize cp-resize-bottom" data-resize="bottom"></div>
+  <div class="cp-resize cp-resize-bl" data-resize="bl"></div>
+  <div class="ch">
+    <span class="ptitle" id="cp-title">// JAVA SOURCE</span>
+  </div>
+  <div id="cd"></div>
+</div>
+
+<!-- LEGEND -->
+<div id="legend">
+  <div class="ptitle">// LEGEND</div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(100,100,120,.6);border:1px solid rgba(150,150,170,.3)"></div><div class="leg-label">Unchecked character</div></div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(0,212,255,.5);border:1px solid rgba(0,212,255,.5)"></div><div class="leg-label">Currently scanning</div></div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(57,255,20,.5);border:1px solid rgba(57,255,20,.5)"></div><div class="leg-label">Passed / digit found</div></div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(255,68,68,.5);border:1px solid rgba(255,68,68,.5)"></div><div class="leg-label">Failed / space found</div></div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(255,215,0,.5);border:1px solid rgba(255,215,0,.5)"></div><div class="leg-label">Length check active</div></div>
+  <div class="leg-row"><div class="leg-color" style="background:rgba(138,43,226,.5);border:1px solid rgba(138,43,226,.5)"></div><div class="leg-label">do-while loop</div></div>
+</div>
+
+<!-- CONCEPT BADGE -->
+<div id="concept-badge">
+  <div class="concept-title" id="cb-concept">DO-WHILE</div>
+  <div class="concept-sub" id="cb-sub">CONTROL FLOW</div>
+  <div class="concept-detail" id="cb-detail">Runs at least once, then checks condition</div>
+</div>
+
+<!-- FLOW INDICATOR -->
+<div id="flow-indicator">
+  <div id="flow-text"></div>
+  <div id="flow-sub"></div>
+</div>
+
+<!-- CONTROLS -->
+<div id="ctrl">
+  <button class="cb" id="btn-play" onclick="togglePlay()">&#9654; PLAY</button>
+  <button class="cb" id="btn-step" onclick="stepOnce()">STEP</button>
+  <button class="cb" id="btn-reset" onclick="resetViz()">RESET</button>
+  <div class="cs"></div>
+  <div class="sw">
+    <label>SPD</label>
+    <input type="range" id="sl-speed" min="1" max="10" value="5" style="width:80px">
+    <span class="sv2" id="sv-speed">5</span>
+  </div>
+  <div class="cs"></div>
+  <button class="cb" id="btn-sound" onclick="toggleSound()">&#9835; ON</button>
+  <div class="cs"></div>
+  <button class="cb" id="btn-orbit" onclick="toggleOrbit()">ORBIT OFF</button>
+</div>
+
+<!-- INFO OVERLAY -->
+<div id="info-overlay">
+  <h3>KEYBOARD SHORTCUTS</h3>
+  <h4>CONTROLS</h4>
+  <div class="info-feat"><span class="info-key">Space</span><span class="info-desc">Play / Pause</span></div>
+  <div class="info-feat"><span class="info-key">S</span><span class="info-desc">Step forward one phase</span></div>
+  <div class="info-feat"><span class="info-key">R</span><span class="info-desc">Reset visualization</span></div>
+  <div class="info-feat"><span class="info-key">M</span><span class="info-desc">Mute / Unmute</span></div>
+  <div class="info-feat"><span class="info-key">O</span><span class="info-desc">Toggle auto-orbit camera</span></div>
+  <div class="info-feat"><span class="info-key">1-4</span><span class="info-desc">Load preset username</span></div>
+  <div class="info-feat"><span class="info-key">Left/Right</span><span class="info-desc">Adjust speed</span></div>
+  <div class="info-feat"><span class="info-key">?</span><span class="info-desc">Toggle this overlay</span></div>
+  <div class="info-feat"><span class="info-key">Esc</span><span class="info-desc">Close overlay</span></div>
+  <h4>CONCEPTS SHOWN</h4>
+  <p><strong style="color:#8a2be2">do-while loop</strong> — runs the validation at least once, loops back if invalid</p>
+  <p><strong style="color:#ff6b35">continue</strong> — skips remaining rules and jumps to the while condition</p>
+  <p><strong style="color:#ffd700">break</strong> — exits the for loop early when match found</p>
+  <p><strong style="color:#00d4ff">sequential validation</strong> — rules checked one after another in order</p>
+  <div class="info-close"><button onclick="toggleInfo()">CLOSE</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function el(id){return document.getElementById(id)}
+function setText(id,t){var e=el(id);if(e)e.textContent=t}
+function setHTML(id,t){var e=el(id);if(e)e.innerHTML=t}
+
+/* ============================================================
+   JAVA SOURCE CODE (display version)
+   ============================================================ */
+var javaCode = [
+  'package com.example.homework;',                                       // 0
+  'import java.util.Scanner;',                                           // 1
+  '',                                                                    // 2
+  'public class UsernameValidator {',                                    // 3
+  '  public static void main(String[] args) {',                          // 4
+  '    Scanner scanner = new Scanner(System.in);',                       // 5
+  '    boolean valid = false;',                                          // 6
+  '',                                                                    // 7
+  '    do {',                                                            // 8
+  '      System.out.print("Enter a username: ");',                       // 9
+  '      String username = scanner.nextLine();',                         // 10
+  '      valid = true; // assume it\'s valid',                           // 11
+  '',                                                                    // 12
+  '      // Rule 1: Length',                                             // 13
+  '      if (username.length() < 6 || username.length() > 12) {',       // 14
+  '        System.out.println("Error: Must be 6-12 chars.");',           // 15
+  '        valid = false;',                                              // 16
+  '        continue; // jump to while condition',                        // 17
+  '      }',                                                             // 18
+  '',                                                                    // 19
+  '      // Rule 2: No spaces',                                         // 20
+  '      boolean hasSpace = false;',                                     // 21
+  '      for (int i = 0; i < username.length(); i++) {',                // 22
+  '        if (username.charAt(i) == \' \') {',                          // 23
+  '          hasSpace = true;',                                          // 24
+  '          break; // found space, exit for',                           // 25
+  '        }',                                                           // 26
+  '      }',                                                             // 27
+  '      if (hasSpace) {',                                               // 28
+  '        System.out.println("Error: No spaces allowed.");',            // 29
+  '        valid = false;',                                              // 30
+  '        continue; // skip digit check',                               // 31
+  '      }',                                                             // 32
+  '',                                                                    // 33
+  '      // Rule 3: At least one digit',                                 // 34
+  '      boolean hasDigit = false;',                                     // 35
+  '      for (int i = 0; i < username.length(); i++) {',                // 36
+  '        if (Character.isDigit(username.charAt(i))) {',                // 37
+  '          hasDigit = true;',                                          // 38
+  '          break; // found digit, done',                               // 39
+  '        }',                                                           // 40
+  '      }',                                                             // 41
+  '      if (!hasDigit) {',                                              // 42
+  '        System.out.println("Error: Need at least 1 digit.");',        // 43
+  '        valid = false;',                                              // 44
+  '      }',                                                             // 45
+  '',                                                                    // 46
+  '      // If valid is still true -> do-while stops!',                  // 47
+  '      if (valid) {',                                                  // 48
+  '        System.out.println("Username accepted: " + username);',       // 49
+  '      }',                                                             // 50
+  '    } while (!valid);',                                               // 51
+  '',                                                                    // 52
+  '    scanner.close();',                                                // 53
+  '  }',                                                                 // 54
+  '}'                                                                    // 55
+];
+
+// Line indices for key lines (matching the array above)
+var LINE = {
+  DO: 8,
+  PROMPT: 9,
+  READ_INPUT: 10,
+  VALID_TRUE: 11,
+  R1_COMMENT: 13,
+  R1_IF: 14,
+  R1_PRINT: 15,
+  R1_VALID_FALSE: 16,
+  R1_CONTINUE: 17,
+  R2_COMMENT: 20,
+  R2_HASSPACE: 21,
+  R2_FOR: 22,
+  R2_IF_SPACE: 23,
+  R2_SET_TRUE: 24,
+  R2_BREAK: 25,
+  R2_CHECK: 28,
+  R2_PRINT: 29,
+  R2_VALID_FALSE: 30,
+  R2_CONTINUE: 31,
+  R3_COMMENT: 34,
+  R3_HASDIGIT: 35,
+  R3_FOR: 36,
+  R3_IF_DIGIT: 37,
+  R3_SET_TRUE: 38,
+  R3_BREAK: 39,
+  R3_CHECK: 42,
+  R3_PRINT: 43,
+  R3_VALID_FALSE: 44,
+  R4_COMMENT: 47,
+  R4_IF_VALID: 48,
+  R4_PRINT: 49,
+  WHILE: 51,
+};
+
+/* ============================================================
+   SOUND SYSTEM
+   ============================================================ */
+var audioCtx = null, soundEnabled = true;
+function ensureAudio(){
+  if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){soundEnabled=false}}
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+}
+function playTone(freq,dur,type,vol){
+  if(!soundEnabled||!audioCtx)return;
+  var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type||'sine';o.frequency.value=freq;
+  g.gain.setValueAtTime(vol||0.06,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+(dur||0.1));
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+(dur||0.1));
+}
+function sndScan(idx,total){playTone(300+idx*(200/Math.max(total,1)),0.05,'sine',0.04)}
+function sndPass(){playTone(523,0.12,'triangle',0.07);setTimeout(function(){playTone(659,0.12,'triangle',0.06)},60);setTimeout(function(){playTone(784,0.15,'triangle',0.05)},120)}
+function sndFail(){playTone(220,0.15,'sawtooth',0.05);setTimeout(function(){playTone(180,0.2,'sawtooth',0.04)},80)}
+function sndBreak(){playTone(880,0.08,'square',0.03);setTimeout(function(){playTone(660,0.1,'square',0.03)},40)}
+function sndContinue(){playTone(440,0.06,'sawtooth',0.04);setTimeout(function(){playTone(330,0.08,'sawtooth',0.03)},50);setTimeout(function(){playTone(260,0.1,'sawtooth',0.03)},100)}
+function sndLoop(){playTone(200,0.1,'triangle',0.04);setTimeout(function(){playTone(260,0.08,'triangle',0.04)},80);setTimeout(function(){playTone(200,0.1,'triangle',0.04)},160)}
+function sndComplete(){
+  var notes=[523.25,659.25,783.99,1046.50];
+  for(var k=0;k<notes.length;k++){(function(f,d){setTimeout(function(){playTone(f,0.4,'sine',0.08);playTone(f*1.002,0.4,'sine',0.03)},d)})(notes[k],k*120)}
+  setTimeout(function(){playTone(130.81,0.6,'triangle',0.08)},50);
+}
+function sndReset(){playTone(440,0.06,'sawtooth',0.03);setTimeout(function(){playTone(330,0.08,'sawtooth',0.02)},40)}
+
+function toggleSound(){
+  soundEnabled=!soundEnabled;
+  var b=el('btn-sound');
+  if(b){b.textContent=soundEnabled?'\u266B ON':'\u266B OFF';soundEnabled?b.classList.remove('muted'):b.classList.add('muted')}
+}
+
+function toggleOrbit(){
+  autoRotateEnabled=!autoRotateEnabled;
+  if(!autoRotateEnabled){autoRotate=false}
+  var b=el('btn-orbit');
+  if(b){b.textContent=autoRotateEnabled?'ORBIT ON':'ORBIT OFF';autoRotateEnabled?b.classList.add('on'):b.classList.remove('on')}
+}
+
+/* ============================================================
+   THREE.JS SETUP
+   ============================================================ */
+var renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true;
+el('cv').parentNode.insertBefore(renderer.domElement,el('cv'));
+el('cv').style.display='none';
+
+var scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x020408,0.004);
+var camera=new THREE.PerspectiveCamera(55,window.innerWidth/window.innerHeight,0.1,500);
+camera.position.set(0,12,18);
+camera.lookAt(0,1,0);
+
+// Lights
+var aL=new THREE.AmbientLight(0x0a1828,1.2);scene.add(aL);
+var dL=new THREE.DirectionalLight(0x4488cc,0.7);dL.position.set(15,25,15);dL.castShadow=true;scene.add(dL);
+var pL1=new THREE.PointLight(0x00d4ff,2,50);pL1.position.set(0,10,5);scene.add(pL1);
+var pL2=new THREE.PointLight(0xff6b35,1.2,40);pL2.position.set(-10,5,-10);scene.add(pL2);
+
+// Ground grid
+var gridH=new THREE.GridHelper(40,40,0x0a2040,0x061530);
+gridH.position.y=-0.5;scene.add(gridH);
+
+/* ============================================================
+   SPACE BACKGROUND
+   ============================================================ */
+var STAR_COUNT=1200;
+var starP=new Float32Array(STAR_COUNT*3),starC=new Float32Array(STAR_COUNT*3);
+for(var s=0;s<STAR_COUNT;s++){
+  starP[s*3]=(Math.random()-.5)*200;starP[s*3+1]=(Math.random()-.5)*200;starP[s*3+2]=(Math.random()-.5)*200;
+  var cr=Math.random();
+  if(cr<0.5){starC[s*3]=0.7+Math.random()*0.3;starC[s*3+1]=0.8+Math.random()*0.2;starC[s*3+2]=1}
+  else if(cr<0.8){starC[s*3]=1;starC[s*3+1]=0.9+Math.random()*0.1;starC[s*3+2]=0.7+Math.random()*0.2}
+  else{starC[s*3]=0.3+Math.random()*0.2;starC[s*3+1]=0.4+Math.random()*0.2;starC[s*3+2]=0.9+Math.random()*0.1}
+}
+var starG=new THREE.BufferGeometry();
+starG.setAttribute('position',new THREE.BufferAttribute(starP,3));
+starG.setAttribute('color',new THREE.BufferAttribute(starC,3));
+var starMesh=new THREE.Points(starG,new THREE.PointsMaterial({size:0.35,transparent:true,opacity:0.6,vertexColors:true,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true}));
+starMesh.fog=false;scene.add(starMesh);
+
+// Nebulae
+var nebulae=[];
+function makeNebula(c1,c2,x,y,z,sz,op){
+  var cv=document.createElement('canvas');cv.width=256;cv.height=256;var ctx=cv.getContext('2d');
+  var g=ctx.createRadialGradient(128,128,0,128,128,128);g.addColorStop(0,c1);g.addColorStop(0.3,c2);g.addColorStop(0.7,'rgba(0,0,0,0.05)');g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,256,256);
+  for(var w=0;w<5;w++){var wx=128+(Math.random()-.5)*100,wy=128+(Math.random()-.5)*100,wr=25+Math.random()*50;
+    var wg=ctx.createRadialGradient(wx,wy,0,wx,wy,wr);wg.addColorStop(0,c1);wg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=wg;ctx.fillRect(0,0,256,256)}
+  var tex=new THREE.CanvasTexture(cv);var mat=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false});
+  var sp=new THREE.Sprite(mat);sp.position.set(x,y,z);sp.scale.set(sz,sz,1);sp.fog=false;scene.add(sp);nebulae.push(sp);return sp;
+}
+makeNebula('rgba(40,0,80,0.4)','rgba(20,0,60,0.2)',-50,20,-60,80,0.3);
+makeNebula('rgba(0,40,80,0.3)','rgba(0,20,50,0.15)',40,30,-70,60,0.25);
+makeNebula('rgba(80,20,0,0.25)','rgba(50,10,0,0.1)',60,-10,-80,70,0.2);
+
+// Planets
+function makePlanet(col,gCol,x,y,z,r){
+  var geo=new THREE.SphereGeometry(r,16,16);var mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.9});
+  var m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.fog=false;scene.add(m);
+  var gc=document.createElement('canvas');gc.width=128;gc.height=128;var gctx=gc.getContext('2d');
+  var gg=gctx.createRadialGradient(64,64,r*2,64,64,64);gg.addColorStop(0,gCol);gg.addColorStop(0.4,gCol.replace(/[\d.]+\)$/,'0.12)'));gg.addColorStop(1,'rgba(0,0,0,0)');
+  gctx.fillStyle=gg;gctx.fillRect(0,0,128,128);
+  var gtex=new THREE.CanvasTexture(gc);var gmat=new THREE.SpriteMaterial({map:gtex,transparent:true,opacity:0.4,blending:THREE.AdditiveBlending,depthWrite:false});
+  var glow=new THREE.Sprite(gmat);glow.scale.set(r*8,r*8,1);m.add(glow);return m;
+}
+var planet1=makePlanet(0x6644aa,'rgba(100,70,170,0.5)',-45,25,-50,3);
+var planet2=makePlanet(0x338866,'rgba(50,140,100,0.4)',50,15,-65,2);
+
+/* ============================================================
+   ORBIT CONTROLS (simple)
+   ============================================================ */
+var isDragging=false,prevMX=0,prevMY=0,camTheta=0,camPhi=0.6,camDist=22,camTarget=new THREE.Vector3(0,1,0);
+var autoRotate=false,autoRotateEnabled=false,idleTime=0,IDLE_THRESH=5;
+
+function updateCam(){
+  camera.position.x=camTarget.x+camDist*Math.sin(camTheta)*Math.cos(camPhi);
+  camera.position.y=camTarget.y+camDist*Math.sin(camPhi);
+  camera.position.z=camTarget.z+camDist*Math.cos(camTheta)*Math.cos(camPhi);
+  camera.lookAt(camTarget);
+}
+updateCam();
+
+renderer.domElement.addEventListener('mousedown',function(e){isDragging=true;prevMX=e.clientX;prevMY=e.clientY;autoRotate=false;idleTime=0});
+renderer.domElement.addEventListener('mousemove',function(e){if(!isDragging)return;var dx=e.clientX-prevMX,dy=e.clientY-prevMY;camTheta-=dx*0.005;camPhi=Math.max(0.1,Math.min(1.4,camPhi+dy*0.005));prevMX=e.clientX;prevMY=e.clientY;updateCam()});
+window.addEventListener('mouseup',function(){isDragging=false});
+renderer.domElement.addEventListener('wheel',function(e){camDist=Math.max(8,Math.min(40,camDist+e.deltaY*0.02));updateCam();autoRotate=false;idleTime=0});
+
+// Touch controls
+var touchStart=null;
+renderer.domElement.addEventListener('touchstart',function(e){if(e.touches.length===1){touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};autoRotate=false;idleTime=0}},{passive:true});
+renderer.domElement.addEventListener('touchmove',function(e){if(!touchStart||e.touches.length!==1)return;var dx=e.touches[0].clientX-touchStart.x,dy=e.touches[0].clientY-touchStart.y;camTheta-=dx*0.005;camPhi=Math.max(0.1,Math.min(1.4,camPhi+dy*0.005));touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};updateCam()},{passive:true});
+renderer.domElement.addEventListener('touchend',function(){touchStart=null},{passive:true});
+
+/* ============================================================
+   CHARACTER CUBES
+   ============================================================ */
+var charCubes=[];
+var disposables=[];
+var CUBE_SIZE=1.2;
+var CUBE_GAP=0.3;
+var scanBeam=null;
+var ruleLabels=[];
+
+function makeCharTexture(ch,bgColor,textColor){
+  var cv=document.createElement('canvas');cv.width=128;cv.height=128;
+  var ctx=cv.getContext('2d');
+  // Background
+  ctx.fillStyle=bgColor||'rgba(40,50,70,1)';
+  ctx.fillRect(0,0,128,128);
+  // Border
+  ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=4;ctx.strokeRect(2,2,124,124);
+  // Character
+  ctx.fillStyle=textColor||'#e0f0ff';
+  ctx.font='bold 64px JetBrains Mono, monospace';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(ch,64,68);
+  // Index will be added separately
+  var tex=new THREE.CanvasTexture(cv);
+  return tex;
+}
+
+function makeCharCubeTopTexture(ch,bgColor,textColor){
+  var cv=document.createElement('canvas');cv.width=128;cv.height=128;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle=bgColor||'rgba(40,50,70,1)';
+  ctx.fillRect(0,0,128,128);
+  ctx.fillStyle=textColor||'#e0f0ff';
+  ctx.font='bold 72px JetBrains Mono, monospace';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(ch,64,68);
+  return new THREE.CanvasTexture(cv);
+}
+
+function buildCharCubes(username){
+  // Dispose old
+  for(var i=0;i<charCubes.length;i++){
+    scene.remove(charCubes[i].mesh);
+    charCubes[i].mesh.geometry.dispose();
+    for(var j=0;j<charCubes[i].mesh.material.length;j++){
+      if(charCubes[i].mesh.material[j].map)charCubes[i].mesh.material[j].map.dispose();
+      charCubes[i].mesh.material[j].dispose();
+    }
+  }
+  charCubes=[];
+
+  var totalW=username.length*(CUBE_SIZE+CUBE_GAP)-CUBE_GAP;
+  var startX=-totalW/2+CUBE_SIZE/2;
+
+  for(var i=0;i<username.length;i++){
+    var ch=username[i];
+    var isSpace=ch===' ';
+    var isDigit=/\d/.test(ch);
+    var bgCol=isSpace?'rgba(60,40,40,1)':isDigit?'rgba(40,50,60,1)':'rgba(35,45,60,1)';
+
+    var topTex=makeCharCubeTopTexture(ch,bgCol);
+    var sideTex=makeCharTexture(ch,bgCol);
+    var geo=new THREE.BoxGeometry(CUBE_SIZE,CUBE_SIZE,CUBE_SIZE);
+
+    // 6 faces: +x, -x, +y (top), -y, +z (front), -z (back)
+    var mats=[
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85}),
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85}),
+      new THREE.MeshPhongMaterial({map:topTex,transparent:true,opacity:0.95}),
+      new THREE.MeshPhongMaterial({color:0x1a2030,transparent:true,opacity:0.85}),
+      new THREE.MeshPhongMaterial({map:sideTex,transparent:true,opacity:0.95}),
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85})
+    ];
+
+    var mesh=new THREE.Mesh(geo,mats);
+    var x=startX+i*(CUBE_SIZE+CUBE_GAP);
+    mesh.position.set(x,CUBE_SIZE/2,0);
+    mesh.castShadow=true;
+    scene.add(mesh);
+
+    charCubes.push({
+      mesh:mesh,
+      char:ch,
+      index:i,
+      isSpace:isSpace,
+      isDigit:isDigit,
+      baseY:CUBE_SIZE/2,
+      origX:x,
+      state:'idle', // idle, scanning, passed, failed, highlight
+      bounce:0,
+      glowIntensity:0
+    });
+  }
+
+  // Center camera target
+  camTarget.set(0,1.5,0);
+  if(username.length>10)camDist=Math.max(22,username.length*1.8);
+  else camDist=22;
+  updateCam();
+}
+
+// Scan beam (a thin glowing plane that moves across)
+function createScanBeam(){
+  if(scanBeam){scene.remove(scanBeam);scanBeam.geometry.dispose();scanBeam.material.dispose()}
+  var geo=new THREE.PlaneGeometry(0.1,CUBE_SIZE*2);
+  var mat=new THREE.MeshBasicMaterial({color:0x00d4ff,transparent:true,opacity:0,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+  scanBeam=new THREE.Mesh(geo,mat);
+  scanBeam.position.set(-100,CUBE_SIZE,0);
+  scanBeam.rotation.y=Math.PI/2;
+  scene.add(scanBeam);
+}
+createScanBeam();
+
+// Rule label sprites (floating text above the scene)
+function makeTextSprite(text,color){
+  var cv=document.createElement('canvas');cv.width=512;cv.height=64;
+  var ctx=cv.getContext('2d');
+  ctx.font='bold 28px Orbitron, sans-serif';ctx.fillStyle=color;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(text,256,32);
+  var tex=new THREE.CanvasTexture(cv);
+  var mat=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false});
+  var sp=new THREE.Sprite(mat);
+  sp.scale.set(8,1,1);
+  return sp;
+}
+
+var ruleLabelSprites=[];
+function createRuleLabels(){
+  var labels=['RULE 1: LENGTH','RULE 2: SPACES','RULE 3: DIGITS'];
+  var colors=['#ffd700','#00d4ff','#39ff14'];
+  for(var i=0;i<ruleLabelSprites.length;i++){scene.remove(ruleLabelSprites[i]);ruleLabelSprites[i].material.map.dispose();ruleLabelSprites[i].material.dispose()}
+  ruleLabelSprites=[];
+  for(var i=0;i<3;i++){
+    var sp=makeTextSprite(labels[i],colors[i]);
+    sp.position.set(0,4+i*0.01,-3-i*1.5);
+    scene.add(sp);
+    ruleLabelSprites.push(sp);
+  }
+}
+createRuleLabels();
+
+/* ============================================================
+   PARTICLE SYSTEM
+   ============================================================ */
+var particles=[];
+var MAX_PARTICLES=60;
+function spawnParticle(x,y,z,color){
+  if(particles.length>=MAX_PARTICLES)return;
+  var geo=new THREE.SphereGeometry(0.06,4,4);
+  var mat=new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending});
+  var m=new THREE.Mesh(geo,mat);
+  m.position.set(x,y,z);
+  var vel={x:(Math.random()-.5)*3,y:Math.random()*4+1,z:(Math.random()-.5)*3};
+  scene.add(m);
+  particles.push({mesh:m,vel:vel,life:1});
+}
+function updateParticles(dt){
+  for(var i=particles.length-1;i>=0;i--){
+    var p=particles[i];
+    p.mesh.position.x+=p.vel.x*dt;p.mesh.position.y+=p.vel.y*dt;p.mesh.position.z+=p.vel.z*dt;
+    p.vel.y-=5*dt;p.life-=dt*1.5;p.mesh.material.opacity=Math.max(0,p.life);
+    if(p.life<=0){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();particles.splice(i,1)}
+  }
+}
+
+function burstAt(x,y,z,color,count){
+  for(var i=0;i<(count||8);i++)spawnParticle(x,y,z,color);
+}
+
+/* ============================================================
+   STATE MACHINE
+   ============================================================ */
+var username='player1';
+var playing=false;
+var phase='idle'; // idle, r1_check, r1_result, r2_init, r2_scan, r2_break, r2_check, r2_result, r3_init, r3_scan, r3_break, r3_check, r3_result, valid_check, complete, continue_jump, loop_back
+var scanIdx=0;
+var loopCount=1;
+var valid=true;
+var hasSpace=false;
+var hasDigit=false;
+var spaceFoundIdx=-1;
+var digitFoundIdx=-1;
+var accum=0;
+var phaseQueue=[];
+var continueFrom=''; // which rule triggered continue
+
+// Preset usernames for auto-demo
+var presets=['ab1','test user1','testuser','player1'];
+var presetIdx=0;
+
+function getSpeed(){return parseInt(el('sl-speed').value)||5}
+function getDelay(){var s=getSpeed();return Math.max(0.08,1.2-s*0.11)}
+
+function setUsername(u){
+  username=u;
+  el('uname-input').value=u;
+  setText('s-uname',u);
+  setText('s-len',u.length);
+  buildCharCubes(u);
+  resetViz();
+}
+
+function resetViz(){
+  playing=false;
+  phase='idle';
+  scanIdx=0;
+  loopCount=1;
+  valid=true;
+  hasSpace=false;hasDigit=false;
+  spaceFoundIdx=-1;digitFoundIdx=-1;
+  accum=0;phaseQueue=[];
+  continueFrom='';
+
+  setText('s-loop','1');
+  setText('s-idx','--');
+  setText('s-status','IDLE');
+  el('s-status').className='sv pass';
+  setPlayBtn(false);
+
+  // Reset rule boxes
+  for(var i=1;i<=3;i++){
+    el('rule'+i+'-box').className='rule-box';
+    setText('rule'+i+'-status','');
+  }
+
+  // Reset cube colors
+  for(var i=0;i<charCubes.length;i++){
+    charCubes[i].state='idle';
+    charCubes[i].glowIntensity=0;
+    setCubeColor(i,'idle');
+  }
+
+  // Hide scan beam
+  if(scanBeam)scanBeam.material.opacity=0;
+
+  // Hide rule labels
+  for(var i=0;i<ruleLabelSprites.length;i++)ruleLabelSprites[i].material.opacity=0;
+
+  // Reset flow indicator
+  hideFlow();
+
+  // Update code panel
+  renderCode('idle');
+  updateConceptBadge('DO-WHILE','CONTROL FLOW','Runs at least once, then checks condition');
+  sndReset();
+}
+
+function setPlayBtn(isPlaying){
+  var b=el('btn-play');
+  if(b){b.textContent=isPlaying?'\u275A\u275A PAUSE':'\u25B6 PLAY';isPlaying?b.classList.add('on'):b.classList.remove('on')}
+}
+
+function togglePlay(){
+  ensureAudio();
+  if(phase==='complete'||phase==='idle'){
+    if(phase==='complete')resetViz();
+    startValidation();
+  }else if(phase==='waiting_input'){
+    // User typed a new username and pressed play — continue the do-while
+    advancePhase(); // processes waiting_input -> do_start
+  }
+  playing=!playing;
+  setPlayBtn(playing);
+}
+
+function stepOnce(){
+  ensureAudio();
+  if(phase==='complete'){resetViz();return}
+  if(phase==='idle')startValidation();
+  else if(phase==='waiting_input'){
+    // Step from waiting state — read the new input and continue
+  }
+  playing=false;
+  setPlayBtn(false);
+  advancePhase();
+}
+
+function startValidation(){
+  // Read username from input
+  username=el('uname-input').value||'player1';
+  if(charCubes.length===0||username!==charCubes.map(function(c){return c.char}).join('')){
+    buildCharCubes(username);
+  }
+  setText('s-uname',username);
+  setText('s-len',username.length);
+  phase='do_start';
+  loopCount=1;
+  setText('s-loop','1');
+}
+
+/* ============================================================
+   CUBE COLOR MANAGEMENT
+   ============================================================ */
+function setCubeColor(idx,state){
+  if(idx<0||idx>=charCubes.length)return;
+  var cube=charCubes[idx];
+  var mesh=cube.mesh;
+  var colors={
+    'idle':      {side:0x283246,emissive:0x000000,emissiveI:0},
+    'scanning':  {side:0x005580,emissive:0x00d4ff,emissiveI:0.3},
+    'passed':    {side:0x1a4020,emissive:0x39ff14,emissiveI:0.25},
+    'failed':    {side:0x501515,emissive:0xff4444,emissiveI:0.3},
+    'highlight': {side:0x4a3a00,emissive:0xffd700,emissiveI:0.3},
+    'checked':   {side:0x1a3040,emissive:0x00aacc,emissiveI:0.1},
+    'digit':     {side:0x1a4020,emissive:0x39ff14,emissiveI:0.4},
+    'space':     {side:0x501515,emissive:0xff4444,emissiveI:0.4},
+    'celebrate': {side:0x2a3a20,emissive:0x39ff14,emissiveI:0.5}
+  };
+  var c=colors[state]||colors['idle'];
+  cube.state=state;
+  // Update side materials (indices 0,1,3,5)
+  [0,1,3,5].forEach(function(mi){
+    mesh.material[mi].color.setHex(c.side);
+    mesh.material[mi].emissive.setHex(c.emissive);
+    mesh.material[mi].emissiveIntensity=c.emissiveI;
+  });
+  // Update top and front materials (keep texture but tint)
+  [2,4].forEach(function(mi){
+    mesh.material[mi].emissive.setHex(c.emissive);
+    mesh.material[mi].emissiveIntensity=c.emissiveI;
+  });
+}
+
+function setAllCubes(state){
+  for(var i=0;i<charCubes.length;i++)setCubeColor(i,state);
+}
+
+/* ============================================================
+   FLOW INDICATOR
+   ============================================================ */
+function showFlow(text,sub){
+  setText('flow-text',text);setText('flow-sub',sub||'');
+  el('flow-indicator').classList.add('show');
+}
+function hideFlow(){el('flow-indicator').classList.remove('show')}
+
+/* ============================================================
+   CONCEPT BADGE
+   ============================================================ */
+function updateConceptBadge(title,sub,detail){
+  setText('cb-concept',title);setText('cb-sub',sub);setText('cb-detail',detail);
+}
+
+/* ============================================================
+   CODE PANEL RENDERING
+   ============================================================ */
+function syntaxHL(line){
+  // Tokenize first to avoid regex cascading (inserting HTML tags that later regexes corrupt)
+  var escaped = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var tokens = [];
+  var re = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*")|('(?:[^'\\]|\\.)*')|(\b(?:package|import|public|private|static|void|int|boolean|class|do|while|if|for|continue|break|new|return|true|false)\b)|(\b(?:Scanner|String|System|Character)\b)|(\b(?:main|nextLine|length|charAt|println|print|isDigit|close)\b)|(\b(?:scanner|username|valid|hasSpace|hasDigit|args|i)\b)|(\b\d+\b)/g;
+  var lastIdx = 0, m;
+  while((m = re.exec(escaped)) !== null){
+    if(m.index > lastIdx) tokens.push(escaped.substring(lastIdx, m.index));
+    if(m[1]) tokens.push('<span class="cm">' + m[1] + '</span>');
+    else if(m[2]) tokens.push('<span class="str">' + m[2] + '</span>');
+    else if(m[3]) tokens.push('<span class="str">' + m[3] + '</span>');
+    else if(m[4]) tokens.push('<span class="kw">' + m[4] + '</span>');
+    else if(m[5]) tokens.push('<span class="tp">' + m[5] + '</span>');
+    else if(m[6]) tokens.push('<span class="fn">' + m[6] + '</span>');
+    else if(m[7]) tokens.push('<span class="vr">' + m[7] + '</span>');
+    else if(m[8]) tokens.push('<span class="nu">' + m[8] + '</span>');
+    lastIdx = re.lastIndex;
+  }
+  if(lastIdx < escaped.length) tokens.push(escaped.substring(lastIdx));
+  return tokens.join('');
+}
+
+function renderCode(activePhase,extra){
+  extra=extra||{};
+  var html='';
+  var activeLine=-1;
+  var activeClass='cl-active';
+  var annotation='';
+
+  // Determine active line and annotation based on phase
+  switch(activePhase){
+    case 'idle':break;
+    case 'do_start':
+      activeLine=LINE.DO;activeClass='cl-loop';annotation='<span class="annot annot-flow">\u25B6 entering do-while loop</span>';break;
+    case 'read_input':
+      activeLine=LINE.READ_INPUT;annotation='<span class="annot annot-var">username = "'+username+'"</span>';break;
+    case 'valid_true':
+      activeLine=LINE.VALID_TRUE;annotation='<span class="annot annot-var">valid = true</span>';break;
+    case 'r1_check':
+      activeLine=LINE.R1_IF;
+      var lenOk=username.length>=6&&username.length<=12;
+      annotation='<span class="annot annot-var">length = '+username.length+'</span> <span class="annot '+(lenOk?'annot-ok':'annot-fail')+'">'+(lenOk?'\u2713 passes':'\u2717 fails (need 6-12)')+'</span>';
+      break;
+    case 'r1_fail_print':
+      activeLine=LINE.R1_PRINT;activeClass='cl-fail';annotation='<span class="annot annot-fail">"Error: Must be 6-12 chars"</span>';break;
+    case 'r1_valid_false':
+      activeLine=LINE.R1_VALID_FALSE;activeClass='cl-fail';annotation='<span class="annot annot-var">valid = false</span>';break;
+    case 'r1_continue':
+      activeLine=LINE.R1_CONTINUE;activeClass='cl-continue';annotation='<span class="annot annot-flow">\u21B7 skip to while(!valid)</span>';break;
+    case 'r2_init':
+      activeLine=LINE.R2_HASSPACE;activeClass='cl-scan';annotation='<span class="annot annot-var">hasSpace = false</span>';break;
+    case 'r2_for':
+      activeLine=LINE.R2_FOR;activeClass='cl-scan';
+      annotation='<span class="annot annot-var">i = '+scanIdx+' &lt; '+username.length+'</span> <span class="annot annot-ok">\u2713</span>';break;
+    case 'r2_check_char':
+      activeLine=LINE.R2_IF_SPACE;activeClass='cl-scan';
+      var ch=username[scanIdx]||'?';var isSp=ch===' ';
+      annotation='<span class="annot annot-var">charAt('+scanIdx+') = \''+ch+'\'</span> <span class="annot '+(isSp?'annot-fail':'annot-ok')+'">'+(isSp?'\u2717 SPACE!':'\u2713 not space')+'</span>';
+      break;
+    case 'r2_set_true':
+      activeLine=LINE.R2_SET_TRUE;activeClass='cl-fail';annotation='<span class="annot annot-var">hasSpace = true</span>';break;
+    case 'r2_break':
+      activeLine=LINE.R2_BREAK;activeClass='cl-break';annotation='<span class="annot annot-flow">\u21E5 exit for loop</span>';break;
+    case 'r2_for_done':
+      activeLine=LINE.R2_FOR;activeClass='cl-pass';
+      annotation='<span class="annot annot-var">i = '+username.length+' &lt; '+username.length+'</span> <span class="annot annot-fail">\u2717 loop ends</span>';break;
+    case 'r2_check':
+      activeLine=LINE.R2_CHECK;
+      annotation='<span class="annot annot-var">hasSpace = '+hasSpace+'</span> <span class="annot '+(hasSpace?'annot-fail':'annot-ok')+'">'+(hasSpace?'\u2717 has spaces':'\u2713 no spaces')+'</span>';
+      activeClass=hasSpace?'cl-fail':'cl-pass';break;
+    case 'r2_fail_print':
+      activeLine=LINE.R2_PRINT;activeClass='cl-fail';annotation='<span class="annot annot-fail">"Error: No spaces allowed"</span>';break;
+    case 'r2_valid_false':
+      activeLine=LINE.R2_VALID_FALSE;activeClass='cl-fail';annotation='<span class="annot annot-var">valid = false</span>';break;
+    case 'r2_continue':
+      activeLine=LINE.R2_CONTINUE;activeClass='cl-continue';annotation='<span class="annot annot-flow">\u21B7 skip to while(!valid)</span>';break;
+    case 'r3_init':
+      activeLine=LINE.R3_HASDIGIT;activeClass='cl-scan';annotation='<span class="annot annot-var">hasDigit = false</span>';break;
+    case 'r3_for':
+      activeLine=LINE.R3_FOR;activeClass='cl-scan';
+      annotation='<span class="annot annot-var">i = '+scanIdx+' &lt; '+username.length+'</span> <span class="annot annot-ok">\u2713</span>';break;
+    case 'r3_check_char':
+      activeLine=LINE.R3_IF_DIGIT;activeClass='cl-scan';
+      var ch=username[scanIdx]||'?';var isD=/\d/.test(ch);
+      annotation='<span class="annot annot-var">charAt('+scanIdx+') = \''+ch+'\'</span> <span class="annot '+(isD?'annot-ok':'annot-fail')+'">'+(isD?'\u2713 DIGIT!':'\u2717 not digit')+'</span>';
+      break;
+    case 'r3_set_true':
+      activeLine=LINE.R3_SET_TRUE;activeClass='cl-pass';annotation='<span class="annot annot-var">hasDigit = true</span>';break;
+    case 'r3_break':
+      activeLine=LINE.R3_BREAK;activeClass='cl-break';annotation='<span class="annot annot-flow">\u21E5 exit for loop</span>';break;
+    case 'r3_for_done':
+      activeLine=LINE.R3_FOR;activeClass='cl-pass';
+      annotation='<span class="annot annot-var">i = '+username.length+' &lt; '+username.length+'</span> <span class="annot annot-fail">\u2717 loop ends</span>';break;
+    case 'r3_check':
+      activeLine=LINE.R3_CHECK;
+      annotation='<span class="annot annot-var">hasDigit = '+hasDigit+'</span> <span class="annot '+(hasDigit?'annot-ok':'annot-fail')+'">'+(hasDigit?'\u2713 has digit':'\u2717 no digit!')+'</span>';
+      activeClass=hasDigit?'cl-pass':'cl-fail';break;
+    case 'r3_fail_print':
+      activeLine=LINE.R3_PRINT;activeClass='cl-fail';annotation='<span class="annot annot-fail">"Error: Need at least 1 digit"</span>';break;
+    case 'r3_valid_false':
+      activeLine=LINE.R3_VALID_FALSE;activeClass='cl-fail';annotation='<span class="annot annot-var">valid = false</span>';break;
+    case 'valid_check':
+      activeLine=LINE.R4_IF_VALID;
+      annotation='<span class="annot annot-var">valid = '+valid+'</span> <span class="annot '+(valid?'annot-ok':'annot-fail')+'">'+(valid?'\u2713 accepted!':'\u2717 not valid')+'</span>';
+      activeClass=valid?'cl-pass':'cl-fail';break;
+    case 'valid_print':
+      activeLine=LINE.R4_PRINT;activeClass='cl-pass';annotation='<span class="annot annot-ok">"Username accepted: '+username+'"</span>';break;
+    case 'while_check':
+      activeLine=LINE.WHILE;activeClass='cl-loop';
+      annotation='<span class="annot annot-var">!valid = '+(!valid)+'</span> <span class="annot '+(valid?'annot-ok':'annot-flow')+'">'+(valid?'\u2713 exit loop':'\u21BA loop again!')+'</span>';
+      break;
+    case 'complete':
+      activeLine=LINE.WHILE;activeClass='cl-pass';annotation='<span class="annot annot-ok">\u2713 DONE — loop exits</span>';break;
+  }
+
+  for(var k=0;k<javaCode.length;k++){
+    var raw=javaCode[k];
+    var cls='cl';
+    var suffix='';
+    if(k===activeLine){
+      cls+=' '+activeClass;
+      if(annotation)suffix=annotation;
+    }
+    html+='<span class="'+cls+'">'+(k===activeLine?'<span class="exec-ptr">\u25B6</span>':' ')+syntaxHL(raw)+suffix+'</span>\n';
+  }
+
+  setHTML('cd',html);
+
+  // Auto-scroll to active line
+  var cdEl=el('cd');
+  if(cdEl&&activeLine>=0){
+    var lineH=cdEl.scrollHeight/javaCode.length;
+    var target=Math.max(0,activeLine*lineH-cdEl.clientHeight/2);
+    cdEl.scrollTop=target;
+  }
+}
+
+/* ============================================================
+   PHASE ADVANCEMENT
+   ============================================================ */
+function advancePhase(){
+  switch(phase){
+    case 'do_start':
+      renderCode('do_start');
+      showFlow('DO-WHILE LOOP','entering loop body (iteration #'+loopCount+')');
+      updateConceptBadge('DO-WHILE','RUNS AT LEAST ONCE','The loop body executes before the condition is checked');
+      sndLoop();
+      phase='read_input';
+      break;
+
+    case 'read_input':
+      renderCode('read_input');
+      showFlow('READ INPUT','username = "'+username+'"');
+      setText('s-status','READING');el('s-status').className='sv warn';
+      phase='valid_true';
+      break;
+
+    case 'valid_true':
+      renderCode('valid_true');
+      valid=true;
+      showFlow('ASSUME VALID','valid = true (optimistic)');
+      phase='r1_check';
+      break;
+
+    case 'r1_check':
+      renderCode('r1_check');
+      el('rule1-box').className='rule-box active';
+      setText('rule1-status','CHECKING...');el('rule1-status').className='rule-status checking';
+      setText('s-status','RULE 1');el('s-status').className='sv warn';
+      setAllCubes('highlight');
+      showFlow('RULE 1: LENGTH CHECK','username.length() = '+username.length+' (need 6-12)');
+      updateConceptBadge('IF STATEMENT','CONDITION CHECK','Evaluates whether length is in valid range');
+
+      // Show rule label
+      ruleLabelSprites[0].material.opacity=0.8;
+
+      if(username.length<6||username.length>12){
+        phase='r1_fail';
+      }else{
+        phase='r1_pass';
+      }
+      break;
+
+    case 'r1_pass':
+      setAllCubes('passed');
+      burstAt(0,2,0,0x39ff14,10);sndPass();
+      el('rule1-box').className='rule-box passed';
+      setText('rule1-status','\u2713 PASSED (length='+username.length+')');el('rule1-status').className='rule-status pass';
+      renderCode('r1_check');
+      showFlow('RULE 1 PASSED','\u2713 length '+username.length+' is between 6-12');
+      phase='r2_init';
+      break;
+
+    case 'r1_fail':
+      setAllCubes('failed');
+      burstAt(0,2,0,0xff4444,10);sndFail();
+      el('rule1-box').className='rule-box failed';
+      var reason=username.length<6?'too short ('+username.length+' < 6)':'too long ('+username.length+' > 12)';
+      setText('rule1-status','\u2717 FAILED: '+reason);el('rule1-status').className='rule-status fail';
+      showFlow('RULE 1 FAILED','\u2717 '+reason);
+      renderCode('r1_fail_print');
+      phase='r1_valid_false';
+      break;
+
+    case 'r1_valid_false':
+      valid=false;
+      renderCode('r1_valid_false');
+      showFlow('SET INVALID','valid = false');
+      phase='r1_continue';
+      break;
+
+    case 'r1_continue':
+      renderCode('r1_continue');
+      showFlow('CONTINUE!','Skips Rules 2 & 3 \u2014 jumps to while(!valid)');
+      updateConceptBadge('CONTINUE','SKIP REMAINING','Jumps to the while condition, skipping all code below');
+      sndContinue();
+      continueFrom='rule1';
+      phase='while_check';
+      break;
+
+    // ---- RULE 2: No spaces ----
+    case 'r2_init':
+      hasSpace=false;spaceFoundIdx=-1;scanIdx=0;
+      renderCode('r2_init');
+      el('rule2-box').className='rule-box active';
+      setText('rule2-status','CHECKING...');el('rule2-status').className='rule-status checking';
+      setText('s-status','RULE 2');el('s-status').className='sv warn';
+      setAllCubes('idle');
+      showFlow('RULE 2: NO SPACES','Scanning each character...');
+      updateConceptBadge('FOR LOOP','CHARACTER SCAN','Checks every character one by one');
+      ruleLabelSprites[1].material.opacity=0.8;
+      phase='r2_for';
+      break;
+
+    case 'r2_for':
+      if(scanIdx>=username.length){
+        // for loop condition fails — loop ends naturally
+        renderCode('r2_for_done');
+        if(scanBeam)scanBeam.material.opacity=0;
+        phase='r2_check';
+        break;
+      }
+      renderCode('r2_for');
+      setText('s-idx',scanIdx);
+      // Move scan beam
+      if(scanBeam&&charCubes[scanIdx]){
+        scanBeam.position.x=charCubes[scanIdx].origX;
+        scanBeam.position.y=CUBE_SIZE;
+        scanBeam.material.opacity=0.4;
+        scanBeam.material.color.setHex(0x00d4ff);
+      }
+      setCubeColor(scanIdx,'scanning');
+      sndScan(scanIdx,username.length);
+      phase='r2_check_char';
+      break;
+
+    case 'r2_check_char':
+      var ch=username[scanIdx];
+      renderCode('r2_check_char');
+      if(ch===' '){
+        // Found space!
+        setCubeColor(scanIdx,'space');
+        hasSpace=true;
+        spaceFoundIdx=scanIdx;
+        burstAt(charCubes[scanIdx].origX,1.5,0,0xff4444,8);
+        showFlow('SPACE FOUND!','charAt('+scanIdx+') = \' \' (space)');
+        phase='r2_set_true';
+      }else{
+        setCubeColor(scanIdx,'checked');
+        showFlow('SCANNING...','charAt('+scanIdx+') = \''+ch+'\' \u2014 not a space');
+        scanIdx++;
+        phase='r2_for';
+      }
+      break;
+
+    case 'r2_set_true':
+      renderCode('r2_set_true');
+      showFlow('SPACE DETECTED','hasSpace = true');
+      phase='r2_break';
+      break;
+
+    case 'r2_break':
+      renderCode('r2_break');
+      showFlow('BREAK!','Exit the for loop early \u2014 no need to check more');
+      updateConceptBadge('BREAK','EXIT LOOP EARLY','Found what we were looking for, stop scanning');
+      sndBreak();
+      if(scanBeam)scanBeam.material.opacity=0;
+      phase='r2_check';
+      break;
+
+    case 'r2_check':
+      renderCode('r2_check');
+      if(hasSpace){
+        el('rule2-box').className='rule-box failed';
+        setText('rule2-status','\u2717 FAILED: space at index '+spaceFoundIdx);el('rule2-status').className='rule-status fail';
+        showFlow('RULE 2 FAILED','\u2717 Space found at position '+spaceFoundIdx);
+        sndFail();
+        phase='r2_fail_print';
+      }else{
+        el('rule2-box').className='rule-box passed';
+        setText('rule2-status','\u2713 PASSED: no spaces');el('rule2-status').className='rule-status pass';
+        showFlow('RULE 2 PASSED','\u2713 No spaces found');
+        setAllCubes('passed');
+        burstAt(0,2,0,0x39ff14,10);sndPass();
+        phase='r3_init';
+      }
+      break;
+
+    case 'r2_fail_print':
+      renderCode('r2_fail_print');
+      phase='r2_valid_false';
+      break;
+
+    case 'r2_valid_false':
+      valid=false;
+      renderCode('r2_valid_false');
+      showFlow('SET INVALID','valid = false');
+      phase='r2_continue';
+      break;
+
+    case 'r2_continue':
+      renderCode('r2_continue');
+      showFlow('CONTINUE!','Skips Rule 3 \u2014 jumps to while(!valid)');
+      updateConceptBadge('CONTINUE','SKIP REMAINING','Why check for digits if we already know it\'s invalid?');
+      sndContinue();
+      continueFrom='rule2';
+      phase='while_check';
+      break;
+
+    // ---- RULE 3: Has digit ----
+    case 'r3_init':
+      hasDigit=false;digitFoundIdx=-1;scanIdx=0;
+      renderCode('r3_init');
+      el('rule3-box').className='rule-box active';
+      setText('rule3-status','CHECKING...');el('rule3-status').className='rule-status checking';
+      setText('s-status','RULE 3');el('s-status').className='sv warn';
+      setAllCubes('idle');
+      showFlow('RULE 3: HAS DIGIT','Scanning for at least one digit...');
+      updateConceptBadge('FOR LOOP','DIGIT SCAN','Looking for any character 0-9');
+      ruleLabelSprites[2].material.opacity=0.8;
+      phase='r3_for';
+      break;
+
+    case 'r3_for':
+      if(scanIdx>=username.length){
+        renderCode('r3_for_done');
+        if(scanBeam)scanBeam.material.opacity=0;
+        phase='r3_check';
+        break;
+      }
+      renderCode('r3_for');
+      setText('s-idx',scanIdx);
+      if(scanBeam&&charCubes[scanIdx]){
+        scanBeam.position.x=charCubes[scanIdx].origX;
+        scanBeam.position.y=CUBE_SIZE;
+        scanBeam.material.opacity=0.4;
+        scanBeam.material.color.setHex(0x39ff14);
+      }
+      setCubeColor(scanIdx,'scanning');
+      sndScan(scanIdx,username.length);
+      phase='r3_check_char';
+      break;
+
+    case 'r3_check_char':
+      var ch=username[scanIdx];
+      var isD=/\d/.test(ch);
+      renderCode('r3_check_char');
+      if(isD){
+        setCubeColor(scanIdx,'digit');
+        hasDigit=true;
+        digitFoundIdx=scanIdx;
+        burstAt(charCubes[scanIdx].origX,1.5,0,0x39ff14,8);
+        showFlow('DIGIT FOUND!','charAt('+scanIdx+') = \''+ch+'\' is a digit!');
+        phase='r3_set_true';
+      }else{
+        setCubeColor(scanIdx,'checked');
+        showFlow('SCANNING...','charAt('+scanIdx+') = \''+ch+'\' \u2014 not a digit');
+        scanIdx++;
+        phase='r3_for';
+      }
+      break;
+
+    case 'r3_set_true':
+      renderCode('r3_set_true');
+      showFlow('DIGIT FOUND','hasDigit = true');
+      phase='r3_break';
+      break;
+
+    case 'r3_break':
+      renderCode('r3_break');
+      showFlow('BREAK!','Exit the for loop early \u2014 one digit is enough');
+      updateConceptBadge('BREAK','EXIT LOOP EARLY','We only need ONE digit, so stop scanning');
+      sndBreak();
+      if(scanBeam)scanBeam.material.opacity=0;
+      phase='r3_check';
+      break;
+
+    case 'r3_check':
+      renderCode('r3_check');
+      if(!hasDigit){
+        el('rule3-box').className='rule-box failed';
+        setText('rule3-status','\u2717 FAILED: no digits');el('rule3-status').className='rule-status fail';
+        showFlow('RULE 3 FAILED','\u2717 No digits found in entire string');
+        setAllCubes('failed');
+        sndFail();
+        phase='r3_fail_print';
+      }else{
+        el('rule3-box').className='rule-box passed';
+        setText('rule3-status','\u2713 PASSED: digit at index '+digitFoundIdx);el('rule3-status').className='rule-status pass';
+        showFlow('RULE 3 PASSED','\u2713 Digit found at position '+digitFoundIdx);
+        sndPass();
+        // Color all cubes passed, highlight the digit
+        setAllCubes('passed');
+        setCubeColor(digitFoundIdx,'digit');
+        phase='valid_check';
+      }
+      break;
+
+    case 'r3_fail_print':
+      renderCode('r3_fail_print');
+      phase='r3_valid_false';
+      break;
+
+    case 'r3_valid_false':
+      valid=false;
+      renderCode('r3_valid_false');
+      showFlow('SET INVALID','valid = false');
+      phase='valid_check';
+      break;
+
+    // ---- Final valid check ----
+    case 'valid_check':
+      renderCode('valid_check');
+      if(valid){
+        showFlow('ALL RULES PASSED','valid is still true!');
+        phase='valid_print';
+      }else{
+        showFlow('VALIDATION FAILED','valid = false, skipping acceptance');
+        phase='while_check';
+      }
+      break;
+
+    case 'valid_print':
+      renderCode('valid_print');
+      showFlow('USERNAME ACCEPTED','"'+username+'" passed all 3 rules!');
+      sndPass();
+      phase='while_check';
+      break;
+
+    case 'while_check':
+      renderCode('while_check');
+      updateConceptBadge('WHILE CHECK','LOOP CONDITION','!valid = '+(!valid)+' \u2014 '+(valid?'false means EXIT loop':'true means LOOP AGAIN'));
+      if(valid){
+        showFlow('LOOP EXITS','!valid = false \u2014 condition is false, loop ends');
+        phase='complete';
+      }else{
+        showFlow('LOOP AGAIN!','!valid = true \u2014 condition is true, go back to do{}');
+        phase='loop_back';
+      }
+      break;
+
+    case 'loop_back':
+      // Just like the real program — pause and wait for new input.
+      // The user types a new username, then presses Play or Enter.
+      loopCount++;
+      setText('s-loop',loopCount);
+
+      // Reset rule boxes
+      for(var i=1;i<=3;i++){el('rule'+i+'-box').className='rule-box';setText('rule'+i+'-status','')}
+      for(var i=0;i<ruleLabelSprites.length;i++)ruleLabelSprites[i].material.opacity=0;
+
+      // Reset cubes to idle look
+      setAllCubes('idle');
+      if(scanBeam)scanBeam.material.opacity=0;
+
+      showFlow('LOOP BACK \u2014 ENTER NEW USERNAME','Type a new username and press PLAY or ENTER to try again');
+      updateConceptBadge('DO-WHILE','WAITING FOR INPUT','Just like scanner.nextLine() \u2014 the program waits for you');
+      setText('s-status','INPUT');el('s-status').className='sv warn';
+      sndLoop();
+      renderCode('do_start');
+
+      // Pause and focus the input field so user can type
+      playing=false;
+      setPlayBtn(false);
+      phase='waiting_input';
+      el('uname-input').focus();
+      el('uname-input').select();
+      break;
+
+    case 'waiting_input':
+      // User must type and press Play or Enter — re-read the input
+      username=el('uname-input').value||'player1';
+      setText('s-uname',username);
+      setText('s-len',username.length);
+      buildCharCubes(username);
+
+      valid=true;hasSpace=false;hasDigit=false;
+      spaceFoundIdx=-1;digitFoundIdx=-1;scanIdx=0;
+
+      phase='do_start';
+      break;
+
+    case 'complete':
+      renderCode('complete');
+      setText('s-status','VALID!');el('s-status').className='sv pass';
+      showFlow('VALIDATION COMPLETE','\u2713 "'+username+'" is a valid username!');
+      updateConceptBadge('COMPLETE','ALL RULES PASSED','The do-while loop exits because valid = true');
+      sndComplete();
+
+      // Celebration animation
+      setAllCubes('celebrate');
+      for(var i=0;i<charCubes.length;i++){
+        (function(idx){
+          setTimeout(function(){
+            if(charCubes[idx])burstAt(charCubes[idx].origX,1.5,0,0x39ff14,5);
+          },idx*80);
+        })(i);
+      }
+      // Screen flash
+      var fl=el('flash');if(fl){fl.classList.remove('go');void fl.offsetWidth;fl.classList.add('go')}
+
+      playing=false;
+      setPlayBtn(false);
+      phase='complete';
+      break;
+  }
+}
+
+/* ============================================================
+   SPEED SLIDER
+   ============================================================ */
+el('sl-speed').addEventListener('input',function(){setText('sv-speed',this.value)});
+
+/* ============================================================
+   PRESET BUTTONS
+   ============================================================ */
+document.querySelectorAll('.preset-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var u=this.getAttribute('data-u');
+    setUsername(u);
+    document.querySelectorAll('.preset-btn').forEach(function(b){b.classList.remove('active')});
+    this.classList.add('active');
+  });
+});
+
+// Username input — live update cubes on every keystroke
+el('uname-input').addEventListener('input',function(){
+  var u=this.value;
+  // Clear preset highlight when user types custom text
+  document.querySelectorAll('.preset-btn').forEach(function(b){b.classList.remove('active')});
+
+  if(phase==='waiting_input'){
+    // In the do-while "waiting for input" state — just rebuild cubes, keep loop count
+    username=u;
+    setText('s-uname',u);
+    setText('s-len',u.length);
+    buildCharCubes(u);
+    showFlow('LOOP BACK \u2014 ENTER NEW USERNAME','Type a new username and press PLAY or ENTER');
+  }else{
+    // If playing or mid-animation, reset first
+    if(playing||phase!=='idle') resetViz();
+    // Update state and rebuild cubes live
+    username=u;
+    setText('s-uname',u);
+    setText('s-len',u.length);
+    buildCharCubes(u);
+    renderCode('idle');
+  }
+});
+el('uname-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    // Apply whatever is typed and start validation
+    username=this.value;
+    if(playing||phase!=='idle') resetViz();
+    buildCharCubes(username);
+    setText('s-uname',username);
+    setText('s-len',username.length);
+    togglePlay();
+  }
+});
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+   ============================================================ */
+function toggleInfo(){var o=el('info-overlay');o.classList.toggle('show')}
+
+window.addEventListener('keydown',function(e){
+  // Don't capture when typing in input
+  if(document.activeElement===el('uname-input'))return;
+
+  switch(e.key){
+    case ' ':e.preventDefault();togglePlay();break;
+    case 's':case 'S':stepOnce();break;
+    case 'r':case 'R':resetViz();break;
+    case 'm':case 'M':toggleSound();break;
+    case 'o':case 'O':toggleOrbit();break;
+    case '?':toggleInfo();break;
+    case 'Escape':var o=el('info-overlay');if(o.classList.contains('show'))o.classList.remove('show');break;
+    case 'ArrowLeft':var s=el('sl-speed');s.value=Math.max(1,parseInt(s.value)-1);setText('sv-speed',s.value);break;
+    case 'ArrowRight':var s=el('sl-speed');s.value=Math.min(10,parseInt(s.value)+1);setText('sv-speed',s.value);break;
+    case '1':setUsername(presets[0]);break;
+    case '2':setUsername(presets[1]);break;
+    case '3':setUsername(presets[2]);break;
+    case '4':setUsername(presets[3]);break;
+  }
+});
+
+/* ============================================================
+   CODE PANEL RESIZE (left, bottom, bottom-left)
+   Top-right corner stays anchored.
+   ============================================================ */
+(function(){
+  var cp=el('cp');if(!cp)return;
+  var handles=cp.querySelectorAll('.cp-resize');
+  var dragging=null,startX,startY,startW,startH,startLeft;
+
+  function onDown(e){
+    e.preventDefault();e.stopPropagation();
+    dragging=this.getAttribute('data-resize');
+    var rect=cp.getBoundingClientRect();
+    startW=rect.width;startH=rect.height;startLeft=rect.left;
+    var ev=e.touches?e.touches[0]:e;
+    startX=ev.clientX;startY=ev.clientY;
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onUp);
+  }
+
+  function onMove(e){
+    if(!dragging)return;
+    e.preventDefault();
+    var ev=e.touches?e.touches[0]:e;
+    var dx=ev.clientX-startX, dy=ev.clientY-startY;
+
+    if(dragging==='left'||dragging==='bl'){
+      // Dragging left edge: dx negative = wider, positive = narrower
+      var newW=Math.max(200,startW-dx);
+      cp.style.width=newW+'px';
+    }
+    if(dragging==='bottom'||dragging==='bl'){
+      var newH=Math.max(150,startH+dy);
+      cp.style.height=newH+'px';
+      cp.style.maxHeight='none';
+    }
+  }
+
+  function onUp(){
+    dragging=null;
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onUp);
+  }
+
+  handles.forEach(function(h){
+    h.addEventListener('mousedown',onDown);
+    h.addEventListener('touchstart',onDown,{passive:false});
+  });
+})();
+
+/* ============================================================
+   ANIMATION LOOP
+   ============================================================ */
+var clock=new THREE.Clock(),lt=performance.now();
+
+function animate(){
+  requestAnimationFrame(animate);
+  var now=performance.now(),dt=Math.min((now-lt)/1000,0.1);lt=now;
+
+  // Auto-advance phases when playing
+  if(playing&&phase!=='complete'&&phase!=='idle'){
+    accum+=dt;
+    var delay=getDelay();
+    if(accum>=delay){accum=0;advancePhase()}
+  }
+
+  // Animate cube bounces
+  var t=clock.getElapsedTime();
+  for(var i=0;i<charCubes.length;i++){
+    var c=charCubes[i];
+    if(c.state==='scanning'){
+      c.mesh.position.y=c.baseY+Math.sin(t*6+i)*0.15;
+      c.mesh.rotation.y=Math.sin(t*3+i)*0.1;
+    }else if(c.state==='celebrate'){
+      c.mesh.position.y=c.baseY+Math.abs(Math.sin(t*4+i*0.5))*0.4;
+      c.mesh.rotation.y=t*0.5+i*0.3;
+    }else if(c.state==='failed'||c.state==='space'){
+      c.mesh.position.y=c.baseY+Math.sin(t*8+i)*0.05;
+      c.mesh.rotation.x=Math.sin(t*4)*0.05;
+    }else if(c.state==='digit'){
+      c.mesh.position.y=c.baseY+Math.abs(Math.sin(t*5+i))*0.2;
+    }else{
+      // Settle back
+      c.mesh.position.y+=(c.baseY-c.mesh.position.y)*0.1;
+      c.mesh.rotation.y*=0.95;
+      c.mesh.rotation.x*=0.95;
+    }
+  }
+
+  // Scan beam pulse
+  if(scanBeam&&scanBeam.material.opacity>0){
+    scanBeam.material.opacity=0.3+Math.sin(t*8)*0.15;
+    scanBeam.scale.x=1+Math.sin(t*6)*0.3;
+  }
+
+  // Auto-rotate camera
+  if(!isDragging){
+    idleTime+=dt;
+    if(autoRotateEnabled&&idleTime>IDLE_THRESH){autoRotate=true}
+    if(autoRotate){camTheta+=dt*0.15;updateCam()}
+  }
+
+  // Rotate stars
+  starMesh.rotation.y+=dt*0.006;
+  starMesh.rotation.x+=dt*0.002;
+
+  // Nebula drift
+  for(var ni=0;ni<nebulae.length;ni++){
+    nebulae[ni].position.x+=Math.sin(t*0.04+ni*2)*0.002;
+    nebulae[ni].position.y+=Math.cos(t*0.03+ni*1.5)*0.001;
+  }
+
+  // Planet rotation
+  if(planet1)planet1.rotation.y+=dt*0.05;
+  if(planet2)planet2.rotation.y+=dt*0.03;
+
+  // Rule label float
+  for(var i=0;i<ruleLabelSprites.length;i++){
+    if(ruleLabelSprites[i].material.opacity>0){
+      ruleLabelSprites[i].position.y=4+Math.sin(t*0.8+i)*0.2;
+    }
+  }
+
+  updateParticles(dt);
+  renderer.render(scene,camera);
+}
+
+/* ============================================================
+   RESIZE
+   ============================================================ */
+window.addEventListener('resize',function(){
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildCharCubes(username);
+renderCode('idle');
+animate();
+</script>
+</body>
+</html>
