@@ -7,3 +7,7 @@ QA automation courses/
 
 # Claude Code reference/teaching material (read-only)
 everything-claude-code-main/
+claude-code-main/
+
+# Claude Code local config
+.claude/

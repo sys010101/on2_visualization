@@ -1,10 +1,8 @@
-# Java Code Visualizer
+# [Project Name]
 
 <!-- ============================================================ -->
-<!-- PORTABLE TEMPLATE: A clean, project-agnostic version of the  -->
-<!-- universal sections (Overmind Protocol + Player Hotkeys) lives -->
-<!-- in CLAUDE_TEMPLATE.md. Drop it into any new project folder,  -->
-<!-- rename to CLAUDE.md, and fill in the bottom sections.        -->
+<!-- PORTABLE TEMPLATE — drop into any project folder, rename to  -->
+<!-- CLAUDE.md, and fill in the project-specific sections below.  -->
 <!-- ============================================================ -->
 
 <!-- ============================================================ -->
@@ -19,7 +17,8 @@
 <!-- Where to find guides, examples, and best practices.          -->
 <!-- Claude will consult these when it needs patterns/references. -->
 ### Reference Material
-`everything-claude-code-main/` and `claude-code-main/` are read-only teaching/reference resources. **NEVER modify anything inside them.** Consult them when you need patterns, best practices, or architectural guidance.
+<!-- List any read-only reference folders here. Example:           -->
+<!-- `docs/` and `references/` are read-only. NEVER modify them.  -->
 
 <!-- How Claude spawns sub-agents for parallel work.              -->
 <!-- Think of it like a Zerg player building units — each agent   -->
@@ -38,11 +37,11 @@
 <!-- Rules Claude must follow when writing or modifying code.     -->
 <!-- These prevent common bugs and keep quality high.             -->
 ### Code Quality Standards
-- **Security-first**: No `eval()`, no `new Function()`, no hardcoded secrets. Use safe parsers (recursive-descent). Validate inputs at system boundaries.
+- **Security-first**: No `eval()`, no `new Function()`, no hardcoded secrets. Use safe parsers. Validate inputs at system boundaries.
 - **Immutability preferred**: Create new objects over mutation when practical
-- **Memory safety**: `.dispose()` all Three.js geometries, materials, textures. Cap particle pools with `MAX_PARTICLES`.
-- **Small and focused**: Functions < 50 lines. Keep single-file HTML architecture but use clearly commented sections.
+- **Small and focused**: Functions < 50 lines. Files < 800 lines.
 - **Match existing patterns**: Read code before editing. Don't introduce new conventions. Smallest viable change.
+<!-- Add project-specific quality rules below this line:          -->
 
 <!-- How Claude talks to you. Tailored to your learning style.   -->
 ### Communication Style
@@ -70,9 +69,13 @@
 <!-- BEFORE claiming success. Adapt the commands to your stack.   -->
 ### Forced Verification Loop
 - You are **FORBIDDEN** from reporting a task as complete until you have verified the result works.
-- For JS/TS projects: run the project's type-checker and linter after edits.
-- For this project (single HTML files): after edits, re-read the modified section and confirm no syntax errors, unclosed tags, or broken references.
-- For Java files (course exercises): `javac <file>.java` or `mvn compile` / `gradle build`.
+- After edits, run the project's type-checker/linter/build command. Examples:
+  - JS/TS: `npx tsc --noEmit` and `npx eslint . --quiet`
+  - Java: `javac <file>.java` or `mvn compile` / `gradle build`
+  - Python: `python -m py_compile <file>` or `mypy`
+  - Go: `go build ./...`
+  - HTML (no build): re-read modified sections and confirm no syntax errors, unclosed tags, or broken references.
+<!-- Customize the verification command for your stack above.     -->
 - If no automated checker exists, **state that explicitly** instead of claiming success blindly.
 
 <!-- Claude's default: "try the simplest approach first" and      -->
@@ -197,115 +200,25 @@ These are YOUR controls — type them in the Claude Code input. The Overmind can
 
 <!-- ============================================================ -->
 <!-- SECTION 3: PROJECT-SPECIFIC                                  -->
-<!-- Everything below here is specific to THIS project.           -->
-<!-- When using CLAUDE_TEMPLATE.md for a new project, you'd      -->
-<!-- replace everything from here down with your own project info.-->
+<!-- Everything below here is specific to YOUR project.           -->
+<!-- Replace these placeholders with your own project info.       -->
 <!-- ============================================================ -->
 
 ## Project Overview
 
-A collection of single-file 3D visualizations that teach Java programming concepts to people with little or no coding background. Instead of dry explanations, each visualization **shows** how the code executes — making abstract concepts tangible.
-
-Built as standalone HTML files using Three.js (r128) — no build step, no dependencies to install. Open in a browser and go.
-
-<!-- Master list of all visualizations. Add new ones here.        -->
-### Visualizations
-
-| File | Concept | Description |
-|------|---------|-------------|
-| `on2_visualization.html` | O(N²) nested loops | 3D NxN grid of cubes that light up as nested `for` loops run |
-| `username_validator_vis.html` | do-while / continue / break | 3D character cubes scanned by sequential validation rules |
+<!-- Describe what this project does, who it's for, and why.     -->
 
 ## Target Audience
 
-People who are visual learners and want to understand Big-O complexity without heavy math. The project prioritizes intuition over formalism. Originally built as a learning aid for QA Automation Engineers studying basic programming concepts.
+<!-- Who uses this? What's their skill level?                     -->
 
 ## Tech Stack
 
-- **Single HTML file** — all CSS, HTML, and JS inline
-- **Three.js r128** (CDN) — 3D rendering, particles, lighting
-- **Web Audio API** — procedural sound effects (no external audio files)
-- **Vanilla JS** — no frameworks, no build tools
+<!-- Languages, frameworks, libraries, build tools.               -->
 
-<!-- These patterns are shared across ALL visualizations.         -->
-<!-- When building a new vis, copy these foundations.              -->
 ## Architecture
 
-Each visualization is a single HTML file with inline CSS, HTML, and JS, organized into clearly commented sections. Shared patterns across all visualizations:
-
-- **Three.js r128** scene with renderer, camera, lights, orbit controls
-- **Space background** — multi-color starfield, procedural nebulae, distant planets with glow
-- **Web Audio API** — procedural sound effects (no external audio files)
-- **Syntax-highlighted code panel** — shows the Java source with live execution annotations
-- **Particle system** — pool-limited for GPU safety
-- **Keyboard shortcuts** — consistent across visualizations (Space, S, R, M, ?, Esc)
-
-<!-- ============================================================ -->
-<!-- VISUALIZATION DOCS                                           -->
-<!-- Each visualization gets its own section with features,       -->
-<!-- keyboard shortcuts, and any special notes.                   -->
-<!-- ============================================================ -->
-
-## O(N²) Loop Visualizer (`on2_visualization.html`)
-
-### Features
-- 3D NxN grid of cubes representing nested loop iterations
-- Adjustable N (3–14), speed, and lighting via sliders
-- Live Java code editor — edit the loop bounds and see the grid adapt
-- **Live debugger view** — value substitution, execution pointer, condition evaluation (✓/✗)
-- **Step-through mode** — advance one operation at a time
-- **Heat map** — color cubes blue→red by visit order
-- **Traversal toggle** — row-major / column-major sweep
-- **Comparison panel** — O(N) vs O(N²) vs O(N³) visual bars + projections for large N
-- **Completion celebration** — diagonal wave + screen flash + particle burst + fanfare
-
-### Keyboard Shortcuts
-| Key | Action |
-|-----|--------|
-| `Space` | Play / Pause |
-| `S` | Step forward |
-| `R` | Reset |
-| `T` | Toggle top-down view |
-| `M` | Mute / Unmute |
-| `Up/Down` | Change N (grid size) |
-| `Left/Right` | Change speed |
-| `?` | Help overlay |
-
-### Security Notes
-Expression evaluation uses a **safe recursive-descent parser** (`safeEvalBound()`) — no `eval()`, no `new Function()`. Max expression length capped at 30 characters.
-
-## Username Validator Visualizer (`username_validator_vis.html`)
-
-### Concepts Taught
-- **do-while loop** — runs at least once, then checks condition
-- **continue** — skips remaining rules and jumps to the while condition
-- **break** — exits the for loop early when a match is found
-- **Sequential validation** — three rules checked in order
-
-### Features
-- 3D character cubes with letters rendered on faces, rebuilt live as user types
-- **Scanning beam** moves across cubes during character-by-character checks (Rules 2 & 3)
-- **Color-coded states** — cyan=scanning, green=passed, red=failed, gold=length check
-- **Live code panel** — shows the full Java source with current-line highlighting, variable values, and ✓/✗ condition results
-- **Resizable code panel** — drag left edge, bottom edge, or bottom-left corner
-- **Custom username input** — type anything, cubes update in real-time
-- **Preset examples** — ab1 (too short), test user1 (space), testuser (no digit), player1 (valid)
-- **do-while loop-back** — on failure, pauses for new input (simulates `scanner.nextLine()`)
-- **Concept badge** — updates to explain the current concept (do-while, continue, break)
-- **Auto-orbit toggle** — on/off button, disabled by default for clarity
-
-### Keyboard Shortcuts
-| Key | Action |
-|-----|--------|
-| `Space` | Play / Pause |
-| `S` | Step forward one phase |
-| `R` | Reset |
-| `M` | Mute / Unmute |
-| `O` | Toggle auto-orbit camera |
-| `1-4` | Load preset username |
-| `Left/Right` | Change speed |
-| `Enter` | Start validation (when input focused) |
-| `?` | Help overlay |
+<!-- How the project is structured. Key files, patterns, conventions. -->
 
 <!-- ============================================================ -->
 <!-- TECHNICAL NOTES                                              -->
@@ -315,21 +228,15 @@ Expression evaluation uses a **safe recursive-descent parser** (`safeEvalBound()
 
 ## Performance Notes
 
-- **Memory leak prevention**: All Three.js geometries, materials, and textures tracked and `.dispose()`d on rebuild
-- **Particle pool cap**: `MAX_PARTICLES` prevents unbounded growth at high speeds
-- **Scene fog**: Low density so deep-space background objects remain visible; stars/nebulae/planets exempt
+<!-- Any performance constraints, memory management rules, etc.   -->
 
 ## Known Limitations
 
-- Three.js r128 is older; a version bump would bring performance improvements
-- Single-file architecture means no code splitting — fine for this scale
-- O(N²) code parser uses regex for standard `for(int i=0; i<expr; i++)` patterns only
+<!-- What doesn't work or what's intentionally left out.          -->
 
 ## Development
 
-No build step. Edit the HTML file and refresh the browser.
-
-To test: open any visualization file in a modern browser (Chrome, Firefox, Edge, Safari).
+<!-- How to build, run, and test.                                 -->
 
 <!-- ============================================================ -->
 <!-- CHANGELOG                                                    -->
@@ -338,52 +245,5 @@ To test: open any visualization file in a modern browser (Chrome, Firefox, Edge,
 
 ## Changelog
 
-### v4.0 (2026-03-29)
-- **New visualization**: Username Validator (`username_validator_vis.html`)
-  - Teaches do-while, continue, break, and sequential validation
-  - 3D character cubes with live input, scanning beam, color-coded states
-  - Tokenized syntax highlighter (single-pass, no cascading corruption)
-  - Resizable code panel (left/bottom/corner drag handles)
-  - Auto-orbit camera toggle (default off)
-  - do-while loop-back pauses for user input like real `scanner.nextLine()`
-- Updated CLAUDE.md to document multi-visualization project structure
-
-### v3.0 (2026-03-24)
-**Merge of v2.1-a (this Claude) and v2.1-b (other Claude):**
-- Combined all features from both independent development branches
-- v2.1-a contributed: comparison panel, heat map, traversal toggle, ops counter pulse
-- v2.1-b contributed: live debugger view, Homeworld-style space background, keyboard shortcuts, completion celebration, auto-orbit indicator
-- Unified sound system (tick/arpeggio/fanfare from v2.1-b, integrated with traversal from v2.1-a)
-- Traversal mode now works with live debugger view and sub-phase rendering
-
-### v2.1-b (2026-03-24) — Other Claude
-- Live debugger code view with execution pointer, variable annotations, sub-phases
-- Reduced fog density, stars/nebulae/planets exempt from fog
-- Planets switched to MeshBasicMaterial (self-lit, visible at distance)
-- Stars increased to 1500 with multi-color variation
-- Nebulae moved closer and made brighter, plus large background wash
-- Code panel widened (310px → 440px) for debug annotations
-
-### v2.1-a (2026-03-24) — This Claude
-- Mobile layout fix: toggle buttons in second row, badge repositioning
-- Added `#tb-row2` to touch UI exclusion list
-
-### v2.0 (2026-03-24)
-**Bug Fixes:**
-- **Security**: Replaced `new Function()` eval with safe recursive-descent math parser
-- **Memory leaks**: All Three.js geometries, materials, and textures now tracked and `.dispose()`d
-- **Slider sync**: Desktop and mobile sliders stay in sync bidirectionally
-
-**New Features:**
-- Step-through mode, sound effects, comparison panel, heat map, ops counter pulse
-- Traversal pattern toggle, camera auto-rotate, keyboard shortcuts
-- Enhanced completion celebration, rotating starfield, procedural nebulae, distant planets
-
-### v1.0 (initial)
-- Core O(N²) 3D visualization
-- Play/Pause/Reset controls
-- Live code editor with syntax highlighting
-- Responsive desktop + mobile layout
-- Orbit/zoom/pan camera controls
-- Particle effects on cube activation
-- O(N²) complexity badge
+<!-- ### vX.X (YYYY-MM-DD) -->
+<!-- - What changed -->
