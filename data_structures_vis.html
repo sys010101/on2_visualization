@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Java Data Structures — 3D Visualizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020408;font-family:'JetBrains Mono',monospace;color:#e0f0ff;overflow:hidden;touch-action:none}
+#cv{position:fixed;inset:0}
+
+/* TOPBAR */
+#tb{position:fixed;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,rgba(0,10,30,.96),rgba(0,20,50,.88));border-bottom:1px solid rgba(0,180,255,.25);display:flex;align-items:center;justify-content:space-between;padding:0 14px;backdrop-filter:blur(12px);z-index:300}
+#tb h1{font-family:'Orbitron',sans-serif;font-size:clamp(11px,2.3vw,17px);font-weight:900;color:#00d4ff;text-shadow:0 0 20px rgba(0,212,255,.6);letter-spacing:2px}
+.sub{font-size:10px;color:rgba(0,212,255,.42);letter-spacing:1px;margin-top:2px}
+#tb-hint{font-size:10px;color:rgba(200,230,255,.2);letter-spacing:1px}
+
+/* DS SELECTOR */
+#ds-sel{position:fixed;top:60px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,8,22,.95);border:1px solid rgba(0,180,255,.2);border-radius:30px;padding:6px 12px;backdrop-filter:blur(16px);z-index:250}
+.ds-btn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(0,212,255,.6);font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.ds-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff}
+.ds-btn.active{background:rgba(0,212,255,.25);color:#fff;border-color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.3)}
+
+/* PANELS */
+.panel{position:fixed;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150;transition:opacity .2s}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(0,212,255,.55);margin-bottom:11px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+
+/* INFO PANEL (left) */
+#ip{left:10px;top:120px;width:240px}
+.ir{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.il{font-size:10px;color:rgba(200,230,255,.45);letter-spacing:1px}
+.iv{font-size:14px;font-weight:700;color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.4)}
+.iv.fast{color:#39ff14;text-shadow:0 0 10px rgba(57,255,20,.4)}
+.iv.slow{color:#ff4444;text-shadow:0 0 10px rgba(255,68,68,.4)}
+.iv.med{color:#ffd700;text-shadow:0 0 10px rgba(255,215,0,.4)}
+
+/* BIG-O PANEL */
+#bop{left:10px;bottom:80px;width:240px}
+.bo-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bo-op{font-size:10px;color:rgba(200,230,255,.5);width:70px;letter-spacing:.5px}
+.bo-bar{height:14px;border-radius:3px;transition:width .5s;min-width:4px}
+.bo-val{font-size:10px;font-weight:700;letter-spacing:1px;min-width:50px}
+
+/* CODE PANEL */
+#cp{right:10px;top:410px;width:min(460px,48vw);height:calc(100vh - 490px);overflow-y:auto;min-width:200px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+.ch .ptitle{margin-bottom:0;border:none;padding:0}
+#cd{font-size:11px;line-height:1.5;white-space:pre;overflow-x:auto}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.nu{color:#b5cea8}.cm{color:rgba(140,170,140,.5);font-style:italic}.vr{color:#9cdcfe}.str{color:#ce9178}.tp{color:#4ec9b0}
+.cl{display:block;padding:1px 4px;border-left:3px solid transparent;border-radius:2px;transition:background .15s,border-color .15s}
+.cl-active{background:rgba(255,215,0,.12);border-left-color:rgba(255,215,0,.7)}
+.cl-exec{background:rgba(57,255,20,.10);border-left-color:#39ff14}
+.cl-highlight{background:rgba(0,180,255,.10);border-left-color:rgba(0,212,255,.6)}
+.annot{font-size:10px;font-style:italic;margin-left:6px;letter-spacing:0}
+.annot-var{color:#ffd700}
+.annot-ok{color:#39ff14;font-weight:700}
+.annot-fail{color:#ff5555;font-weight:700}
+.annot-info{color:rgba(0,212,255,.7)}
+.exec-ptr{color:#39ff14;font-weight:900;margin-right:2px;text-shadow:0 0 8px rgba(57,255,20,.6)}
+
+/* CONTROLS */
+#ctrl{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;flex-wrap:nowrap;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:50px;padding:9px 18px;backdrop-filter:blur(16px);z-index:200}
+.cb{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.cb:hover,.cb:active{background:rgba(0,212,255,.22);box-shadow:0 0 12px rgba(0,212,255,.3)}
+.cb.on{background:rgba(0,212,255,.28);box-shadow:0 0 18px rgba(0,212,255,.5)}
+.cb.muted{opacity:0.4}
+.cs{width:1px;height:22px;background:rgba(0,180,255,.2)}
+.sw{display:flex;align-items:center;gap:7px}
+.sw label{font-size:10px;color:rgba(200,230,255,.45);letter-spacing:1px;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;height:3px;background:rgba(0,180,255,.2);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#00d4ff;box-shadow:0 0 8px rgba(0,212,255,.6)}
+.sv2{font-size:13px;font-weight:700;color:#00d4ff;width:30px;text-align:right;display:inline-block}
+
+/* OP BUTTONS */
+#op-panel{position:fixed;left:10px;top:400px;width:240px}
+.op-btn{display:block;width:100%;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(200,230,255,.7);font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px;margin-bottom:5px;text-align:left}
+.op-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
+.op-btn.running{background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.5);color:#ffd700}
+
+/* COMPLEXITY BADGE */
+#cx-badge{position:fixed;right:10px;bottom:14px;background:rgba(0,8,22,.9);border:1px solid rgba(138,43,226,.35);border-radius:10px;padding:10px 16px;text-align:center;z-index:150;backdrop-filter:blur(16px)}
+.cx-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1px;text-shadow:0 0 12px}
+.cx-sub{font-size:9px;letter-spacing:1px;margin-top:2px}
+
+/* INFO OVERLAY */
+#info-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,8,22,.97);border:1px solid rgba(0,180,255,.3);border-radius:16px;padding:28px 32px;backdrop-filter:blur(20px);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;width:min(560px,90vw);max-height:80vh;overflow-y:auto}
+#info-overlay.show{opacity:1;pointer-events:auto}
+#info-overlay h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:#00d4ff;margin-bottom:14px;text-align:center}
+#info-overlay h4{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:#ffd700;margin:14px 0 6px}
+#info-overlay p{font-size:11px;color:rgba(200,230,255,.6);line-height:1.7;margin-bottom:6px}
+.info-feat{display:flex;gap:8px;align-items:baseline;margin-bottom:5px}
+.info-key{color:#00d4ff;font-weight:700;min-width:80px;flex-shrink:0;font-size:11px}
+.info-desc{color:rgba(200,230,255,.55);font-size:11px}
+#info-overlay .info-close{text-align:center;margin-top:16px}
+#info-overlay .info-close button{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 20px;border-radius:20px;cursor:pointer;letter-spacing:1px}
+
+/* FLOW INDICATOR */
+#flow-ind{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;text-shadow:0 0 15px;z-index:160;opacity:0;transition:opacity .4s;pointer-events:none;text-align:center;padding:8px 20px;background:rgba(0,8,22,.8);border-radius:20px;border:1px solid rgba(0,180,255,.2)}
+#flow-ind.show{opacity:1}
+
+/* NARRATION PANEL */
+#narration{position:fixed;right:10px;top:110px;width:240px;max-height:280px;overflow-y:auto;background:rgba(0,8,22,.93);border:1px solid rgba(57,255,20,.25);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+#narr-text{font-size:12px;color:rgba(200,230,255,.75);line-height:1.8}
+#narr-text strong{color:#ffd700}
+
+/* DESCRIPTION */
+#ds-desc{position:fixed;top:105px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(200,230,255,.35);letter-spacing:1px;z-index:200;text-align:center;pointer-events:none;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+
+<div id="tb">
+  <div>
+    <h1>DATA STRUCTURES</h1>
+    <div class="sub">JAVA COLLECTIONS — 3D VISUALIZER</div>
+  </div>
+  <div id="tb-hint">Press ? for help</div>
+</div>
+
+<div id="ds-sel">
+  <button class="ds-btn active" data-ds="array">int[]</button>
+  <button class="ds-btn" data-ds="arraylist">ArrayList</button>
+  <button class="ds-btn" data-ds="linkedlist">LinkedList</button>
+  <button class="ds-btn" data-ds="hashset">HashSet</button>
+  <button class="ds-btn" data-ds="hashmap">HashMap</button>
+</div>
+<div id="ds-desc"></div>
+
+<div class="panel" id="ip">
+  <div class="ptitle">STRUCTURE INFO</div>
+  <div class="ir"><span class="il">TYPE</span><span class="iv" id="info-type">int[]</span></div>
+  <div class="ir"><span class="il">SIZE</span><span class="iv" id="info-size">0</span></div>
+  <div class="ir"><span class="il">CAPACITY</span><span class="iv" id="info-cap">—</span></div>
+  <div class="ir"><span class="il">LAST OP</span><span class="iv" id="info-op">—</span></div>
+  <div class="ir"><span class="il">COST</span><span class="iv" id="info-cost">—</span></div>
+</div>
+
+<div class="panel" id="op-panel">
+  <div class="ptitle">OPERATIONS</div>
+  <div id="op-buttons"></div>
+</div>
+
+<div class="panel" id="bop">
+  <div class="ptitle">BIG-O COMPLEXITY</div>
+  <div id="bo-content"></div>
+</div>
+
+<div class="panel" id="cp">
+  <div class="ch"><div class="ptitle">JAVA CODE</div></div>
+  <div id="cd"></div>
+</div>
+
+<div id="ctrl">
+  <button class="cb" id="btn-step" title="Step (S)">STEP</button>
+  <button class="cb" id="btn-play" title="Play/Pause (Space)">PLAY</button>
+  <button class="cb" id="btn-reset" title="Reset (R)">RESET</button>
+  <div class="cs"></div>
+  <div class="sw">
+    <label>SPD</label>
+    <input type="range" id="sl-speed" min="1" max="10" value="5" style="width:80px">
+    <span class="sv2" id="speed-val">5</span>
+  </div>
+  <div class="cs"></div>
+  <button class="cb" id="btn-mute" title="Mute (M)">SND</button>
+  <button class="cb" id="btn-help" title="Help (?)">?</button>
+</div>
+
+<div id="narration">
+  <div class="ptitle">WHAT'S HAPPENING</div>
+  <div id="narr-text">Press <strong>▶ PLAY</strong> or <strong>Space</strong> to watch operations animate. Each step is narrated here.</div>
+</div>
+
+<div id="cx-badge">
+  <div class="cx-title" id="cx-text">O(1)</div>
+  <div class="cx-sub" id="cx-sub">CONSTANT TIME</div>
+</div>
+
+<div id="flow-ind"></div>
+
+<div id="info-overlay">
+  <h3>DATA STRUCTURES VISUALIZER</h3>
+  <p>Interactive 3D visualization of Java's core data structures. See how arrays, lists, sets and maps work internally.</p>
+  <h4>DATA STRUCTURES</h4>
+  <div class="info-feat"><span class="info-key">int[]</span><span class="info-desc">Fixed-size array with indexed access O(1)</span></div>
+  <div class="info-feat"><span class="info-key">ArrayList</span><span class="info-desc">Dynamic array — grows automatically, fast random access</span></div>
+  <div class="info-feat"><span class="info-key">LinkedList</span><span class="info-desc">Doubly-linked chain — fast insert/remove at ends</span></div>
+  <div class="info-feat"><span class="info-key">HashSet</span><span class="info-desc">Unique elements via hashing — O(1) contains</span></div>
+  <div class="info-feat"><span class="info-key">HashMap</span><span class="info-desc">Key→Value pairs via hashing — O(1) get/put</span></div>
+  <h4>KEYBOARD SHORTCUTS</h4>
+  <div class="info-feat"><span class="info-key">Space</span><span class="info-desc">Play / Pause auto-step</span></div>
+  <div class="info-feat"><span class="info-key">S</span><span class="info-desc">Step through next operation</span></div>
+  <div class="info-feat"><span class="info-key">R</span><span class="info-desc">Reset current structure</span></div>
+  <div class="info-feat"><span class="info-key">1–5</span><span class="info-desc">Switch data structure</span></div>
+  <div class="info-feat"><span class="info-key">M</span><span class="info-desc">Mute / Unmute</span></div>
+  <div class="info-feat"><span class="info-key">Left/Right</span><span class="info-desc">Change speed</span></div>
+  <div class="info-feat"><span class="info-key">?</span><span class="info-desc">Toggle this help</span></div>
+  <div class="info-close"><button onclick="toggleHelp()">CLOSE</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════
+// SCENE SETUP
+// ═══════════════════════════════════════
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020408, 0.008);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+camera.position.set(0, 8, 18);
+camera.lookAt(0, 0, 0);
+
+// Orbit controls (manual)
+let camTheta = 0, camPhi = 0.4, camDist = 20, camTarget = new THREE.Vector3(0, 1, 0);
+let isDragging = false, lastMX = 0, lastMY = 0;
+let autoRotate = false;
+
+function updateCamera() {
+  camera.position.x = camTarget.x + camDist * Math.sin(camTheta) * Math.cos(camPhi);
+  camera.position.y = camTarget.y + camDist * Math.sin(camPhi);
+  camera.position.z = camTarget.z + camDist * Math.cos(camTheta) * Math.cos(camPhi);
+  camera.lookAt(camTarget);
+}
+updateCamera();
+
+// Lights
+const amb = new THREE.AmbientLight(0x334466, 0.6);
+scene.add(amb);
+const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+dir.position.set(10, 20, 10);
+scene.add(dir);
+const pt1 = new THREE.PointLight(0x00aaff, 0.6, 50);
+pt1.position.set(-8, 10, 5);
+scene.add(pt1);
+const pt2 = new THREE.PointLight(0xff6600, 0.3, 50);
+pt2.position.set(8, 5, -5);
+scene.add(pt2);
+
+// ═══════════════════════════════════════
+// SPACE BACKGROUND
+// ═══════════════════════════════════════
+(function createStars() {
+  const geo = new THREE.BufferGeometry();
+  const n = 1200;
+  const pos = new Float32Array(n * 3);
+  const col = new Float32Array(n * 3);
+  const starColors = [[1,1,1],[0.7,0.8,1],[1,0.9,0.7],[0.8,0.7,1],[0.7,1,0.9]];
+  for (let i = 0; i < n; i++) {
+    const r = 200 + Math.random() * 600;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i*3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i*3+1] = r * Math.sin(ph) * Math.sin(th);
+    pos[i*3+2] = r * Math.cos(ph);
+    const c = starColors[Math.floor(Math.random() * starColors.length)];
+    const b = 0.5 + Math.random() * 0.5;
+    col[i*3] = c[0]*b; col[i*3+1] = c[1]*b; col[i*3+2] = c[2]*b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.8, fog: false });
+  scene.add(new THREE.Points(geo, mat));
+})();
+
+// Nebula
+(function createNebulae() {
+  for (let i = 0; i < 4; i++) {
+    const geo = new THREE.PlaneGeometry(120 + Math.random() * 80, 120 + Math.random() * 80);
+    const colors = [0x1a0033, 0x002244, 0x003322, 0x220033];
+    const mat = new THREE.MeshBasicMaterial({ color: colors[i], transparent: true, opacity: 0.06 + Math.random() * 0.04, side: THREE.DoubleSide, fog: false });
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set((Math.random()-.5)*300, (Math.random()-.5)*200, -200 - Math.random()*200);
+    m.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    scene.add(m);
+  }
+})();
+
+// Ground grid
+(function createGrid() {
+  const grid = new THREE.GridHelper(40, 40, 0x0a2040, 0x061530);
+  grid.position.y = -0.5;
+  grid.material.transparent = true;
+  grid.material.opacity = 0.3;
+  scene.add(grid);
+})();
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+let audioCtx = null, muted = false;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type = 'sine', vol = 0.08) {
+  if (muted || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+function sndAdd() { playTone(523, 0.15, 'sine', 0.06); setTimeout(() => playTone(659, 0.12, 'sine', 0.05), 80); }
+function sndRemove() { playTone(440, 0.12, 'sawtooth', 0.04); setTimeout(() => playTone(330, 0.15, 'sawtooth', 0.03), 60); }
+function sndAccess() { playTone(880, 0.08, 'sine', 0.04); }
+function sndHash() { playTone(392, 0.1, 'triangle', 0.05); setTimeout(() => playTone(784, 0.1, 'triangle', 0.04), 50); }
+function sndReject() { playTone(200, 0.2, 'sawtooth', 0.05); setTimeout(() => playTone(150, 0.25, 'sawtooth', 0.04), 100); }
+function sndStep() { playTone(600, 0.05, 'sine', 0.03); }
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentDS = 'array';
+let speed = 5;
+let playing = false;
+let playTimer = null;
+let stepQueue = [];
+let stepIndex = 0;
+let animating = false;
+
+// 3D objects tracking
+let dsMeshes = [];        // all meshes for current DS
+let dsLabels = [];         // text sprites
+let dsLinks = [];          // link lines (for linked list)
+let highlightMesh = null;  // currently highlighted
+
+// Data state for each structure
+const dsState = {
+  array: { data: [10, 25, 7, 42, 18, 33, 5], capacity: 7 },
+  arraylist: { data: ['Chrome', 'Firefox', 'Edge'], capacity: 4 },
+  linkedlist: { data: ['A', 'B', 'C', 'D'] },
+  hashset: { buckets: Array.from({length: 8}, () => []), items: new Set() },
+  hashmap: { buckets: Array.from({length: 8}, () => []), entries: new Map() }
+};
+
+// ═══════════════════════════════════════
+// TEXT SPRITES
+// ═══════════════════════════════════════
+function makeTextSprite(text, opts = {}) {
+  const fontSize = opts.fontSize || 32;
+  const color = opts.color || '#ffffff';
+  const bgColor = opts.bgColor || null;
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  cv.width = 512; cv.height = 96;
+  ctx.clearRect(0, 0, 512, 96);
+  if (bgColor) {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, 512, 96);
+  }
+  ctx.font = `bold ${fontSize * 2}px JetBrains Mono, monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 48);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.renderOrder = 10;
+  sprite.scale.set(opts.scale || 2.2, opts.scaleY || 0.55, 1);
+  return sprite;
+}
+
+// ═══════════════════════════════════════
+// CUBE CREATION
+// ═══════════════════════════════════════
+const CUBE_SIZE = 1.2;
+const CUBE_GAP = 0.3;
+const CUBE_COLORS = {
+  default: 0x1a5577,
+  highlight: 0xffd700,
+  access: 0x00d4ff,
+  add: 0x39ff14,
+  remove: 0xff4444,
+  hash: 0x8a2be2,
+  found: 0x39ff14,
+  reject: 0xff4444,
+  bucket: 0x1a3355,
+  link: 0x00aaff
+};
+
+function createCube(value, x, y, z, color = CUBE_COLORS.default) {
+  const geo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+  const mat = new THREE.MeshPhongMaterial({
+    color, transparent: true, opacity: 0.85, depthWrite: true,
+    emissive: new THREE.Color(color).multiplyScalar(0.15),
+    shininess: 80
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.renderOrder = 2;
+  mesh.userData.baseY = y;
+  // Edge wireframe
+  const edges = new THREE.EdgesGeometry(geo);
+  const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.3, depthWrite: false }));
+  mesh.add(wire);
+  scene.add(mesh);
+  // Value label
+  const label = makeTextSprite(String(value), { color: '#ffffff', fontSize: 28 });
+  label.position.set(x, y + CUBE_SIZE * 0.8, z);
+  label.userData.baseY = y + CUBE_SIZE * 0.8;
+  scene.add(label);
+  return { mesh, wire, label, value };
+}
+
+function createIndexLabel(index, x, y, z) {
+  const label = makeTextSprite(String(index), { color: '#00d4ff', fontSize: 24 });
+  label.position.set(x, y, z);
+  label.scale.set(1.2, 0.3, 1);
+  scene.add(label);
+  return label;
+}
+
+function createBucketBox(index, x, y, z, h = 4) {
+  const geo = new THREE.BoxGeometry(CUBE_SIZE + 0.2, h, CUBE_SIZE + 0.2);
+  const mat = new THREE.MeshPhongMaterial({
+    color: CUBE_COLORS.bucket, transparent: true, opacity: 0.15, depthWrite: false,
+    emissive: 0x0a1a33
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y + h/2 - 0.5, z);
+  mesh.renderOrder = 1;
+  const edges = new THREE.EdgesGeometry(geo);
+  const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x1a4466, transparent: true, opacity: 0.4, depthWrite: false }));
+  mesh.add(wire);
+  scene.add(mesh);
+  // Bucket index label
+  const label = makeTextSprite(`[${index}]`, { color: '#558899', fontSize: 24 });
+  label.position.set(x, y - 0.8, z);
+  label.scale.set(1.2, 0.3, 1);
+  scene.add(label);
+  return { mesh, wire, label };
+}
+
+function createLink(from, to) {
+  const points = [from.clone(), to.clone()];
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const mat = new THREE.LineBasicMaterial({ color: CUBE_COLORS.link, transparent: true, opacity: 0.6, linewidth: 2 });
+  const line = new THREE.Line(geo, mat);
+  scene.add(line);
+  // Arrow head
+  const dir = to.clone().sub(from).normalize();
+  const mid = from.clone().add(to).multiplyScalar(0.5).add(dir.clone().multiplyScalar(0.3));
+  const arrowGeo = new THREE.ConeGeometry(0.12, 0.35, 6);
+  const arrowMat = new THREE.MeshPhongMaterial({ color: CUBE_COLORS.link, emissive: 0x004488 });
+  const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+  arrow.position.copy(mid);
+  arrow.lookAt(to);
+  arrow.rotateX(Math.PI / 2);
+  scene.add(arrow);
+  return { line, arrow };
+}
+
+// ═══════════════════════════════════════
+// CLEANUP
+// ═══════════════════════════════════════
+function clearDS() {
+  dsMeshes.forEach(item => {
+    if (item.mesh) { item.mesh.geometry.dispose(); item.mesh.material.dispose(); scene.remove(item.mesh); }
+    if (item.label) { item.label.material.map.dispose(); item.label.material.dispose(); scene.remove(item.label); }
+    if (item.wire) { /* already child of mesh */ }
+  });
+  dsLabels.forEach(l => { l.material.map.dispose(); l.material.dispose(); scene.remove(l); });
+  dsLinks.forEach(l => {
+    if (l.line) { l.line.geometry.dispose(); l.line.material.dispose(); scene.remove(l.line); }
+    if (l.arrow) { l.arrow.geometry.dispose(); l.arrow.material.dispose(); scene.remove(l.arrow); }
+  });
+  dsMeshes = []; dsLabels = []; dsLinks = [];
+}
+
+// ═══════════════════════════════════════
+// BUILD DATA STRUCTURES (3D)
+// ═══════════════════════════════════════
+function getXOffset(count) { return -(count - 1) * (CUBE_SIZE + CUBE_GAP) / 2; }
+
+function buildArray() {
+  clearDS();
+  const d = dsState.array.data;
+  const xOff = getXOffset(d.length);
+  for (let i = 0; i < d.length; i++) {
+    const x = xOff + i * (CUBE_SIZE + CUBE_GAP);
+    const item = createCube(d[i], x, 0, 0);
+    dsMeshes.push(item);
+    const idx = createIndexLabel(i, x, -1.2, 0);
+    dsLabels.push(idx);
+  }
+  // Capacity brackets
+  const capLabel = makeTextSprite(`capacity: ${d.length} (FIXED)`, { color: '#ff6644', fontSize: 24 });
+  capLabel.position.set(0, 2.5, 0);
+  capLabel.scale.set(3, 0.4, 1);
+  scene.add(capLabel);
+  dsLabels.push(capLabel);
+}
+
+function buildArrayList() {
+  clearDS();
+  const d = dsState.arraylist.data;
+  const cap = dsState.arraylist.capacity;
+  const xOff = getXOffset(cap);
+  for (let i = 0; i < cap; i++) {
+    const x = xOff + i * (CUBE_SIZE + CUBE_GAP);
+    if (i < d.length) {
+      const item = createCube(d[i], x, 0, 0, CUBE_COLORS.default);
+      dsMeshes.push(item);
+    } else {
+      // Empty slot (capacity)
+      const geo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+      const mat = new THREE.MeshPhongMaterial({ color: 0x0a1a2a, transparent: true, opacity: 0.2, wireframe: false });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(x, 0, 0);
+      const edges = new THREE.EdgesGeometry(geo);
+      const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x1a3344, transparent: true, opacity: 0.3, linewidth: 1 }));
+      mesh.add(wire);
+      scene.add(mesh);
+      const label = makeTextSprite('—', { color: '#334455', fontSize: 24 });
+      label.position.set(x, CUBE_SIZE * 0.8, 0);
+      scene.add(label);
+      dsMeshes.push({ mesh, wire, label, value: null, empty: true });
+    }
+    const idx = createIndexLabel(i, xOff + i * (CUBE_SIZE + CUBE_GAP), -1.2, 0);
+    dsLabels.push(idx);
+  }
+  const capLabel = makeTextSprite(`size: ${d.length}  capacity: ${cap} (DYNAMIC)`, { color: '#39ff14', fontSize: 20 });
+  capLabel.position.set(0, 2.5, 0);
+  capLabel.scale.set(4, 0.4, 1);
+  scene.add(capLabel);
+  dsLabels.push(capLabel);
+}
+
+function buildLinkedList() {
+  clearDS();
+  const d = dsState.linkedlist.data;
+  const spacing = CUBE_SIZE + CUBE_GAP + 0.8;
+  const xOff = -(d.length - 1) * spacing / 2;
+  for (let i = 0; i < d.length; i++) {
+    const x = xOff + i * spacing;
+    const item = createCube(d[i], x, 0, 0);
+    dsMeshes.push(item);
+    // prev/next labels
+    if (i > 0) {
+      const fromPos = new THREE.Vector3(xOff + (i-1) * spacing + CUBE_SIZE/2 + 0.15, 0, 0);
+      const toPos = new THREE.Vector3(x - CUBE_SIZE/2 - 0.15, 0, 0);
+      const link = createLink(fromPos, toPos);
+      dsLinks.push(link);
+    }
+  }
+  // Head/Tail labels
+  if (d.length > 0) {
+    const headL = makeTextSprite('HEAD', { color: '#39ff14', fontSize: 24 });
+    headL.position.set(xOff, -1.3, 0);
+    headL.scale.set(1.4, 0.35, 1);
+    scene.add(headL);
+    dsLabels.push(headL);
+    const tailL = makeTextSprite('TAIL', { color: '#ff6644', fontSize: 24 });
+    tailL.position.set(xOff + (d.length-1) * spacing, -1.3, 0);
+    tailL.scale.set(1.4, 0.35, 1);
+    scene.add(tailL);
+    dsLabels.push(tailL);
+  }
+  const infoL = makeTextSprite('DOUBLY LINKED — each node has prev + next pointers', { color: '#558899', fontSize: 20 });
+  infoL.position.set(0, 2.5, 0);
+  infoL.scale.set(5, 0.35, 1);
+  scene.add(infoL);
+  dsLabels.push(infoL);
+}
+
+function simpleHash(str) {
+  let h = 0;
+  const s = String(str);
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0x7fffffff;
+  return h % 8;
+}
+
+function buildHashSet() {
+  clearDS();
+  const st = dsState.hashset;
+  const spacing = CUBE_SIZE + CUBE_GAP + 0.4;
+  const xOff = -3.5 * spacing;
+  // Build bucket columns
+  for (let b = 0; b < 8; b++) {
+    const x = xOff + b * spacing;
+    const bucket = createBucketBox(b, x, 0, 0, 4);
+    dsMeshes.push({ mesh: bucket.mesh, wire: bucket.wire, label: bucket.label, value: `bucket_${b}`, isBucket: true });
+    // Items in bucket
+    const items = st.buckets[b];
+    for (let j = 0; j < items.length; j++) {
+      const item = createCube(items[j], x, j * (CUBE_SIZE + 0.15), 0, 0x2a6688);
+      dsMeshes.push(item);
+    }
+  }
+  const infoL = makeTextSprite(`HashSet — ${st.items.size} unique elements in 8 buckets`, { color: '#8a2be2', fontSize: 20 });
+  infoL.position.set(0, 4.5, 0);
+  infoL.scale.set(5, 0.4, 1);
+  scene.add(infoL);
+  dsLabels.push(infoL);
+}
+
+function buildHashMap() {
+  clearDS();
+  const st = dsState.hashmap;
+  const spacing = CUBE_SIZE + CUBE_GAP + 0.4;
+  const xOff = -3.5 * spacing;
+  for (let b = 0; b < 8; b++) {
+    const x = xOff + b * spacing;
+    const bucket = createBucketBox(b, x, 0, 0, 5);
+    dsMeshes.push({ mesh: bucket.mesh, wire: bucket.wire, label: bucket.label, value: `bucket_${b}`, isBucket: true });
+    const items = st.buckets[b];
+    for (let j = 0; j < items.length; j++) {
+      const [k, v] = items[j];
+      const item = createCube(`${k}`, x, j * (CUBE_SIZE + 0.15), 0, 0x2a6688);
+      dsMeshes.push(item);
+      // Value label behind
+      const valL = makeTextSprite(`→${v}`, { color: '#ffd700', fontSize: 24 });
+      valL.position.set(x, j * (CUBE_SIZE + 0.15) + CUBE_SIZE * 0.8, 0.8);
+      valL.scale.set(1.5, 0.35, 1);
+      scene.add(valL);
+      dsLabels.push(valL);
+    }
+  }
+  const infoL = makeTextSprite(`HashMap — ${st.entries.size} entries in 8 buckets`, { color: '#ffd700', fontSize: 20 });
+  infoL.position.set(0, 5.5, 0);
+  infoL.scale.set(5, 0.4, 1);
+  scene.add(infoL);
+  dsLabels.push(infoL);
+}
+
+const builders = { array: buildArray, arraylist: buildArrayList, linkedlist: buildLinkedList, hashset: buildHashSet, hashmap: buildHashMap };
+
+// ═══════════════════════════════════════
+// OPERATIONS (step sequences)
+// ═══════════════════════════════════════
+const DS_OPS = {
+  array: [
+    { name: 'Access [3]', fn: () => opArrayAccess(3) },
+    { name: 'Iterate (for-each)', fn: () => opArrayIterate() },
+    { name: 'Set [2] = 99', fn: () => opArraySet(2, 99) },
+    { name: 'Search for 42', fn: () => opArraySearch(42) },
+  ],
+  arraylist: [
+    { name: '.add("Safari")', fn: () => opALAdd('Safari') },
+    { name: '.add(0, "IE")', fn: () => opALAddAt(0, 'IE') },
+    { name: '.get(1)', fn: () => opALGet(1) },
+    { name: '.remove(0)', fn: () => opALRemove(0) },
+    { name: '.contains("Edge")', fn: () => opALContains('Edge') },
+  ],
+  linkedlist: [
+    { name: '.addFirst("Z")', fn: () => opLLAddFirst('Z') },
+    { name: '.addLast("E")', fn: () => opLLAddLast('E') },
+    { name: '.get(2)', fn: () => opLLGet(2) },
+    { name: '.removeFirst()', fn: () => opLLRemoveFirst() },
+  ],
+  hashset: [
+    { name: '.add("alice")', fn: () => opHSAdd('alice') },
+    { name: '.add("bob")', fn: () => opHSAdd('bob') },
+    { name: '.add("alice") DUP', fn: () => opHSAdd('alice') },
+    { name: '.contains("bob")', fn: () => opHSContains('bob') },
+  ],
+  hashmap: [
+    { name: '.put("stg","stg.api")', fn: () => opHMPut('stg', 'stg.api') },
+    { name: '.put("prod","api.com")', fn: () => opHMPut('prod', 'api.com') },
+    { name: '.get("stg")', fn: () => opHMGet('stg') },
+    { name: '.put("dev","local")', fn: () => opHMPut('dev', 'local') },
+    { name: '.containsKey("prod")', fn: () => opHMContainsKey('prod') },
+  ]
+};
+
+// Highlight a cube temporarily
+function highlightCubeAt(index, color, duration = 600) {
+  if (index < 0 || index >= dsMeshes.length) return;
+  const item = dsMeshes[index];
+  if (!item || !item.mesh || item.isBucket) return;
+  const origColor = item.mesh.material.color.getHex();
+  const origEmissive = item.mesh.material.emissive.getHex();
+  item.mesh.material.color.setHex(color);
+  item.mesh.material.emissive.setHex(new THREE.Color(color).multiplyScalar(0.3).getHex());
+  item.mesh.scale.set(1.15, 1.15, 1.15);
+  setTimeout(() => {
+    if (item.mesh) {
+      item.mesh.material.color.setHex(origColor);
+      item.mesh.material.emissive.setHex(origEmissive);
+      item.mesh.scale.set(1, 1, 1);
+    }
+  }, duration);
+}
+
+function showFlow(text, color = '#ffd700') {
+  const el = document.getElementById('flow-ind');
+  el.textContent = text;
+  el.style.color = color;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+function updateInfoPanel(op, cost, costClass = '') {
+  document.getElementById('info-op').textContent = op;
+  const costEl = document.getElementById('info-cost');
+  costEl.textContent = cost;
+  costEl.className = 'iv ' + costClass;
+}
+
+function setCxBadge(text, sub, color = '#00d4ff') {
+  document.getElementById('cx-text').textContent = text;
+  document.getElementById('cx-text').style.color = color;
+  document.getElementById('cx-text').style.textShadow = `0 0 12px ${color}`;
+  document.getElementById('cx-sub').textContent = sub;
+  document.getElementById('cx-sub').style.color = color;
+}
+
+// ─── Array Operations ───
+function opArrayAccess(idx) {
+  return [
+    () => { setCodeHighlight(0); showFlow(`Accessing array[${idx}]`, '#00d4ff'); },
+    () => { setCodeHighlight(1); highlightCubeAt(idx, CUBE_COLORS.access, 1000); sndAccess(); updateInfoPanel(`[${idx}]`, 'O(1)', 'fast'); setCxBadge('O(1)', 'INSTANT ACCESS'); showFlow(`→ ${dsState.array.data[idx]}`, '#39ff14'); },
+  ];
+}
+
+function opArrayIterate() {
+  const steps = [() => { setCodeHighlight(3); showFlow('Iterating...', '#ffd700'); }];
+  dsState.array.data.forEach((v, i) => {
+    steps.push(() => { setCodeHighlight(4); highlightCubeAt(i, CUBE_COLORS.highlight, 400); sndStep(); updateInfoPanel(`[${i}]=${v}`, 'O(n)', 'med'); });
+  });
+  steps.push(() => { setCxBadge('O(n)', 'LINEAR SCAN'); showFlow('Iteration complete', '#39ff14'); });
+  return steps;
+}
+
+function opArraySet(idx, val) {
+  return [
+    () => { setCodeHighlight(6); showFlow(`Setting [${idx}] = ${val}`, '#ffd700'); },
+    () => { dsState.array.data[idx] = val; highlightCubeAt(idx, CUBE_COLORS.add, 800); sndAdd(); buildArray(); updateInfoPanel(`[${idx}]=${val}`, 'O(1)', 'fast'); setCxBadge('O(1)', 'DIRECT WRITE'); },
+  ];
+}
+
+function opArraySearch(val) {
+  const steps = [() => { setCodeHighlight(8); showFlow(`Searching for ${val}...`, '#ffd700'); }];
+  const d = dsState.array.data;
+  for (let i = 0; i < d.length; i++) {
+    const ii = i;
+    steps.push(() => { setCodeHighlight(9); highlightCubeAt(ii, d[ii] === val ? CUBE_COLORS.found : CUBE_COLORS.highlight, 500); sndStep(); updateInfoPanel(`[${ii}]=${d[ii]}`, `${ii+1}/${d.length}`, d[ii] === val ? 'fast' : 'med'); });
+    if (d[i] === val) {
+      steps.push(() => { showFlow(`Found ${val} at index ${ii}!`, '#39ff14'); setCxBadge('O(n)', 'LINEAR SEARCH'); sndAdd(); });
+      return steps;
+    }
+  }
+  steps.push(() => { showFlow(`${val} not found!`, '#ff4444'); setCxBadge('O(n)', 'LINEAR SEARCH'); sndReject(); });
+  return steps;
+}
+
+// ─── ArrayList Operations ───
+function opALAdd(val) {
+  return [
+    () => { setCodeHighlight(0); showFlow(`.add("${val}")`, '#39ff14'); },
+    () => {
+      const d = dsState.arraylist;
+      if (d.data.length >= d.capacity) { d.capacity = Math.ceil(d.capacity * 1.5); showFlow(`Resize! capacity → ${d.capacity}`, '#ff6600'); }
+      d.data.push(val);
+      buildArrayList(); sndAdd();
+      updateInfoPanel(`.add()`, 'O(1)*', 'fast'); setCxBadge('O(1)', 'AMORTIZED');
+      showFlow(`Added "${val}" at end`, '#39ff14');
+    },
+  ];
+}
+
+function opALAddAt(idx, val) {
+  const steps = [() => { setCodeHighlight(2); showFlow(`.add(${idx}, "${val}") — shifts!`, '#ffd700'); }];
+  const d = dsState.arraylist;
+  // Show shifting
+  for (let i = d.data.length - 1; i >= idx; i--) {
+    const ii = i;
+    steps.push(() => { highlightCubeAt(ii, CUBE_COLORS.highlight, 400); sndStep(); showFlow(`Shifting [${ii}] → [${ii+1}]`, '#ffd700'); });
+  }
+  steps.push(() => {
+    if (d.data.length >= d.capacity) d.capacity = Math.ceil(d.capacity * 1.5);
+    d.data.splice(idx, 0, val);
+    buildArrayList(); sndAdd();
+    updateInfoPanel(`.add(${idx})`, 'O(n)', 'slow'); setCxBadge('O(n)', 'SHIFT ALL RIGHT');
+    showFlow(`Inserted "${val}" at [${idx}]`, '#39ff14');
+  });
+  return steps;
+}
+
+function opALGet(idx) {
+  return [
+    () => { setCodeHighlight(4); showFlow(`.get(${idx})`, '#00d4ff'); },
+    () => { highlightCubeAt(idx, CUBE_COLORS.access, 1000); sndAccess(); updateInfoPanel(`.get(${idx})`, 'O(1)', 'fast'); setCxBadge('O(1)', 'INSTANT ACCESS'); showFlow(`→ "${dsState.arraylist.data[idx]}"`, '#39ff14'); },
+  ];
+}
+
+function opALRemove(idx) {
+  const steps = [() => { setCodeHighlight(6); showFlow(`.remove(${idx})`, '#ff4444'); }];
+  steps.push(() => { highlightCubeAt(idx, CUBE_COLORS.remove, 600); sndRemove(); showFlow(`Removing [${idx}]...`, '#ff4444'); });
+  const d = dsState.arraylist;
+  for (let i = idx + 1; i < d.data.length; i++) {
+    const ii = i;
+    steps.push(() => { highlightCubeAt(ii, CUBE_COLORS.highlight, 400); sndStep(); showFlow(`Shifting [${ii}] → [${ii-1}]`, '#ffd700'); });
+  }
+  steps.push(() => {
+    d.data.splice(idx, 1);
+    buildArrayList(); sndRemove();
+    updateInfoPanel(`.remove(${idx})`, 'O(n)', 'slow'); setCxBadge('O(n)', 'SHIFT ALL LEFT');
+  });
+  return steps;
+}
+
+function opALContains(val) {
+  const steps = [() => { setCodeHighlight(8); showFlow(`.contains("${val}")`, '#ffd700'); }];
+  const d = dsState.arraylist.data;
+  for (let i = 0; i < d.length; i++) {
+    const ii = i;
+    steps.push(() => {
+      highlightCubeAt(ii, d[ii] === val ? CUBE_COLORS.found : CUBE_COLORS.highlight, 500);
+      sndStep();
+      if (d[ii] === val) { showFlow(`Found "${val}" at [${ii}]!`, '#39ff14'); updateInfoPanel('.contains()', 'O(n)', 'med'); setCxBadge('O(n)', 'LINEAR SEARCH'); }
+    });
+    if (d[i] === val) return steps;
+  }
+  steps.push(() => { showFlow(`"${val}" not found`, '#ff4444'); setCxBadge('O(n)', 'LINEAR SEARCH'); });
+  return steps;
+}
+
+// ─── LinkedList Operations ───
+function opLLAddFirst(val) {
+  return [
+    () => { setCodeHighlight(0); showFlow(`.addFirst("${val}")`, '#39ff14'); },
+    () => { dsState.linkedlist.data.unshift(val); buildLinkedList(); sndAdd(); updateInfoPanel('.addFirst()', 'O(1)', 'fast'); setCxBadge('O(1)', 'REWIRE POINTERS'); showFlow(`"${val}" is now HEAD`, '#39ff14'); },
+  ];
+}
+
+function opLLAddLast(val) {
+  return [
+    () => { setCodeHighlight(2); showFlow(`.addLast("${val}")`, '#39ff14'); },
+    () => { dsState.linkedlist.data.push(val); buildLinkedList(); sndAdd(); updateInfoPanel('.addLast()', 'O(1)', 'fast'); setCxBadge('O(1)', 'REWIRE TAIL'); showFlow(`"${val}" is now TAIL`, '#39ff14'); },
+  ];
+}
+
+function opLLGet(idx) {
+  const steps = [() => { setCodeHighlight(4); showFlow(`.get(${idx}) — must traverse!`, '#ff6644'); }];
+  for (let i = 0; i <= idx && i < dsState.linkedlist.data.length; i++) {
+    const ii = i;
+    steps.push(() => { highlightCubeAt(ii, ii === idx ? CUBE_COLORS.access : CUBE_COLORS.highlight, 500); sndStep(); showFlow(`Traversing node ${ii}...`, ii === idx ? '#39ff14' : '#ffd700'); });
+  }
+  steps.push(() => { updateInfoPanel(`.get(${idx})`, 'O(n)', 'slow'); setCxBadge('O(n)', 'SEQUENTIAL TRAVERSE'); showFlow(`→ "${dsState.linkedlist.data[idx]}"`, '#39ff14'); });
+  return steps;
+}
+
+function opLLRemoveFirst() {
+  return [
+    () => { setCodeHighlight(6); showFlow('.removeFirst()', '#ff4444'); highlightCubeAt(0, CUBE_COLORS.remove, 600); },
+    () => { const removed = dsState.linkedlist.data.shift(); buildLinkedList(); sndRemove(); updateInfoPanel('.removeFirst()', 'O(1)', 'fast'); setCxBadge('O(1)', 'REWIRE HEAD'); showFlow(`Removed "${removed}"`, '#ff4444'); },
+  ];
+}
+
+// ─── HashSet Operations ───
+function opHSAdd(val) {
+  const bucket = simpleHash(val);
+  const exists = dsState.hashset.items.has(val);
+  const steps = [
+    () => { setCodeHighlight(0); sndHash(); showFlow(`hash("${val}") → bucket [${bucket}]`, '#8a2be2'); },
+  ];
+  if (exists) {
+    steps.push(() => { showFlow(`"${val}" ALREADY EXISTS → rejected!`, '#ff4444'); sndReject(); updateInfoPanel('.add() DUP', 'O(1)', 'slow'); setCxBadge('O(1)', 'DUPLICATE REJECTED'); setCodeHighlight(1); });
+  } else {
+    steps.push(() => {
+      dsState.hashset.items.add(val);
+      dsState.hashset.buckets[bucket].push(val);
+      buildHashSet(); sndAdd();
+      updateInfoPanel('.add()', 'O(1)', 'fast'); setCxBadge('O(1)', 'HASHED + STORED');
+      showFlow(`"${val}" → bucket [${bucket}]`, '#39ff14');
+      setCodeHighlight(2);
+    });
+  }
+  return steps;
+}
+
+function opHSContains(val) {
+  const bucket = simpleHash(val);
+  const exists = dsState.hashset.items.has(val);
+  return [
+    () => { setCodeHighlight(4); sndHash(); showFlow(`hash("${val}") → bucket [${bucket}]`, '#8a2be2'); },
+    () => {
+      showFlow(exists ? `FOUND "${val}" in bucket [${bucket}]` : `NOT FOUND in bucket [${bucket}]`, exists ? '#39ff14' : '#ff4444');
+      exists ? sndAccess() : sndReject();
+      updateInfoPanel('.contains()', 'O(1)', exists ? 'fast' : 'slow');
+      setCxBadge('O(1)', 'HASH → BUCKET → CHECK');
+      setCodeHighlight(5);
+    },
+  ];
+}
+
+// ─── HashMap Operations ───
+function opHMPut(key, val) {
+  const bucket = simpleHash(key);
+  return [
+    () => { setCodeHighlight(0); sndHash(); showFlow(`hash("${key}") → bucket [${bucket}]`, '#ffd700'); },
+    () => {
+      dsState.hashmap.entries.set(key, val);
+      // Update bucket
+      const b = dsState.hashmap.buckets[bucket];
+      const existing = b.findIndex(e => e[0] === key);
+      if (existing >= 0) b[existing] = [key, val]; else b.push([key, val]);
+      buildHashMap(); sndAdd();
+      updateInfoPanel('.put()', 'O(1)', 'fast'); setCxBadge('O(1)', 'HASH → STORE');
+      showFlow(`"${key}" → "${val}" in bucket [${bucket}]`, '#39ff14');
+      setCodeHighlight(1);
+    },
+  ];
+}
+
+function opHMGet(key) {
+  const bucket = simpleHash(key);
+  const val = dsState.hashmap.entries.get(key);
+  return [
+    () => { setCodeHighlight(3); sndHash(); showFlow(`hash("${key}") → bucket [${bucket}]`, '#ffd700'); },
+    () => {
+      showFlow(val ? `→ "${val}"` : 'NOT FOUND', val ? '#39ff14' : '#ff4444');
+      val ? sndAccess() : sndReject();
+      updateInfoPanel('.get()', 'O(1)', val ? 'fast' : 'slow');
+      setCxBadge('O(1)', 'HASH → BUCKET → FOUND');
+      setCodeHighlight(4);
+    },
+  ];
+}
+
+function opHMContainsKey(key) {
+  const bucket = simpleHash(key);
+  const exists = dsState.hashmap.entries.has(key);
+  return [
+    () => { setCodeHighlight(6); sndHash(); showFlow(`hash("${key}") → bucket [${bucket}]`, '#ffd700'); },
+    () => {
+      showFlow(exists ? `Key "${key}" EXISTS` : `Key "${key}" NOT FOUND`, exists ? '#39ff14' : '#ff4444');
+      exists ? sndAccess() : sndReject();
+      updateInfoPanel('.containsKey()', 'O(1)', exists ? 'fast' : 'slow');
+      setCxBadge('O(1)', 'HASH LOOKUP');
+      setCodeHighlight(7);
+    },
+  ];
+}
+
+// ═══════════════════════════════════════
+// CODE PANEL
+// ═══════════════════════════════════════
+const DS_CODE = {
+  array: `<span class="cm">// int[] — Fixed-size array</span>
+<span class="tp">int</span>[] data = {<span class="nu">10</span>, <span class="nu">25</span>, <span class="nu">7</span>, <span class="nu">42</span>, <span class="nu">18</span>, <span class="nu">33</span>, <span class="nu">5</span>};
+
+<span class="cm">// Access by index — O(1) instant!</span>
+<span class="tp">int</span> <span class="vr">value</span> = data[<span class="nu">3</span>]; <span class="cm">// → 42</span>
+
+<span class="cm">// Iterate — O(n)</span>
+<span class="kw">for</span> (<span class="tp">int</span> <span class="vr">x</span> : data) {
+    System.out.<span class="fn">println</span>(<span class="vr">x</span>);
+}
+
+<span class="cm">// Set value — O(1)</span>
+data[<span class="nu">2</span>] = <span class="nu">99</span>;
+
+<span class="cm">// Search — O(n) must check each</span>
+<span class="kw">for</span> (<span class="tp">int</span> <span class="vr">i</span> = <span class="nu">0</span>; <span class="vr">i</span> < data.length; <span class="vr">i</span>++) {
+    <span class="kw">if</span> (data[<span class="vr">i</span>] == <span class="nu">42</span>) <span class="kw">break</span>;
+}
+
+<span class="cm">// ⚠ Size is FIXED — cannot add/remove!</span>
+<span class="cm">// ArrayIndexOutOfBoundsException if</span>
+<span class="cm">// you access beyond data.length - 1</span>`,
+
+  arraylist: `<span class="cm">// ArrayList — Dynamic array</span>
+<span class="tp">ArrayList</span>&lt;<span class="tp">String</span>&gt; <span class="vr">list</span> = <span class="kw">new</span> <span class="tp">ArrayList</span>&lt;&gt;();
+
+<span class="cm">// .add() at end — O(1) amortized</span>
+<span class="vr">list</span>.<span class="fn">add</span>(<span class="str">"Safari"</span>);
+
+<span class="cm">// .add(index) — O(n) shifts right!</span>
+<span class="vr">list</span>.<span class="fn">add</span>(<span class="nu">0</span>, <span class="str">"IE"</span>); <span class="cm">// shifts ALL</span>
+
+<span class="cm">// .get() — O(1) instant</span>
+<span class="tp">String</span> <span class="vr">b</span> = <span class="vr">list</span>.<span class="fn">get</span>(<span class="nu">1</span>);
+
+<span class="cm">// .remove() — O(n) shifts left!</span>
+<span class="vr">list</span>.<span class="fn">remove</span>(<span class="nu">0</span>);
+
+<span class="cm">// .contains() — O(n) linear scan</span>
+<span class="kw">boolean</span> <span class="vr">has</span> = <span class="vr">list</span>.<span class="fn">contains</span>(<span class="str">"Edge"</span>);
+
+<span class="cm">// Auto-resize: when full, Java creates</span>
+<span class="cm">// new array 1.5x size and copies all!</span>
+<span class="cm">// Choose ArrayList when you READ more</span>
+<span class="cm">// than you INSERT/DELETE in the middle.</span>`,
+
+  linkedlist: `<span class="cm">// LinkedList — Doubly-linked chain</span>
+<span class="tp">LinkedList</span>&lt;<span class="tp">String</span>&gt; <span class="vr">list</span> = <span class="kw">new</span> <span class="tp">LinkedList</span>&lt;&gt;();
+
+<span class="cm">// .addFirst() — O(1) rewire head</span>
+<span class="vr">list</span>.<span class="fn">addFirst</span>(<span class="str">"Z"</span>);
+
+<span class="cm">// .addLast() — O(1) rewire tail</span>
+<span class="vr">list</span>.<span class="fn">addLast</span>(<span class="str">"E"</span>);
+
+<span class="cm">// .get(index) — O(n) MUST traverse!</span>
+<span class="tp">String</span> <span class="vr">val</span> = <span class="vr">list</span>.<span class="fn">get</span>(<span class="nu">2</span>);
+<span class="cm">// ↑ walks node by node from HEAD</span>
+
+<span class="cm">// .removeFirst() — O(1)</span>
+<span class="vr">list</span>.<span class="fn">removeFirst</span>();
+
+<span class="cm">// Each node stores: value + prev + next</span>
+<span class="cm">// More memory than ArrayList!</span>
+<span class="cm">// Use ONLY when inserting/removing at</span>
+<span class="cm">// head/middle is frequent. Rare in practice.</span>`,
+
+  hashset: `<span class="cm">// HashSet — Unique elements via hashing</span>
+<span class="tp">HashSet</span>&lt;<span class="tp">String</span>&gt; <span class="vr">set</span> = <span class="kw">new</span> <span class="tp">HashSet</span>&lt;&gt;();
+
+<span class="cm">// .add() — O(1) hash → bucket → store</span>
+<span class="vr">set</span>.<span class="fn">add</span>(<span class="str">"alice"</span>); <span class="cm">// true → added</span>
+<span class="vr">set</span>.<span class="fn">add</span>(<span class="str">"alice"</span>); <span class="cm">// false → DUPLICATE!</span>
+
+<span class="cm">// Internally: hashCode("alice") % buckets</span>
+<span class="cm">// → places in that bucket. If already</span>
+<span class="cm">// there → REJECTED silently.</span>
+
+<span class="cm">// .contains() — O(1) hash → check</span>
+<span class="kw">boolean</span> <span class="vr">has</span> = <span class="vr">set</span>.<span class="fn">contains</span>(<span class="str">"bob"</span>);
+<span class="cm">// ↑ does NOT scan all elements!</span>
+<span class="cm">// Hashes straight to the right bucket.</span>
+
+<span class="cm">// ⚠ NO ordering! Use LinkedHashSet for</span>
+<span class="cm">// insertion order, TreeSet for sorting.</span>`,
+
+  hashmap: `<span class="cm">// HashMap — Key→Value via hashing</span>
+<span class="tp">HashMap</span>&lt;<span class="tp">String</span>,<span class="tp">String</span>&gt; <span class="vr">map</span> = <span class="kw">new</span> <span class="tp">HashMap</span>&lt;&gt;();
+
+<span class="cm">// .put(key, val) — O(1)</span>
+<span class="vr">map</span>.<span class="fn">put</span>(<span class="str">"stg"</span>, <span class="str">"stg.api.com"</span>);
+
+<span class="cm">// .get(key) — O(1) hash → bucket → find</span>
+<span class="tp">String</span> <span class="vr">url</span> = <span class="vr">map</span>.<span class="fn">get</span>(<span class="str">"stg"</span>);
+<span class="cm">// ↑ hash("stg") → bucket → scan bucket</span>
+
+<span class="cm">// .getOrDefault() — avoids null!</span>
+<span class="tp">String</span> <span class="vr">d</span> = <span class="vr">map</span>.<span class="fn">getOrDefault</span>(<span class="str">"dev"</span>, <span class="str">"localhost"</span>);
+
+<span class="cm">// .containsKey() — O(1)</span>
+<span class="kw">boolean</span> <span class="vr">has</span> = <span class="vr">map</span>.<span class="fn">containsKey</span>(<span class="str">"prod"</span>);
+
+<span class="cm">// Keys must be IMMUTABLE (String, Integer)</span>
+<span class="cm">// Iterate: for (var e : map.entrySet())</span>
+<span class="cm">//   e.getKey() + " → " + e.getValue()</span>`,
+};
+
+let codeHighlightLine = -1;
+function setCodeHighlight(lineIdx) { codeHighlightLine = lineIdx; renderCode(); }
+
+function renderCode() {
+  const code = DS_CODE[currentDS];
+  if (!code) return;
+  const lines = code.split('\n');
+  const html = lines.map((line, i) => {
+    let cls = 'cl';
+    if (i === codeHighlightLine) cls += ' cl-active';
+    const ptr = (i === codeHighlightLine) ? '<span class="exec-ptr">►</span>' : '  ';
+    return `<span class="${cls}">${ptr}${line}</span>`;
+  }).join('\n');
+  document.getElementById('cd').innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// BIG-O COMPARISON PANEL
+// ═══════════════════════════════════════
+const BIG_O_DATA = {
+  array:     { access: 'O(1)', search: 'O(n)', insert: '—', remove: '—' },
+  arraylist: { access: 'O(1)', search: 'O(n)', insert: 'O(n)', remove: 'O(n)' },
+  linkedlist:{ access: 'O(n)', search: 'O(n)', insert: 'O(1)', remove: 'O(1)' },
+  hashset:   { access: '—', search: 'O(1)', insert: 'O(1)', remove: 'O(1)' },
+  hashmap:   { access: 'O(1)', search: 'O(1)', insert: 'O(1)', remove: 'O(1)' },
+};
+
+const O_COLORS = { 'O(1)': '#39ff14', 'O(n)': '#ff6644', 'O(log n)': '#ffd700', '—': '#334455' };
+const O_WIDTHS = { 'O(1)': 25, 'O(n)': 100, 'O(log n)': 50, '—': 8 };
+
+function renderBigO() {
+  const data = BIG_O_DATA[currentDS];
+  const el = document.getElementById('bo-content');
+  el.innerHTML = '';
+  ['access', 'search', 'insert', 'remove'].forEach(op => {
+    const val = data[op];
+    const color = O_COLORS[val] || '#558899';
+    const width = O_WIDTHS[val] || 10;
+    el.innerHTML += `<div class="bo-row">
+      <span class="bo-op">${op}</span>
+      <div class="bo-bar" style="width:${width}px;background:${color}"></div>
+      <span class="bo-val" style="color:${color}">${val}</span>
+    </div>`;
+  });
+}
+
+// ═══════════════════════════════════════
+// DESCRIPTIONS
+// ═══════════════════════════════════════
+const DS_DESCS = {
+  array: 'Fixed-size collection — instant access by index, cannot resize',
+  arraylist: 'Dynamic array — auto-grows, fast read, slow insert at front',
+  linkedlist: 'Doubly-linked chain — fast add/remove at ends, slow random access',
+  hashset: 'Unique elements — hash function → bucket → O(1) everything',
+  hashmap: 'Key→Value pairs — hash(key) → bucket → O(1) get/put',
+};
+
+// ═══════════════════════════════════════
+// SWITCH DATA STRUCTURE
+// ═══════════════════════════════════════
+function switchDS(ds) {
+  currentDS = ds;
+  stopPlaying();
+  stepQueue = [];
+  stepIndex = 0;
+  codeHighlightLine = -1;
+
+  // Reset state
+  dsState.array = { data: [10, 25, 7, 42, 18, 33, 5], capacity: 7 };
+  dsState.arraylist = { data: ['Chrome', 'Firefox', 'Edge'], capacity: 4 };
+  dsState.linkedlist = { data: ['A', 'B', 'C', 'D'] };
+  dsState.hashset = { buckets: Array.from({length: 8}, () => []), items: new Set() };
+  dsState.hashmap = { buckets: Array.from({length: 8}, () => []), entries: new Map() };
+
+  // Build 3D
+  builders[ds]();
+  renderCode();
+  renderBigO();
+  renderOpButtons();
+  updateUIForDS();
+
+  // Update selector buttons
+  document.querySelectorAll('.ds-btn').forEach(b => b.classList.toggle('active', b.dataset.ds === ds));
+  document.getElementById('ds-desc').textContent = DS_DESCS[ds];
+
+  // Adjust camera for hash structures (wider)
+  if (ds === 'hashset' || ds === 'hashmap') {
+    camDist = 24; camPhi = 0.5;
+  } else if (ds === 'linkedlist') {
+    camDist = 22; camPhi = 0.35;
+  } else {
+    camDist = 20; camPhi = 0.4;
+  }
+  camTheta = 0;
+  updateCamera();
+}
+
+function updateUIForDS() {
+  const d = currentDS;
+  document.getElementById('info-type').textContent = d === 'array' ? 'int[]' : d === 'arraylist' ? 'ArrayList<>' : d === 'linkedlist' ? 'LinkedList<>' : d === 'hashset' ? 'HashSet<>' : 'HashMap<>';
+  const size = d === 'array' ? dsState.array.data.length : d === 'arraylist' ? dsState.arraylist.data.length : d === 'linkedlist' ? dsState.linkedlist.data.length : d === 'hashset' ? dsState.hashset.items.size : dsState.hashmap.entries.size;
+  document.getElementById('info-size').textContent = size;
+  document.getElementById('info-cap').textContent = d === 'array' ? `${dsState.array.capacity} (fixed)` : d === 'arraylist' ? `${dsState.arraylist.capacity} (grows)` : d === 'hashset' ? '8 buckets' : d === 'hashmap' ? '8 buckets' : '—';
+  document.getElementById('info-op').textContent = '—';
+  document.getElementById('info-cost').textContent = '—';
+  document.getElementById('info-cost').className = 'iv';
+}
+
+function renderOpButtons() {
+  const ops = DS_OPS[currentDS];
+  const el = document.getElementById('op-buttons');
+  el.innerHTML = '';
+  ops.forEach((op, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'op-btn';
+    btn.textContent = op.name;
+    btn.onclick = () => { initAudio(); runOp(i); };
+    el.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════
+// NARRATION
+// ═══════════════════════════════════════
+function setNarration(html) {
+  const el = document.getElementById('narr-text');
+  if (el) el.innerHTML = html;
+}
+
+const OP_NARRATIONS = {
+  array: [
+    'Accessing <strong>array[3]</strong> — arrays support <strong>O(1)</strong> direct access by index. No scanning needed!',
+    'Iterating through every element with a <strong>for-each loop</strong>. Must visit all N elements → <strong>O(n)</strong>.',
+    'Setting <strong>array[2] = 99</strong> — direct write by index is <strong>O(1)</strong>, instant.',
+    'Searching for value <strong>42</strong> — must scan each element until found or end. That\'s <strong>O(n)</strong> worst case.',
+  ],
+  arraylist: [
+    'Adding <strong>"Safari"</strong> to the end — usually <strong>O(1)</strong>, but if capacity is full, ArrayList doubles its internal array (costly copy!).',
+    'Inserting <strong>"IE"</strong> at index 0 — all existing elements shift right. That\'s <strong>O(n)</strong>!',
+    'Getting element at index 1 — ArrayList uses an array internally, so <strong>O(1)</strong> direct access.',
+    'Removing element at index 0 — all elements shift left to fill the gap. <strong>O(n)</strong>.',
+    'Searching if <strong>"Edge"</strong> exists — must scan linearly, <strong>O(n)</strong>.',
+  ],
+  linkedlist: [
+    'Adding <strong>"Z"</strong> at the front — just update the head pointer! <strong>O(1)</strong>.',
+    'Adding <strong>"E"</strong> at the end — update the tail pointer! <strong>O(1)</strong>.',
+    'Getting element at index 2 — must traverse from head, node by node. <strong>O(n)</strong> — this is LinkedList\'s weakness!',
+    'Removing the first element — just move the head pointer forward. <strong>O(1)</strong>.',
+  ],
+  hashset: [
+    'Adding <strong>"alice"</strong> — hash the value, go to that bucket, store it. <strong>O(1)</strong> average.',
+    'Adding <strong>"bob"</strong> — different hash, different bucket. <strong>O(1)</strong>.',
+    'Adding <strong>"alice"</strong> again — hash matches, bucket already has it → <strong>REJECTED!</strong> Sets don\'t allow duplicates.',
+    'Checking if <strong>"bob"</strong> exists — hash it, check that bucket. <strong>O(1)</strong> average.',
+  ],
+  hashmap: [
+    'Putting <strong>"stg" → "stg.api"</strong> — hash the key, store key-value pair in bucket. <strong>O(1)</strong> average.',
+    'Putting <strong>"prod" → "api.com"</strong> — different key hash, different bucket.',
+    'Getting value for key <strong>"stg"</strong> — hash key, go to bucket, return value. <strong>O(1)</strong>.',
+    'Putting <strong>"dev" → "local"</strong> — adding another entry.',
+    'Checking if key <strong>"prod"</strong> exists — hash and check. <strong>O(1)</strong> average.',
+  ],
+};
+
+// ═══════════════════════════════════════
+// STEP EXECUTION
+// ═══════════════════════════════════════
+function runOp(opIndex) {
+  const ops = DS_OPS[currentDS];
+  if (!ops[opIndex]) return;
+  stepQueue = ops[opIndex].fn();
+  stepIndex = 0;
+  // Narrate
+  const narrs = OP_NARRATIONS[currentDS];
+  if (narrs && narrs[opIndex]) setNarration(narrs[opIndex]);
+  // Highlight button
+  document.querySelectorAll('.op-btn').forEach((b, i) => b.classList.toggle('running', i === opIndex));
+  doStep();
+}
+
+function doStep() {
+  if (stepIndex >= stepQueue.length) {
+    stepQueue = [];
+    stepIndex = 0;
+    document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('running'));
+    updateUIForDS();
+    return;
+  }
+  stepQueue[stepIndex]();
+  stepIndex++;
+}
+
+function stepForward() {
+  initAudio();
+  if (stepQueue.length > 0) {
+    doStep();
+  }
+}
+
+function startPlaying() {
+  playing = true;
+  document.getElementById('btn-play').textContent = 'PAUSE';
+  document.getElementById('btn-play').classList.add('on');
+  autoStep();
+}
+
+function stopPlaying() {
+  playing = false;
+  if (playTimer) clearTimeout(playTimer);
+  playTimer = null;
+  document.getElementById('btn-play').textContent = 'PLAY';
+  document.getElementById('btn-play').classList.remove('on');
+}
+
+function autoStep() {
+  if (!playing) return;
+  if (stepQueue.length === 0) {
+    // Auto-run next operation
+    const ops = DS_OPS[currentDS];
+    const nextOp = Math.floor(Math.random() * ops.length);
+    runOp(nextOp);
+  } else {
+    doStep();
+  }
+  const delay = 1200 - speed * 100;
+  playTimer = setTimeout(autoStep, Math.max(200, delay));
+}
+
+function resetDS() {
+  stopPlaying();
+  switchDS(currentDS);
+}
+
+// ═══════════════════════════════════════
+// HELP
+// ═══════════════════════════════════════
+function toggleHelp() {
+  document.getElementById('info-overlay').classList.toggle('show');
+}
+
+// ═══════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════
+// DS selector buttons
+document.querySelectorAll('.ds-btn').forEach(btn => {
+  btn.addEventListener('click', () => { initAudio(); switchDS(btn.dataset.ds); });
+});
+
+// Controls
+document.getElementById('btn-step').onclick = () => { initAudio(); stepForward(); };
+document.getElementById('btn-play').onclick = () => { initAudio(); playing ? stopPlaying() : startPlaying(); };
+document.getElementById('btn-reset').onclick = () => resetDS();
+document.getElementById('btn-mute').onclick = () => {
+  muted = !muted;
+  document.getElementById('btn-mute').classList.toggle('muted', muted);
+  document.getElementById('btn-mute').textContent = muted ? 'MUTED' : 'SND';
+};
+document.getElementById('btn-help').onclick = toggleHelp;
+
+// Speed slider
+document.getElementById('sl-speed').addEventListener('input', e => {
+  speed = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = speed;
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  switch(e.key) {
+    case ' ': e.preventDefault(); initAudio(); playing ? stopPlaying() : startPlaying(); break;
+    case 's': case 'S': stepForward(); break;
+    case 'r': case 'R': resetDS(); break;
+    case 'm': case 'M':
+      muted = !muted;
+      document.getElementById('btn-mute').classList.toggle('muted', muted);
+      document.getElementById('btn-mute').textContent = muted ? 'MUTED' : 'SND';
+      break;
+    case '?': toggleHelp(); break;
+    case '1': switchDS('array'); break;
+    case '2': switchDS('arraylist'); break;
+    case '3': switchDS('linkedlist'); break;
+    case '4': switchDS('hashset'); break;
+    case '5': switchDS('hashmap'); break;
+    case 'ArrowLeft': speed = Math.max(1, speed - 1); document.getElementById('sl-speed').value = speed; document.getElementById('speed-val').textContent = speed; break;
+    case 'ArrowRight': speed = Math.min(10, speed + 1); document.getElementById('sl-speed').value = speed; document.getElementById('speed-val').textContent = speed; break;
+    case 'Escape': document.getElementById('info-overlay').classList.remove('show'); break;
+  }
+});
+
+// Mouse orbit
+canvas.addEventListener('mousedown', e => { isDragging = true; lastMX = e.clientX; lastMY = e.clientY; });
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  camTheta -= (e.clientX - lastMX) * 0.005;
+  camPhi = Math.max(0.05, Math.min(1.5, camPhi + (e.clientY - lastMY) * 0.005));
+  lastMX = e.clientX; lastMY = e.clientY;
+  updateCamera();
+});
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('wheel', e => {
+  camDist = Math.max(8, Math.min(50, camDist + e.deltaY * 0.02));
+  updateCamera();
+});
+
+// Touch
+let touchStartDist = 0;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) { isDragging = true; lastMX = e.touches[0].clientX; lastMY = e.touches[0].clientY; }
+  if (e.touches.length === 2) {
+    touchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    camTheta -= (e.touches[0].clientX - lastMX) * 0.005;
+    camPhi = Math.max(0.05, Math.min(1.5, camPhi + (e.touches[0].clientY - lastMY) * 0.005));
+    lastMX = e.touches[0].clientX; lastMY = e.touches[0].clientY;
+    updateCamera();
+  }
+  if (e.touches.length === 2) {
+    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    camDist = Math.max(8, Math.min(50, camDist - (dist - touchStartDist) * 0.05));
+    touchStartDist = dist;
+    updateCamera();
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', () => isDragging = false);
+
+// Resize
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ═══════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.01;
+
+  // Subtle float animation on cubes
+  dsMeshes.forEach((item, i) => {
+    if (item.mesh && !item.isBucket) {
+      const floatY = Math.sin(time * 2 + i * 0.5) * 0.05;
+      item.mesh.position.y = (item.mesh.userData.baseY || 0) + floatY;
+      if (item.label) item.label.position.y = (item.label.userData.baseY || item.mesh.userData.baseY + CUBE_SIZE * 0.8) + floatY;
+    }
+  });
+
+  // Rotate point lights
+  pt1.position.x = Math.sin(time * 0.3) * 12;
+  pt1.position.z = Math.cos(time * 0.3) * 8;
+
+  renderer.render(scene, camera);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+switchDS('array');
+animate();
+</script>
+</body>
+</html>

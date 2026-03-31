@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Java OOP — 3D Visualizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020408;font-family:'JetBrains Mono',monospace;color:#e0f0ff;overflow:hidden;touch-action:none}
+#cv{position:fixed;inset:0}
+
+#tb{position:fixed;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,rgba(0,10,30,.96),rgba(0,20,50,.88));border-bottom:1px solid rgba(0,180,255,.25);display:flex;align-items:center;justify-content:space-between;padding:0 14px;backdrop-filter:blur(12px);z-index:300}
+#tb h1{font-family:'Orbitron',sans-serif;font-size:clamp(11px,2.3vw,17px);font-weight:900;color:#00d4ff;text-shadow:0 0 20px rgba(0,212,255,.6);letter-spacing:2px}
+.sub{font-size:10px;color:rgba(0,212,255,.42);letter-spacing:1px;margin-top:2px}
+#tb-hint{font-size:10px;color:rgba(200,230,255,.2);letter-spacing:1px}
+
+/* MODE SELECTOR */
+#mode-sel{position:fixed;top:60px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,8,22,.95);border:1px solid rgba(0,180,255,.2);border-radius:30px;padding:6px 12px;backdrop-filter:blur(16px);z-index:250;flex-wrap:wrap;justify-content:center;max-width:95vw}
+.mode-btn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(0,212,255,.6);font-family:'JetBrains Mono',monospace;font-size:10px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.mode-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff}
+.mode-btn.active{background:rgba(0,212,255,.25);color:#fff;border-color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.3)}
+
+.panel{position:fixed;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(0,212,255,.55);margin-bottom:11px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+
+/* EXPLANATION PANEL */
+#explain{left:10px;top:110px;width:260px;max-height:calc(100vh - 200px);overflow-y:auto}
+#explain-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#ffd700;margin-bottom:8px}
+#explain-text{font-size:11px;color:rgba(200,230,255,.65);line-height:1.7}
+#explain-text strong{color:#00d4ff}
+#explain-text em{color:#39ff14;font-style:normal;font-weight:700}
+#explain-text .warn{color:#ff6644}
+#explain-text .key{color:#ffd700;font-weight:700}
+.analogy{margin-top:10px;padding:10px;border:1px solid rgba(138,43,226,.3);border-radius:8px;background:rgba(138,43,226,.06)}
+.analogy-label{font-size:9px;letter-spacing:2px;color:#8a2be2;margin-bottom:4px}
+.analogy-text{font-size:11px;color:rgba(200,180,255,.7);line-height:1.6}
+
+/* ACTION BUTTONS */
+#actions{left:10px;bottom:80px;width:260px}
+.act-btn{display:block;width:100%;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(200,230,255,.7);font-family:'JetBrains Mono',monospace;font-size:11px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px;margin-bottom:5px;text-align:left}
+.act-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
+.act-btn.running{background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.5);color:#ffd700}
+.act-btn.success{background:rgba(57,255,20,.08);border-color:rgba(57,255,20,.3);color:#39ff14}
+.act-btn.fail{background:rgba(255,68,68,.08);border-color:rgba(255,68,68,.3);color:#ff4444}
+
+/* CODE PANEL */
+#cp{right:10px;top:110px;width:min(440px,45vw);height:calc(100vh - 190px);overflow-y:auto;min-width:200px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+.ch .ptitle{margin-bottom:0;border:none;padding:0}
+#cd{font-size:11px;line-height:1.5;white-space:pre;overflow-x:auto}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.nu{color:#b5cea8}.cm{color:rgba(140,170,140,.5);font-style:italic}.vr{color:#9cdcfe}.str{color:#ce9178}.tp{color:#4ec9b0}.en{color:#b5cea8;font-weight:700}
+.cl{display:block;padding:1px 4px;border-left:3px solid transparent;border-radius:2px;transition:background .15s,border-color .15s}
+.cl-active{background:rgba(255,215,0,.12);border-left-color:rgba(255,215,0,.7)}
+.cl-exec{background:rgba(57,255,20,.10);border-left-color:#39ff14}
+.cl-fail{background:rgba(255,60,60,.12);border-left-color:rgba(255,80,80,.6)}
+.annot{font-size:10px;font-style:italic;margin-left:6px;letter-spacing:0}
+.annot-var{color:#ffd700}
+.annot-ok{color:#39ff14;font-weight:700}
+.annot-fail{color:#ff5555;font-weight:700}
+.exec-ptr{color:#39ff14;font-weight:900;margin-right:2px;text-shadow:0 0 8px rgba(57,255,20,.6)}
+
+/* CONTROLS */
+#ctrl{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:50px;padding:9px 18px;backdrop-filter:blur(16px);z-index:200}
+.cb{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.cb:hover{background:rgba(0,212,255,.22);box-shadow:0 0 12px rgba(0,212,255,.3)}
+.cb.on{background:rgba(0,212,255,.28);box-shadow:0 0 18px rgba(0,212,255,.5)}
+.cb.muted{opacity:0.4}
+.cs{width:1px;height:22px;background:rgba(0,180,255,.2)}
+
+/* FLOW INDICATOR */
+#flow-ind{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;z-index:160;opacity:0;transition:opacity .4s;pointer-events:none;text-align:center;padding:8px 20px;background:rgba(0,8,22,.85);border-radius:20px;border:1px solid rgba(0,180,255,.2)}
+#flow-ind.show{opacity:1}
+
+/* CONCEPT BADGE */
+#cx-badge{position:fixed;right:10px;bottom:14px;background:rgba(0,8,22,.9);border:1px solid rgba(138,43,226,.35);border-radius:10px;padding:10px 16px;text-align:center;z-index:150;backdrop-filter:blur(16px)}
+.cx-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1px}
+.cx-sub{font-size:9px;letter-spacing:1px;margin-top:2px}
+
+/* NARRATION PANEL */
+#narration{position:fixed;right:10px;top:110px;width:240px;max-height:280px;overflow-y:auto;background:rgba(0,8,22,.93);border:1px solid rgba(57,255,20,.25);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+#narr-text{font-size:12px;color:rgba(200,230,255,.75);line-height:1.8}
+#narr-text strong{color:#ffd700}
+#narr-text .narr-step{color:#39ff14;font-weight:700}
+#narr-text .narr-warn{color:#ff4444;font-weight:700}
+
+/* INFO OVERLAY */
+#info-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,8,22,.97);border:1px solid rgba(0,180,255,.3);border-radius:16px;padding:28px 32px;backdrop-filter:blur(20px);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;width:min(560px,90vw);max-height:80vh;overflow-y:auto}
+#info-overlay.show{opacity:1;pointer-events:auto}
+#info-overlay h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:#00d4ff;margin-bottom:14px;text-align:center}
+#info-overlay p{font-size:11px;color:rgba(200,230,255,.6);line-height:1.7;margin-bottom:6px}
+.info-feat{display:flex;gap:8px;align-items:baseline;margin-bottom:5px}
+.info-key{color:#00d4ff;font-weight:700;min-width:100px;flex-shrink:0;font-size:11px}
+.info-desc{color:rgba(200,230,255,.55);font-size:11px}
+#info-overlay h4{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:#ffd700;margin:14px 0 6px}
+#info-overlay .info-close{text-align:center;margin-top:16px}
+#info-overlay .info-close button{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 20px;border-radius:20px;cursor:pointer;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+
+<div id="tb">
+  <div>
+    <h1>OOP VISUALIZER</h1>
+    <div class="sub">FIELDS · METHODS · CONSTRUCTORS · ENUM</div>
+  </div>
+  <div id="tb-hint">Press ? for help</div>
+</div>
+
+<div id="mode-sel">
+  <button class="mode-btn active" data-mode="fields">Fields & Methods</button>
+  <button class="mode-btn" data-mode="access">Access Modifiers</button>
+  <button class="mode-btn" data-mode="static">static & final</button>
+  <button class="mode-btn" data-mode="constructor">Constructors</button>
+  <button class="mode-btn" data-mode="overload">Overloading</button>
+  <button class="mode-btn" data-mode="enum">enum</button>
+</div>
+
+<div class="panel" id="explain">
+  <div class="ptitle">CONCEPT</div>
+  <div id="explain-title"></div>
+  <div id="explain-text"></div>
+</div>
+
+<div class="panel" id="actions">
+  <div class="ptitle">TRY IT</div>
+  <div id="act-buttons"></div>
+</div>
+
+<div class="panel" id="cp">
+  <div class="ch"><div class="ptitle">JAVA CODE</div></div>
+  <div id="cd"></div>
+</div>
+
+<div id="ctrl">
+  <button class="cb" id="btn-play" title="Play/Pause (Space)">▶ PLAY</button>
+  <button class="cb" id="btn-step" title="Step (S)">STEP</button>
+  <button class="cb" id="btn-reset" title="Reset (R)">RESET</button>
+  <div class="cs"></div>
+  <span style="color:rgba(0,212,255,.4);font-size:9px;letter-spacing:1px">SPEED</span>
+  <input type="range" id="sl-speed" min="1" max="10" value="3" style="width:70px" title="Speed (Left/Right arrows)">
+  <span class="cb" id="speed-val" style="padding:4px 8px;cursor:default;min-width:20px;text-align:center">3</span>
+  <div class="cs"></div>
+  <button class="cb" id="btn-mute" title="Mute (M)">SND</button>
+  <button class="cb" id="btn-help" title="Help (?)">?</button>
+</div>
+
+<div id="narration">
+  <div class="ptitle">WHAT'S HAPPENING</div>
+  <div id="narr-text">Click <strong>▶ PLAY</strong> or press <strong>Space</strong> to start a guided walkthrough of this concept. Each step explains what's happening in the 3D scene.</div>
+</div>
+
+<div id="cx-badge">
+  <div class="cx-title" id="cx-text" style="color:#8a2be2;text-shadow:0 0 12px rgba(138,43,226,.5)">OOP</div>
+  <div class="cx-sub" id="cx-sub" style="color:rgba(138,43,226,.5)">Object-Oriented Programming</div>
+</div>
+
+<div id="flow-ind"></div>
+
+<div id="info-overlay">
+  <h3>OOP VISUALIZER</h3>
+  <p>Interactive 3D visualization of Java Object-Oriented Programming concepts. Watch objects being built, fields being set, methods being called.</p>
+  <h4>CONCEPTS</h4>
+  <div class="info-feat"><span class="info-key">Fields & Methods</span><span class="info-desc">Objects have states (data) and behaviors (actions)</span></div>
+  <div class="info-feat"><span class="info-key">Access Modifiers</span><span class="info-desc">public, private, protected — who can see what</span></div>
+  <div class="info-feat"><span class="info-key">static & final</span><span class="info-desc">Shared class data vs per-object data, constants</span></div>
+  <div class="info-feat"><span class="info-key">Constructors</span><span class="info-desc">Special methods that initialize objects on creation</span></div>
+  <div class="info-feat"><span class="info-key">Overloading</span><span class="info-desc">Same name, different parameters — multiple ways to create</span></div>
+  <div class="info-feat"><span class="info-key">enum</span><span class="info-desc">Fixed set of named constants — type-safe, no typos</span></div>
+  <h4>KEYBOARD SHORTCUTS</h4>
+  <div class="info-feat"><span class="info-key">Space</span><span class="info-desc">Play / Pause guided walkthrough</span></div>
+  <div class="info-feat"><span class="info-key">S</span><span class="info-desc">Step forward one narration step</span></div>
+  <div class="info-feat"><span class="info-key">R</span><span class="info-desc">Reset current scene</span></div>
+  <div class="info-feat"><span class="info-key">Left/Right</span><span class="info-desc">Change speed</span></div>
+  <div class="info-feat"><span class="info-key">1–6</span><span class="info-desc">Switch concept</span></div>
+  <div class="info-feat"><span class="info-key">M</span><span class="info-desc">Mute / Unmute</span></div>
+  <div class="info-feat"><span class="info-key">?</span><span class="info-desc">Toggle this help</span></div>
+  <div class="info-close"><button onclick="document.getElementById('info-overlay').classList.remove('show')">CLOSE</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════
+// THREE.JS SCENE
+// ═══════════════════════════════════════
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020408, 0.006);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+let camTheta = 0.3, camPhi = 0.45, camDist = 22, camTarget = new THREE.Vector3(0, 2, 0);
+let isDragging = false, lastMX = 0, lastMY = 0;
+
+function updateCamera() {
+  camera.position.x = camTarget.x + camDist * Math.sin(camTheta) * Math.cos(camPhi);
+  camera.position.y = camTarget.y + camDist * Math.sin(camPhi);
+  camera.position.z = camTarget.z + camDist * Math.cos(camTheta) * Math.cos(camPhi);
+  camera.lookAt(camTarget);
+}
+updateCamera();
+
+// Lights
+scene.add(new THREE.AmbientLight(0x334466, 0.6));
+const dir = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(10, 20, 10); scene.add(dir);
+const pt1 = new THREE.PointLight(0x00aaff, 0.5, 60); pt1.position.set(-8, 12, 5); scene.add(pt1);
+const pt2 = new THREE.PointLight(0xff6600, 0.3, 50); pt2.position.set(8, 5, -5); scene.add(pt2);
+
+// Stars
+(function() {
+  const geo = new THREE.BufferGeometry();
+  const n = 1000, pos = new Float32Array(n*3), col = new Float32Array(n*3);
+  const cs = [[1,1,1],[0.7,0.8,1],[1,0.9,0.7],[0.8,0.7,1]];
+  for (let i = 0; i < n; i++) {
+    const r = 200+Math.random()*500, th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
+    pos[i*3]=r*Math.sin(ph)*Math.cos(th); pos[i*3+1]=r*Math.sin(ph)*Math.sin(th); pos[i*3+2]=r*Math.cos(ph);
+    const c=cs[Math.floor(Math.random()*cs.length)], b=0.5+Math.random()*0.5;
+    col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({size:1.5,vertexColors:true,transparent:true,opacity:0.8,fog:false})));
+})();
+
+// Grid
+const grid = new THREE.GridHelper(30,30,0x0a2040,0x061530);
+grid.position.y = -0.01; grid.material.transparent = true; grid.material.opacity = 0.25;
+scene.add(grid);
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+let audioCtx = null, muted = false;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type='sine', vol=0.06) {
+  if (muted||!audioCtx) return;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function sndBuild() { playTone(440,.12); setTimeout(()=>playTone(554,.1),60); setTimeout(()=>playTone(659,.15),120); }
+function sndSet() { playTone(523,.1,'triangle'); }
+function sndCall() { playTone(784,.08); setTimeout(()=>playTone(880,.1),50); }
+function sndBlock() { playTone(200,.2,'sawtooth',.04); setTimeout(()=>playTone(150,.25,'sawtooth',.03),80); }
+function sndOk() { playTone(659,.12); setTimeout(()=>playTone(880,.15),80); }
+function sndEnum() { playTone(392,.1,'triangle',.05); setTimeout(()=>playTone(523,.1,'triangle',.04),60); }
+
+// ═══════════════════════════════════════
+// TEXT SPRITES
+// ═══════════════════════════════════════
+function makeText(text, opts={}) {
+  const fs=opts.fontSize||26, color=opts.color||'#ffffff';
+  const cv=document.createElement('canvas'), ctx=cv.getContext('2d');
+  // Dynamic canvas width based on text length for sharper rendering
+  ctx.font=`bold ${fs*2}px JetBrains Mono, monospace`;
+  const tw = Math.max(256, Math.ceil(ctx.measureText(text).width + 40));
+  cv.width=tw; cv.height=96;
+  ctx.font=`bold ${fs*2}px JetBrains Mono, monospace`;
+  ctx.fillStyle=color; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text,tw/2,48);
+  const tex=new THREE.CanvasTexture(cv); tex.minFilter=THREE.LinearFilter;
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
+  const aspect = tw/96;
+  const baseScale = opts.scale||2.5;
+  spr.scale.set(baseScale, baseScale/aspect, 1);
+  spr.renderOrder = 10;
+  return spr;
+}
+
+// ═══════════════════════════════════════
+// SCENE OBJECTS MANAGEMENT
+// ═══════════════════════════════════════
+let sceneMeshes = [];
+let stepQueue = [], stepIndex = 0;
+
+function clearScene() {
+  sceneMeshes.forEach(obj => {
+    // Dispose children (edge wireframes, etc.)
+    if (obj.children) obj.children.forEach(child => {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    });
+    if (obj.userData && obj.userData.edgeGeo) obj.userData.edgeGeo.dispose();
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) { if (obj.material.map) obj.material.map.dispose(); obj.material.dispose(); }
+    scene.remove(obj);
+  });
+  sceneMeshes = [];
+}
+
+function addToScene(obj) { scene.add(obj); sceneMeshes.push(obj); return obj; }
+
+function showFlow(text, color='#ffd700') {
+  const el=document.getElementById('flow-ind');
+  el.textContent=text; el.style.color=color; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+function setBadge(text,sub,color='#8a2be2') {
+  document.getElementById('cx-text').textContent=text;
+  document.getElementById('cx-text').style.color=color;
+  document.getElementById('cx-text').style.textShadow=`0 0 12px ${color}`;
+  document.getElementById('cx-sub').textContent=sub;
+  document.getElementById('cx-sub').style.color=color;
+}
+
+// ═══════════════════════════════════════
+// 3D OBJECT BUILDERS
+// ═══════════════════════════════════════
+function makeBox(w,h,d,color,x,y,z,opacity=0.8) {
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const mat = new THREE.MeshPhongMaterial({color,transparent:true,opacity,depthWrite:opacity>0.5,emissive:new THREE.Color(color).multiplyScalar(0.1),shininess:60});
+  const mesh = new THREE.Mesh(geo,mat);
+  mesh.position.set(x,y,z);
+  mesh.renderOrder = opacity < 0.5 ? 0 : 2; // containers render first, contents on top
+  const edgeGeo = new THREE.EdgesGeometry(geo);
+  const edges = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({color:0x00aaff,transparent:true,opacity:0.25,depthWrite:false}));
+  edges.renderOrder = 3;
+  mesh.add(edges);
+  mesh.userData.baseY = y;
+  mesh.userData.edgeGeo = edgeGeo; // track for disposal
+  return addToScene(mesh);
+}
+
+function makeWall(w,h,d,color,x,y,z,opacity=0.6) {
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const mat = new THREE.MeshPhongMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide});
+  const mesh = new THREE.Mesh(geo,mat);
+  mesh.position.set(x,y,z);
+  mesh.renderOrder = 1;
+  return addToScene(mesh);
+}
+
+function makeSphere(r,color,x,y,z) {
+  const geo = new THREE.SphereGeometry(r,16,16);
+  const mat = new THREE.MeshPhongMaterial({color,transparent:true,opacity:0.9,depthWrite:true,emissive:new THREE.Color(color).multiplyScalar(0.3)});
+  const mesh = new THREE.Mesh(geo,mat);
+  mesh.position.set(x,y,z);
+  mesh.renderOrder = 5; // render on top of containers
+  mesh.userData.baseY = y;
+  return addToScene(mesh);
+}
+
+function addLabel(text,x,y,z,opts={}) {
+  const spr = makeText(text,opts);
+  spr.position.set(x,y,z);
+  return addToScene(spr);
+}
+
+function flashMesh(mesh, color, dur=600) {
+  if (!mesh || !mesh.material) return;
+  const orig = mesh.material.color.getHex();
+  const origE = mesh.material.emissive ? mesh.material.emissive.getHex() : 0;
+  mesh.material.color.setHex(color);
+  if (mesh.material.emissive) mesh.material.emissive.setHex(new THREE.Color(color).multiplyScalar(0.4).getHex());
+  mesh.scale.set(1.1,1.1,1.1);
+  setTimeout(() => {
+    if (mesh.material) { mesh.material.color.setHex(orig); if (mesh.material.emissive) mesh.material.emissive.setHex(origE); }
+    mesh.scale.set(1,1,1);
+  }, dur);
+}
+
+// ═══════════════════════════════════════
+// MODE: FIELDS & METHODS
+// ═══════════════════════════════════════
+let objMeshes = {}; // named references
+
+function buildFieldsMode() {
+  clearScene();
+  // The "class" object — a translucent building
+  const body = makeBox(5, 3, 3, 0x1a4466, 0, 1.5, 0, 0.3);
+  objMeshes.body = body;
+  addLabel('class Masina', 0, 3.8, 0, {color:'#00d4ff',fontSize:22,scale:3});
+
+  // Fields (inside the box) — small colored cubes
+  const fieldMarca = makeBox(1.8, 0.5, 0.5, 0x2266aa, -1.2, 1.0, 0, 0.9);
+  objMeshes.fMarca = fieldMarca;
+  addLabel('marca = "Tesla"', -1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:3.2});
+
+  const fieldAn = makeBox(1.8, 0.5, 0.5, 0x2266aa, 1.2, 1.0, 0, 0.9);
+  objMeshes.fAn = fieldAn;
+  addLabel('an = 2023', 1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:2.8});
+
+  const fieldViteza = makeBox(1.8, 0.5, 0.5, 0x2266aa, 0, 2.2, 0, 0.9);
+  objMeshes.fViteza = fieldViteza;
+  addLabel('viteza = 0.0', 0, 2.9, 0, {color:'#ffd700',fontSize:22,scale:2.8});
+
+  // Methods (outside the box, like buttons)
+  const mAccel = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 1.0, 0, 0.9);
+  objMeshes.mAccel = mAccel;
+  addLabel('accelereaza()', -3.5, 1.7, 0, {color:'#39ff14',fontSize:22,scale:3.2});
+
+  const mFran = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 2.2, 0, 0.9);
+  objMeshes.mFran = mFran;
+  addLabel('franeaza()', -3.5, 2.9, 0, {color:'#39ff14',fontSize:22,scale:2.8});
+
+  const mGet = makeBox(2.2, 0.6, 0.6, 0x226644, 3.5, 1.5, 0, 0.9);
+  objMeshes.mGet = mGet;
+  addLabel('getDescriere()', 3.5, 2.2, 0, {color:'#39ff14',fontSize:22,scale:3.2});
+
+  // Labels
+  addLabel('FIELDS (data inside)', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:3.8});
+  addLabel('METHODS (buttons outside)', -3.5, -0.5, 0, {color:'#558899',fontSize:20,scale:4.5});
+}
+
+// ═══════════════════════════════════════
+// MODE: ACCESS MODIFIERS
+// ═══════════════════════════════════════
+function buildAccessMode() {
+  clearScene();
+  // Building (the class)
+  const body = makeBox(6, 4, 4, 0x1a4466, 0, 2, 0, 0.15);
+  objMeshes.body = body;
+  addLabel('class ContBancar', 0, 4.8, 0, {color:'#00d4ff',fontSize:20,scale:3.5});
+
+  // PUBLIC field — open door (green)
+  const pubDoor = makeWall(0.1, 2.5, 1.5, 0x39ff14, -3, 1.5, 0, 0.5);
+  objMeshes.pubDoor = pubDoor;
+  addLabel('public', -3, 3.5, 0, {color:'#39ff14',fontSize:20,scale:1.8});
+  addLabel('Open Door', -3, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
+  const pubField = makeSphere(0.4, 0x39ff14, -3, 1.5, 0);
+  addLabel('nume', -3, 1.0, 0.8, {color:'#aaffaa',fontSize:22,scale:2});
+
+  // PRIVATE field — locked vault (red wall)
+  const privWall = makeWall(0.3, 2.5, 1.5, 0xff4444, 0, 1.5, 0, 0.7);
+  objMeshes.privWall = privWall;
+  addLabel('private', 0, 3.5, 0, {color:'#ff4444',fontSize:24,scale:2.2});
+  addLabel('Locked Vault!', 0, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
+  const privField = makeSphere(0.4, 0xff4444, 0, 1.5, 0);
+  addLabel('sold', 0, 1.0, 0.8, {color:'#ffaaaa',fontSize:22,scale:1.8});
+  // Lock icon
+  makeBox(0.4, 0.4, 0.4, 0xff2222, 0, 2.5, 0.9, 0.9);
+
+  // PROTECTED field — family door (yellow)
+  const protDoor = makeWall(0.1, 2.5, 1.5, 0xffd700, 3, 1.5, 0, 0.4);
+  objMeshes.protDoor = protDoor;
+  addLabel('protected', 3, 3.5, 0, {color:'#ffd700',fontSize:24,scale:2.5});
+  addLabel('Family Only', 3, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
+  const protField = makeSphere(0.4, 0xffd700, 3, 1.5, 0);
+  addLabel('tipCont', 3, 1.0, 0.8, {color:'#ffffaa',fontSize:22,scale:2});
+
+  // Getter/Setter (the correct way)
+  const getter = makeBox(2, 0.5, 0.5, 0x226644, 0, -1.0, 2.5, 0.9);
+  objMeshes.getter = getter;
+  addLabel('getSold() → reads safely', 0, -1.6, 2.5, {color:'#39ff14',fontSize:20,scale:4.5});
+
+  const setter = makeBox(2, 0.5, 0.5, 0x226644, 0, -1.0, -2.5, 0.9);
+  objMeshes.setter = setter;
+  addLabel('depune(500) → validates first!', 0, -1.6, -2.5, {color:'#39ff14',fontSize:20,scale:5});
+}
+
+// ═══════════════════════════════════════
+// MODE: STATIC & FINAL
+// ═══════════════════════════════════════
+function buildStaticMode() {
+  clearScene();
+  // CLASS level — floating platform above
+  const classPlatform = makeBox(8, 0.15, 3, 0x8a2be2, 0, 5, 0, 0.4);
+  addLabel('CLASS LEVEL (shared by ALL)', 0, 5.8, 0, {color:'#8a2be2',fontSize:22,scale:5});
+
+  // Static counter
+  const staticCounter = makeBox(2, 0.8, 0.8, 0x8a2be2, 0, 5.5, 0, 0.85);
+  objMeshes.staticCounter = staticCounter;
+  addLabel('static int count = 3', 0, 6.3, 0, {color:'#dda0ff',fontSize:22,scale:4.5});
+
+  // Static constant
+  const staticConst = makeBox(2.5, 0.8, 0.8, 0xff6600, -3, 5.5, 0, 0.85);
+  addLabel('static final BROWSER', -3, 6.3, 0, {color:'#ffaa66',fontSize:22,scale:4.5});
+  addLabel('= "Chrome"', -3, 6.7, 0, {color:'#ff6600',fontSize:20,scale:2.8});
+  // Lock on constant
+  makeBox(0.3, 0.3, 0.3, 0xff2222, -1.8, 5.5, 0.5, 0.9);
+
+  // 3 OBJECT instances below
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * 4;
+    const body = makeBox(2.5, 2, 2, 0x1a4466, x, 1, 0, 0.4);
+    objMeshes[`obj${i}`] = body;
+    addLabel(`masina${i+1}`, x, 2.6, 0, {color:'#00d4ff',fontSize:22,scale:2.8});
+    // Instance field (unique per object)
+    const brands = ['Dacia', 'Ford', 'Tesla'];
+    makeSphere(0.3, 0x2266aa, x, 1, 0);
+    addLabel(`marca="${brands[i]}"`, x, 0.4, 0, {color:'#ffd700',fontSize:20,scale:3});
+    // Connection line to class
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 2.2, 0), new THREE.Vector3(x*0.3, 4.8, 0)]);
+    const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color:0x8a2be2,transparent:true,opacity:0.3,depthWrite:false}));
+    addToScene(line);
+  }
+  addLabel('INSTANCE LEVEL (unique per object)', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:5.5});
+}
+
+// ═══════════════════════════════════════
+// MODE: CONSTRUCTORS
+// ═══════════════════════════════════════
+function buildConstructorMode() {
+  clearScene();
+  // Blueprint (class) on the left
+  const blueprint = makeBox(3, 3.5, 0.15, 0x1a5577, -5, 2, 0, 0.6);
+  addLabel('CLASS (Blueprint)', -5, 4.2, 0, {color:'#558899',fontSize:22,scale:3.8});
+  addLabel('class Masina {', -5, 3.2, 0, {color:'#00d4ff',fontSize:20,scale:3.2});
+  addLabel('  marca', -5, 2.5, 0, {color:'#ffd700',fontSize:20,scale:2});
+  addLabel('  an', -5, 2.0, 0, {color:'#ffd700',fontSize:20,scale:1.6});
+  addLabel('}', -5, 1.2, 0, {color:'#00d4ff',fontSize:20,scale:1.2});
+
+  // Arrow pointing to constructor
+  const arrowGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-3,2,0),new THREE.Vector3(-1,2,0)]);
+  addToScene(new THREE.Line(arrowGeo, new THREE.LineBasicMaterial({color:0xffd700,transparent:true,opacity:0.6,depthWrite:false})));
+  addLabel('new →', -2, 2.6, 0, {color:'#ffd700',fontSize:24,scale:2});
+
+  // Constructor (the assembler in the middle)
+  const assembler = makeBox(2, 3, 2, 0xffd700, 0, 2, 0, 0.25);
+  objMeshes.assembler = assembler;
+  addLabel('CONSTRUCTOR', 0, 4.0, 0, {color:'#ffd700',fontSize:24,scale:3.2});
+  addLabel('Masina("Tesla", 2023)', 0, -0.3, 0, {color:'#ffd700',fontSize:20,scale:4.5});
+
+  // Parameters flowing in from top
+  const param1 = makeSphere(0.35, 0xff8800, -0.5, 3.2, 0);
+  objMeshes.param1 = param1;
+  addLabel('"Tesla"', -0.5, 3.8, 0, {color:'#ff8800',fontSize:22,scale:2});
+  const param2 = makeSphere(0.35, 0xff8800, 0.5, 3.2, 0);
+  objMeshes.param2 = param2;
+  addLabel('2023', 0.5, 3.8, 0, {color:'#ff8800',fontSize:22,scale:1.6});
+
+  // Arrow to result
+  const arrow2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(1.5,2,0),new THREE.Vector3(3.5,2,0)]);
+  addToScene(new THREE.Line(arrow2, new THREE.LineBasicMaterial({color:0x39ff14,transparent:true,opacity:0.6,depthWrite:false})));
+  addLabel('→ creates', 2.5, 2.6, 0, {color:'#39ff14',fontSize:20,scale:2.5});
+
+  // Result object on the right
+  const result = makeBox(3, 2.5, 2, 0x1a6644, 5, 1.8, 0, 0.5);
+  objMeshes.result = result;
+  addLabel('OBJECT (Instance)', 5, 3.8, 0, {color:'#39ff14',fontSize:22,scale:3.8});
+  makeSphere(0.25, 0x2266aa, 4.3, 1.5, 0);
+  addLabel('marca="Tesla"', 4.5, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:3});
+  makeSphere(0.25, 0x2266aa, 5.7, 1.5, 0);
+  addLabel('an=2023', 5.7, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:2});
+  addLabel('viteza=0.0', 5, 2.2, 0.5, {color:'#558899',fontSize:18,scale:2.5});
+}
+
+// ═══════════════════════════════════════
+// MODE: OVERLOADING
+// ═══════════════════════════════════════
+function buildOverloadMode() {
+  clearScene();
+  // Three different "doors" (constructors) with different shapes
+  addLabel('3 CONSTRUCTORS — Same Class, Different Parameters', 0, 5.5, 0, {color:'#00d4ff',fontSize:22,scale:7});
+
+  // Constructor 1 (full)
+  const door1 = makeBox(3, 3.5, 0.3, 0x2266aa, -4.5, 2, 0, 0.7);
+  objMeshes.door1 = door1;
+  addLabel('Constructor 1', -4.5, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
+  addLabel('Student(name, nota, bursier)', -4.5, 3.5, 0, {color:'#ffd700',fontSize:18,scale:5});
+  // Three param slots
+  makeSphere(0.25, 0xff8800, -5.3, 2, 0.5); addLabel('"Ana"', -5.3, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
+  makeSphere(0.25, 0xff8800, -4.5, 2, 0.5); addLabel('10', -4.5, 1.4, 0.5, {color:'#ff8800',fontSize:22,scale:1.2});
+  makeSphere(0.25, 0xff8800, -3.7, 2, 0.5); addLabel('true', -3.7, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:1.6});
+
+  // Constructor 2 (partial)
+  const door2 = makeBox(2.5, 3.5, 0.3, 0x226688, 0, 2, 0, 0.7);
+  objMeshes.door2 = door2;
+  addLabel('Constructor 2', 0, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
+  addLabel('Student(name, nota)', 0, 3.5, 0, {color:'#ffd700',fontSize:18,scale:4});
+  makeSphere(0.25, 0xff8800, -0.4, 2, 0.5); addLabel('"Bog"', -0.4, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:1.6});
+  makeSphere(0.25, 0xff8800, 0.4, 2, 0.5); addLabel('8', 0.4, 1.4, 0.5, {color:'#ff8800',fontSize:22,scale:1.2});
+  addLabel('bursier=false', 0, 0.5, 0, {color:'#558899',fontSize:18,scale:2.8});
+
+  // Constructor 3 (minimal)
+  const door3 = makeBox(2, 3.5, 0.3, 0x224466, 4.5, 2, 0, 0.7);
+  objMeshes.door3 = door3;
+  addLabel('Constructor 3', 4.5, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
+  addLabel('Student(name)', 4.5, 3.5, 0, {color:'#ffd700',fontSize:18,scale:3.2});
+  makeSphere(0.25, 0xff8800, 4.5, 2, 0.5); addLabel('"Vlad"', 4.5, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
+  addLabel('nota=5, bursier=false', 4.5, 0.5, 0, {color:'#558899',fontSize:18,scale:3.8});
+
+  addLabel('Java picks the right constructor based on the arguments you pass!', 0, -1, 0, {color:'#39ff14',fontSize:20,scale:8});
+}
+
+// ═══════════════════════════════════════
+// MODE: ENUM
+// ═══════════════════════════════════════
+function buildEnumMode() {
+  clearScene();
+  addLabel('enum StatusTest', 0, 5.5, 0, {color:'#8a2be2',fontSize:28,scale:4.5});
+
+  // Fixed set of enum values — locked, labeled cubes
+  const enumVals = ['PASSED','FAILED','SKIPPED','BLOCKED'];
+  const enumColors = [0x39ff14, 0xff4444, 0xffd700, 0xff6600];
+  for (let i = 0; i < 4; i++) {
+    const x = (i - 1.5) * 3;
+    const cube = makeBox(2, 1.5, 1.5, enumColors[i], x, 1.5, 0, 0.8);
+    objMeshes[`enum${i}`] = cube;
+    addLabel(enumVals[i], x, 3, 0, {color:'#ffffff',fontSize:22,scale:2.8});
+    // Lock on top
+    makeBox(0.25, 0.25, 0.25, 0x4444ff, x, 2.5, 0, 0.9);
+  }
+  addLabel('FIXED SET — you can ONLY use these 4 values!', 0, -0.5, 0, {color:'#8a2be2',fontSize:20,scale:7});
+
+  // vs. the "danger zone" — free strings
+  addLabel('VS.', 0, 4.2, 0, {color:'#ff4444',fontSize:32,scale:2});
+
+  // Dangerous String approach below
+  const danger = makeBox(8, 1.2, 1, 0x441111, 0, -2, 4, 0.5);
+  addLabel('String status = "passsed"  ← TYPO! No compile error!', 0, -2, 5.2, {color:'#ff4444',fontSize:20,scale:8});
+  addLabel('"passed" vs "Passed" vs "PASSED" — which is right??', 0, -3, 5.2, {color:'#ff6644',fontSize:18,scale:8});
+  addLabel('DANGEROUS: compiler accepts ANY string!', 0, -3.8, 5.2, {color:'#ff4444',fontSize:20,scale:7});
+}
+
+// ═══════════════════════════════════════
+// MODE CONTENT (explanations + actions + code)
+// ═══════════════════════════════════════
+const MODES = {
+  fields: {
+    title: 'Fields & Methods',
+    explain: `An <strong>object</strong> has two things:<br><br>
+      <span class="key">Fields</span> = the <strong>data inside</strong> (like a car's color, speed, brand). They are <strong>variables declared in the class</strong>.<br><br>
+      <span class="key">Methods</span> = the <strong>actions it can do</strong> (like accelerate, brake, honk). They are <strong>functions that can read/change fields</strong>.<br><br>
+      In the 3D scene: fields are the <em>cubes INSIDE</em> the blue building. Methods are the <em>green buttons OUTSIDE</em>.`,
+    analogy: 'Think of a CAR. The color, brand, and speed are FIELDS (what it IS). The accelerate() and brake() are METHODS (what it DOES).',
+    actions: [
+      { label: 'Call accelereaza(50)', fn: () => { flashMesh(objMeshes.mAccel, 0x39ff14); sndCall(); showFlow('viteza += 50 → viteza = 50.0', '#39ff14'); setCodeHL(5); } },
+      { label: 'Call franeaza()', fn: () => { flashMesh(objMeshes.mFran, 0x39ff14); sndCall(); showFlow('viteza = 0.0', '#ffd700'); setCodeHL(9); } },
+      { label: 'Call getDescriere()', fn: () => { flashMesh(objMeshes.mGet, 0x39ff14); sndCall(); showFlow('→ "Tesla Model S"', '#00d4ff'); setCodeHL(13); } },
+      { label: 'Read marca field', fn: () => { flashMesh(objMeshes.fMarca, 0x00d4ff); sndSet(); showFlow('marca = "Tesla"', '#ffd700'); setCodeHL(2); } },
+    ],
+    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
+    <span class="cm">// FIELDS — data stored inside the object</span>
+    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">marca</span>;
+    <span class="kw">public</span> <span class="tp">int</span> <span class="vr">an</span>;
+    <span class="kw">public</span> <span class="tp">double</span> <span class="vr">viteza</span>;
+
+    <span class="cm">// METHOD — modifies field (behavior)</span>
+    <span class="kw">public void</span> <span class="fn">accelereaza</span>(<span class="tp">double</span> <span class="vr">v</span>) {
+        <span class="kw">this</span>.<span class="vr">viteza</span> += <span class="vr">v</span>;
+    }
+
+    <span class="cm">// METHOD — resets speed</span>
+    <span class="kw">public void</span> <span class="fn">franeaza</span>() {
+        <span class="kw">this</span>.<span class="vr">viteza</span> = <span class="nu">0</span>;
+    }
+
+    <span class="cm">// METHOD — returns a value</span>
+    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">getDescriere</span>() {
+        <span class="kw">return</span> <span class="vr">marca</span> + <span class="str">" "</span> + <span class="vr">an</span>;
+    }
+}`,
+    badge: ['FIELDS+METHODS', 'State + Behavior', '#00d4ff']
+  },
+
+  access: {
+    title: 'Access Modifiers (Encapsulation)',
+    explain: `Access modifiers control <strong>who can see</strong> your fields and methods:<br><br>
+      <em>public</em> = <span style="color:#39ff14">Open door</span> — ANYONE can access from ANYWHERE<br><br>
+      <span class="warn">private</span> = <span style="color:#ff4444">Locked vault</span> — ONLY the class itself can touch it. Nobody outside!<br><br>
+      <span class="key">protected</span> = <span style="color:#ffd700">Family only</span> — the class + its children (subclasses)<br><br>
+      <strong>THE RULE:</strong> Fields should ALWAYS be <span class="warn">private</span>. Use <em>getter/setter methods</em> to control access with VALIDATION!`,
+    analogy: 'Without private: anyone can do cont.sold = -10000 (negative balance!). With private + setter: depune() checks if amount > 0 BEFORE changing sold. The vault PROTECTS the data.',
+    actions: [
+      { label: 'Try: cont.sold = -10000', fn: () => { flashMesh(objMeshes.privWall, 0xff0000, 800); sndBlock(); showFlow('COMPILE ERROR! sold is private!', '#ff4444'); setCodeHL(4); } },
+      { label: 'Try: cont.getSold()', fn: () => { flashMesh(objMeshes.getter, 0x39ff14); sndOk(); showFlow('→ 500.0 (safe read via getter)', '#39ff14'); setCodeHL(10); } },
+      { label: 'Try: cont.depune(500)', fn: () => { flashMesh(objMeshes.setter, 0x39ff14); sndOk(); showFlow('if (500 > 0) ✓ → sold += 500', '#39ff14'); setCodeHL(6); } },
+      { label: 'Try: cont.depune(-50)', fn: () => { flashMesh(objMeshes.setter, 0xff6600); sndBlock(); showFlow('if (-50 > 0) ✗ → REJECTED!', '#ff4444'); setCodeHL(8); } },
+      { label: 'Try: cont.nume (public)', fn: () => { flashMesh(objMeshes.pubDoor, 0x39ff14); sndOk(); showFlow('→ OK! nume is public', '#39ff14'); setCodeHL(1); } },
+    ],
+    code: `<span class="kw">public class</span> <span class="tp">ContBancar</span> {
+    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">nume</span>;     <span class="cm">// Anyone can read</span>
+
+    <span class="cm">// PRIVATE — only this class can touch!</span>
+    <span class="kw">private</span> <span class="tp">double</span> <span class="vr">sold</span>;
+    <span class="cm">// cont.sold = -10000; → COMPILE ERROR!</span>
+
+    <span class="cm">// SETTER with VALIDATION</span>
+    <span class="kw">public void</span> <span class="fn">depune</span>(<span class="tp">double</span> <span class="vr">suma</span>) {
+        <span class="kw">if</span> (<span class="vr">suma</span> > <span class="nu">0</span>) {
+            <span class="kw">this</span>.<span class="vr">sold</span> += <span class="vr">suma</span>; <span class="cm">// ✓</span>
+        } <span class="kw">else</span> {
+            System.out.<span class="fn">println</span>(<span class="str">"Invalid!"</span>);
+        }
+    }
+
+    <span class="cm">// GETTER — safe read-only access</span>
+    <span class="kw">public double</span> <span class="fn">getSold</span>() {
+        <span class="kw">return this</span>.<span class="vr">sold</span>;
+    }
+}`,
+    badge: ['ENCAPSULATION', 'private + getter/setter', '#ff4444']
+  },
+
+  static: {
+    title: 'static & final',
+    explain: `<span class="key">static</span> = belongs to the <strong>CLASS itself</strong>, not to any object. ONE copy shared by ALL objects.<br><br>
+      <span class="key">final</span> = <strong>CONSTANT</strong> — once set, can NEVER be changed. Compile error if you try!<br><br>
+      <strong>static field:</strong> Like the building's address — same for all apartments<br>
+      <strong>instance field:</strong> Like each apartment's mailbox — unique per apartment<br><br>
+      <strong>static method:</strong> Call on the CLASS: <em>Math.sqrt(9)</em> — no object needed!<br>
+      A static method <span class="warn">CANNOT access instance fields</span> (it has no <code>this</code>)`,
+    analogy: 'The BLOCK ADDRESS (static) is the same for all 100 apartments. But each apartment NUMBER (instance) is different. static final = the address that NEVER changes.',
+    actions: [
+      { label: 'new Masina("BMW")', fn: () => { flashMesh(objMeshes.staticCounter, 0x39ff14); sndBuild(); showFlow('count++ → count = 4', '#8a2be2'); setCodeHL(8); } },
+      { label: 'Masina.getCount()', fn: () => { flashMesh(objMeshes.staticCounter, 0x00d4ff); sndCall(); showFlow('→ 4 (called on CLASS, no object)', '#8a2be2'); setCodeHL(11); } },
+      { label: 'Try: BROWSER = "Firefox"', fn: () => { sndBlock(); showFlow('COMPILE ERROR! final cannot be changed!', '#ff4444'); setCodeHL(4); } },
+      { label: 'Read masina1.marca', fn: () => { flashMesh(objMeshes.obj0, 0x00d4ff); sndSet(); showFlow('→ "Dacia" (instance field, unique)', '#ffd700'); setCodeHL(2); } },
+    ],
+    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
+    <span class="cm">// Instance field — each object has its own</span>
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">marca</span>;
+
+    <span class="cm">// static final = CONSTANT (shared, locked)</span>
+    <span class="kw">public static final</span> <span class="tp">String</span> <span class="vr">BROWSER</span> = <span class="str">"Chrome"</span>;
+
+    <span class="cm">// static field — ONE copy for ALL objects</span>
+    <span class="kw">private static int</span> <span class="vr">count</span> = <span class="nu">0</span>;
+
+    <span class="kw">public</span> <span class="fn">Masina</span>(<span class="tp">String</span> <span class="vr">marca</span>) {
+        <span class="kw">this</span>.<span class="vr">marca</span> = <span class="vr">marca</span>;
+        <span class="vr">count</span>++; <span class="cm">// shared counter</span>
+    }
+
+    <span class="cm">// static method — call on CLASS</span>
+    <span class="kw">public static int</span> <span class="fn">getCount</span>() {
+        <span class="kw">return</span> <span class="vr">count</span>;
+        <span class="cm">// Cannot use 'this' here!</span>
+        <span class="cm">// Cannot access 'marca' here!</span>
+    }
+}`,
+    badge: ['STATIC', 'Class-level sharing', '#8a2be2']
+  },
+
+  constructor: {
+    title: 'Constructors — Building Objects',
+    explain: `A <span class="key">constructor</span> is a special method called <strong>automatically</strong> when you write <em>new Masina(...)</em>.<br><br>
+      Rules:<br>
+      &#8226; Same name as the class<br>
+      &#8226; NO return type (not even void!)<br>
+      &#8226; Runs ONCE at creation time<br><br>
+      <span class="key">this.marca = marca</span> — <code>this</code> means "the object being built". It separates the <strong>field</strong> (this.marca) from the <strong>parameter</strong> (marca).<br><br>
+      If you write NO constructor, Java gives you an empty default one. But the moment you write ANY constructor, the default disappears!`,
+    analogy: 'A constructor is like IKEA assembly instructions. When you buy a table (new Table()), the instructions (constructor) tell you exactly how to put the pieces (fields) together into a working product (valid object).',
+    actions: [
+      { label: 'new Masina("Tesla", 2023)', fn: () => { flashMesh(objMeshes.assembler, 0xffd700, 800); sndBuild(); showFlow('Constructor runs → marca="Tesla", an=2023, viteza=0', '#ffd700'); setCodeHL(5); } },
+      { label: 'Show: this.marca = marca', fn: () => { flashMesh(objMeshes.param1, 0xff8800, 800); flashMesh(objMeshes.result, 0x39ff14, 800); sndSet(); showFlow('Parameter "Tesla" flows INTO the field this.marca', '#ff8800'); setCodeHL(6); } },
+      { label: 'Show: this.an = an', fn: () => { flashMesh(objMeshes.param2, 0xff8800, 800); sndSet(); showFlow('Parameter 2023 flows INTO the field this.an', '#ff8800'); setCodeHL(7); } },
+    ],
+    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">marca</span>;
+    <span class="kw">private int</span> <span class="vr">an</span>;
+    <span class="kw">private double</span> <span class="vr">viteza</span>;
+
+    <span class="cm">// CONSTRUCTOR — same name as class, NO return type</span>
+    <span class="kw">public</span> <span class="fn">Masina</span>(<span class="tp">String</span> <span class="vr">marca</span>, <span class="kw">int</span> <span class="vr">an</span>) {
+        <span class="kw">this</span>.<span class="vr">marca</span> = <span class="vr">marca</span>;  <span class="cm">// field = param</span>
+        <span class="kw">this</span>.<span class="vr">an</span> = <span class="vr">an</span>;
+        <span class="kw">this</span>.<span class="vr">viteza</span> = <span class="nu">0</span>;     <span class="cm">// default</span>
+    }
+}
+
+<span class="cm">// Usage:</span>
+<span class="tp">Masina</span> <span class="vr">m</span> = <span class="kw">new</span> <span class="fn">Masina</span>(<span class="str">"Tesla"</span>, <span class="nu">2023</span>);
+<span class="cm">// ↑ 'new' calls the constructor</span>
+<span class="cm">// ↑ parameters flow into fields via 'this'</span>
+<span class="cm">// ↑ object is now fully initialized!</span>`,
+    badge: ['CONSTRUCTOR', 'new → init fields', '#ffd700']
+  },
+
+  overload: {
+    title: 'Overloading — Multiple Constructors',
+    explain: `<span class="key">Overloading</span> = <strong>same name, DIFFERENT parameters</strong>.<br><br>
+      You can have MULTIPLE constructors for the same class. Java picks the right one based on what arguments you pass:<br><br>
+      &#8226; <em>new Student("Ana", 10, true)</em> → calls Constructor 1 (3 params)<br>
+      &#8226; <em>new Student("Bog", 8)</em> → calls Constructor 2 (2 params)<br>
+      &#8226; <em>new Student("Vlad")</em> → calls Constructor 3 (1 param)<br><br>
+      <span class="key">this()</span> = call ANOTHER constructor from within a constructor. Must be the FIRST line! This is called <strong>constructor chaining</strong>.`,
+    analogy: 'Like ordering food: "pizza with everything" (3 params), "pizza with cheese only" (1 param), or just "pizza" and the chef picks defaults. Same product, different levels of customization.',
+    actions: [
+      { label: 'new Student("Ana", 10, true)', fn: () => { flashMesh(objMeshes.door1, 0x39ff14, 800); sndBuild(); showFlow('Constructor 1: all 3 params specified', '#00d4ff'); setCodeHL(6); } },
+      { label: 'new Student("Bog", 8)', fn: () => { flashMesh(objMeshes.door2, 0x39ff14, 800); sndBuild(); showFlow('Constructor 2: bursier defaults to false', '#ffd700'); setCodeHL(12); } },
+      { label: 'new Student("Vlad")', fn: () => { flashMesh(objMeshes.door3, 0x39ff14, 800); sndBuild(); showFlow('Constructor 3: nota=5, bursier=false (defaults)', '#ff8800'); setCodeHL(17); } },
+    ],
+    code: `<span class="kw">public class</span> <span class="tp">Student</span> {
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">nume</span>;
+    <span class="kw">private int</span> <span class="vr">nota</span>;
+    <span class="kw">private boolean</span> <span class="vr">bursier</span>;
+
+    <span class="cm">// Constructor 1: ALL parameters</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>, <span class="kw">int</span> <span class="vr">nota</span>, <span class="kw">boolean</span> <span class="vr">b</span>) {
+        <span class="kw">this</span>.<span class="vr">nume</span> = <span class="vr">n</span>;
+        <span class="kw">this</span>.<span class="vr">nota</span> = <span class="vr">nota</span>;
+        <span class="kw">this</span>.<span class="vr">bursier</span> = <span class="vr">b</span>;
+    }
+
+    <span class="cm">// Constructor 2: 2 params (bursier = false)</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>, <span class="kw">int</span> <span class="vr">nota</span>) {
+        <span class="kw">this</span>(<span class="vr">n</span>, <span class="vr">nota</span>, <span class="kw">false</span>); <span class="cm">// chains to #1!</span>
+    }
+
+    <span class="cm">// Constructor 3: 1 param (nota=5, bursier=false)</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>) {
+        <span class="kw">this</span>(<span class="vr">n</span>, <span class="nu">5</span>);            <span class="cm">// chains to #2!</span>
+    }
+}
+<span class="cm">// Java picks based on arguments:</span>
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Ana"</span>, <span class="nu">10</span>, <span class="kw">true</span>); <span class="cm">// → #1</span>
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Bog"</span>, <span class="nu">8</span>);          <span class="cm">// → #2</span>
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Vlad"</span>);             <span class="cm">// → #3</span>`,
+    badge: ['OVERLOADING', 'Same name, diff params', '#00d4ff']
+  },
+
+  enum: {
+    title: 'enum — Safe Constants',
+    explain: `An <span class="key">enum</span> defines a <strong>FIXED set of named constants</strong>. You can ONLY use the values listed in the enum — nothing else!<br><br>
+      <strong>The problem it solves:</strong><br>
+      With Strings: <span class="warn">"passsed"</span> (typo!) compiles fine → BUG in production!<br>
+      With enum: <span class="warn">StatusTest.PASSSED</span> → <strong>COMPILE ERROR!</strong> Caught instantly!<br><br>
+      <span class="key">enum + switch</span> = powerful combo. Compiler warns if you forget a case!<br><br>
+      Enums can also have <strong>fields, constructors, and methods</strong> (they're secretly classes!). Example: <em>Priority.HIGH.getCod()</em> → 5`,
+    analogy: 'Like a restaurant MENU. You can only order what\'s ON the menu — you can\'t request "cartofi mov cu sclipici" if it\'s not listed. This eliminates invalid orders completely.',
+    actions: [
+      { label: 'StatusTest.PASSED', fn: () => { flashMesh(objMeshes.enum0, 0x39ff14, 800); sndEnum(); showFlow('✓ PASSED — valid enum constant', '#39ff14'); setCodeHL(2); } },
+      { label: 'StatusTest.FAILED', fn: () => { flashMesh(objMeshes.enum1, 0xff4444, 800); sndEnum(); showFlow('✓ FAILED — valid enum constant', '#ff4444'); setCodeHL(3); } },
+      { label: 'Try: "passsed" (String)', fn: () => { sndBlock(); showFlow('⚠ DANGER: "passsed" compiles but is WRONG! Silent bug!', '#ff4444'); setCodeHL(10); } },
+      { label: 'StatusTest.PASSSED (enum)', fn: () => { sndBlock(); showFlow('COMPILE ERROR! PASSSED does not exist in StatusTest! Bug caught!', '#39ff14'); setCodeHL(12); } },
+      { label: 'Show: enum with switch', fn: () => { sndEnum(); showFlow('switch(status) { case PASSED: ... case FAILED: ... }', '#ffd700'); setCodeHL(14); } },
+    ],
+    code: `<span class="cm">// ENUM — fixed set of constants</span>
+<span class="kw">public enum</span> <span class="tp">StatusTest</span> {
+    <span class="en">PASSED</span>,
+    <span class="en">FAILED</span>,
+    <span class="en">SKIPPED</span>,
+    <span class="en">BLOCKED</span>
+}
+
+<span class="cm">// Usage — type-safe!</span>
+<span class="tp">StatusTest</span> <span class="vr">s</span> = <span class="tp">StatusTest</span>.<span class="en">PASSED</span>; <span class="cm">// ✓</span>
+
+<span class="cm">// String approach: DANGEROUS</span>
+<span class="tp">String</span> <span class="vr">bad</span> = <span class="str">"passsed"</span>; <span class="cm">// typo compiles!</span>
+
+<span class="cm">// Enum approach: SAFE</span>
+<span class="cm">// StatusTest.PASSSED → COMPILE ERROR!</span>
+
+<span class="cm">// enum + switch = powerful!</span>
+<span class="kw">switch</span> (<span class="vr">status</span>) {
+    <span class="kw">case</span> <span class="en">PASSED</span>: <span class="cm">// handle pass</span>
+        <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="en">FAILED</span>: <span class="cm">// alert team!</span>
+        <span class="kw">break</span>;
+}
+
+<span class="cm">// Enum with fields (superpower!):</span>
+<span class="kw">enum</span> <span class="tp">Priority</span> {
+    <span class="en">LOW</span>(<span class="nu">1</span>), <span class="en">HIGH</span>(<span class="nu">5</span>), <span class="en">CRITICAL</span>(<span class="nu">10</span>);
+    <span class="kw">private final int</span> <span class="vr">cod</span>;
+    <span class="fn">Priority</span>(<span class="kw">int</span> <span class="vr">cod</span>) { <span class="kw">this</span>.<span class="vr">cod</span>=<span class="vr">cod</span>; }
+    <span class="kw">public int</span> <span class="fn">getCod</span>() { <span class="kw">return</span> <span class="vr">cod</span>; }
+}`,
+    badge: ['ENUM', 'Type-safe constants', '#8a2be2']
+  }
+};
+
+const builders = { fields: buildFieldsMode, access: buildAccessMode, static: buildStaticMode, constructor: buildConstructorMode, overload: buildOverloadMode, enum: buildEnumMode };
+
+// ═══════════════════════════════════════
+// CODE HIGHLIGHTING
+// ═══════════════════════════════════════
+let currentMode = 'fields';
+let codeLine = -1;
+
+function setCodeHL(line) { codeLine = line; renderCode(); }
+
+function renderCode() {
+  const data = MODES[currentMode];
+  if (!data) return;
+  const lines = data.code.split('\n');
+  document.getElementById('cd').innerHTML = lines.map((l,i) => {
+    let cls = 'cl';
+    if (i === codeLine) cls += ' cl-active';
+    const ptr = i === codeLine ? '<span class="exec-ptr">►</span>' : '  ';
+    return `<span class="${cls}">${ptr}${l}</span>`;
+  }).join('\n');
+}
+
+// ═══════════════════════════════════════
+// SWITCH MODE
+// ═══════════════════════════════════════
+function switchMode(mode) {
+  currentMode = mode;
+  codeLine = -1;
+  objMeshes = {};
+  walkStep = 0;
+  setNarration('Click <strong>▶ PLAY</strong> or press <strong>Space</strong> to start a guided walkthrough. Or click <strong>STEP</strong> / press <strong>S</strong> to go one step at a time.');
+
+  // Build 3D
+  builders[mode]();
+
+  // Render UI
+  const data = MODES[mode];
+  document.getElementById('explain-title').textContent = data.title;
+  let explainHTML = data.explain;
+  if (data.analogy) {
+    explainHTML += `<div class="analogy"><div class="analogy-label">ANALOGY</div><div class="analogy-text">${data.analogy}</div></div>`;
+  }
+  document.getElementById('explain-text').innerHTML = explainHTML;
+
+  // Actions
+  const actEl = document.getElementById('act-buttons');
+  actEl.innerHTML = '';
+  data.actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'act-btn';
+    btn.textContent = a.label;
+    btn.onclick = () => { initAudio(); a.fn(); };
+    actEl.appendChild(btn);
+  });
+
+  renderCode();
+  setBadge(...data.badge);
+
+  // Selector
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+
+  // Camera
+  camTheta = 0.3; camPhi = 0.45; camDist = mode === 'overload' ? 26 : mode === 'static' ? 24 : mode === 'enum' ? 24 : 22;
+  camTarget.set(0, 2, 0);
+  updateCamera();
+}
+
+// ═══════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// GUIDED WALKTHROUGH (PLAY/STEP)
+// ═══════════════════════════════════════
+let playing = false, walkStep = 0, playTimer = null;
+let walkSpeed = 3; // 1=slow (6s), 10=fast (1s)
+function getWalkDelay() { return Math.max(1000, 7000 - walkSpeed * 600); }
+
+// Narration steps for each mode — each step triggers an action + shows narration
+const WALK = {
+  fields: [
+    { narr: '<span class="narr-step">Step 1:</span> This blue box is a <strong>class Masina</strong> (Car). It\'s a blueprint — a template for creating objects.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> Inside the box you see <strong>fields</strong> — marca, an, viteza. These are the <strong>data</strong> stored in every car object. Like a real car has a brand, year, and speed.', action: 3 },
+    { narr: '<span class="narr-step">Step 3:</span> Outside the box are <strong>methods</strong> — accelereaza(), franeaza(), getDescriere(). These are the <strong>actions</strong> the car can do.', action: null },
+    { narr: '<span class="narr-step">Step 4:</span> Watch — calling <strong>accelereaza(50)</strong> changes the speed field! Methods can READ and MODIFY fields.', action: 0 },
+    { narr: '<span class="narr-step">Step 5:</span> Now calling <strong>franeaza()</strong> — it sets viteza back to 0. Methods control how fields change.', action: 1 },
+    { narr: '<span class="narr-step">Step 6:</span> <strong>getDescriere()</strong> RETURNS a value — it reads marca + an and gives back a string. Not all methods change things; some just report.', action: 2 },
+    { narr: '✅ <strong>Summary:</strong> An object = FIELDS (what it IS) + METHODS (what it DOES). Fields are variables inside the class. Methods are functions that work with those fields.', action: null },
+  ],
+  access: [
+    { narr: '<span class="narr-step">Step 1:</span> This is a <strong>ContBancar</strong> (bank account). It has fields and methods, but now with <strong>access control</strong>.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> The <strong style="color:#39ff14">green door</strong> = <strong>public</strong>. Anyone can access "nume" from anywhere. No restrictions.', action: 4 },
+    { narr: '<span class="narr-step">Step 3:</span> The <strong style="color:#ff4444">red wall</strong> = <strong>private</strong>. Try accessing "sold" directly...', action: 0 },
+    { narr: '<span class="narr-warn">BLOCKED!</span> You can\'t do <code>cont.sold = -10000</code> — it\'s private! This PROTECTS the data from bad values.', action: null },
+    { narr: '<span class="narr-step">Step 4:</span> The safe way — use a <strong>getter</strong>: cont.getSold() reads the value without exposing the field.', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> To CHANGE it, use a <strong>setter with validation</strong>: depune(500) checks if amount > 0 first!', action: 2 },
+    { narr: '<span class="narr-step">Step 6:</span> Try depositing -50... the setter REJECTS it! This is <strong>encapsulation</strong> — private fields + public getters/setters = safe data.', action: 3 },
+    { narr: '✅ <strong>THE RULE:</strong> Always make fields <strong style="color:#ff4444">private</strong>. Use getter/setter methods to control access with validation. This prevents bugs like negative balances.', action: null },
+  ],
+  static: [
+    { narr: '<span class="narr-step">Step 1:</span> See the <strong style="color:#8a2be2">purple platform</strong> floating above? That\'s the <strong>CLASS level</strong> — shared by ALL objects.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> <strong>static int count = 3</strong> belongs to the CLASS, not to any single car. All 3 cars below share this ONE counter.', action: null },
+    { narr: '<span class="narr-step">Step 3:</span> Creating a new car with <strong>new Masina("BMW")</strong> — watch the static counter increment!', action: 0 },
+    { narr: '<span class="narr-step">Step 4:</span> Call <strong>Masina.getCount()</strong> — notice you call it on the CLASS name, not on an object. No object needed!', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> <strong>static final BROWSER = "Chrome"</strong> is a CONSTANT. Try changing it...', action: 2 },
+    { narr: '<span class="narr-warn">BLOCKED!</span> final means it can NEVER be changed after initialization. The compiler stops you.', action: null },
+    { narr: '<span class="narr-step">Step 6:</span> Each car\'s <strong>marca</strong> is different — that\'s an instance field. Only each object has its own copy.', action: 3 },
+    { narr: '✅ <strong>Summary:</strong> static = belongs to CLASS (one copy for all). final = CONSTANT (can\'t change). Instance fields = unique per object.', action: null },
+  ],
+  constructor: [
+    { narr: '<span class="narr-step">Step 1:</span> On the left is the <strong>CLASS</strong> — just a blueprint with field names (marca, an). No values yet!', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> In the middle is the <strong style="color:#ffd700">CONSTRUCTOR</strong> — a special method that runs when you write <code>new Masina("Tesla", 2023)</code>.', action: null },
+    { narr: '<span class="narr-step">Step 3:</span> Parameters "Tesla" and 2023 flow INTO the constructor as orange spheres. The constructor assigns them to fields.', action: 0 },
+    { narr: '<span class="narr-step">Step 4:</span> On the right is the RESULT — a fully initialized <strong style="color:#39ff14">OBJECT</strong> with marca="Tesla", an=2023, viteza=0.0.', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> Without a constructor, you\'d have to set each field manually. The constructor does it in ONE step: <code>new Masina("Tesla", 2023)</code>.', action: 2 },
+    { narr: '✅ <strong>Summary:</strong> A constructor is a special method with the SAME name as the class. It runs automatically with <code>new</code>. It initializes all the fields.', action: null },
+  ],
+  overload: [
+    { narr: '<span class="narr-step">Step 1:</span> One class <strong>Student</strong> has THREE different constructors! Same class name, but different parameters.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> <strong>Constructor 1</strong> takes ALL 3 parameters: name, nota, bursier. You set everything explicitly.', action: 0 },
+    { narr: '<span class="narr-step">Step 3:</span> <strong>Constructor 2</strong> takes only name and nota. bursier gets a DEFAULT value (false).', action: 1 },
+    { narr: '<span class="narr-step">Step 4:</span> <strong>Constructor 3</strong> takes only name. nota=5 and bursier=false are both defaults.', action: 2 },
+    { narr: '<span class="narr-step">Step 5:</span> Java automatically picks the right constructor based on what you pass. This is <strong>OVERLOADING</strong> — same name, different signatures.', action: null },
+    { narr: '✅ <strong>Summary:</strong> Overloading = multiple methods/constructors with the SAME name but DIFFERENT parameter lists. Java picks the right one automatically.', action: null },
+  ],
+  enum: [
+    { narr: '<span class="narr-step">Step 1:</span> The top row shows an <strong style="color:#8a2be2">enum StatusTest</strong> — a FIXED set of 4 values: PASSED, FAILED, SKIPPED, BLOCKED.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> Each value is <strong>locked</strong> (see the lock cubes on top). You can ONLY use these exact values — no typos possible!', action: 0 },
+    { narr: '<span class="narr-step">Step 3:</span> Now look at the <strong style="color:#ff4444">danger zone</strong> below — using a regular String instead of enum...', action: 1 },
+    { narr: '<span class="narr-warn">DANGER!</span> With String: "passsed" (typo!) compiles fine. "passed" vs "Passed" vs "PASSED" — which is right? The compiler has NO idea.', action: 2 },
+    { narr: '<span class="narr-step">Step 4:</span> With enum: <code>StatusTest.PASSSED</code> → COMPILE ERROR! The compiler catches the typo immediately. That\'s the power of enum.', action: 3 },
+    { narr: '✅ <strong>Summary:</strong> Use <strong>enum</strong> when you have a fixed set of choices. It prevents typos, gives autocomplete, and is type-safe. Much better than String!', action: null },
+  ],
+};
+
+function setNarration(html) {
+  document.getElementById('narr-text').innerHTML = html;
+}
+
+function doWalkStep() {
+  const steps = WALK[currentMode];
+  if (!steps || walkStep >= steps.length) { stopPlaying(); return; }
+  const step = steps[walkStep];
+  setNarration(step.narr);
+  if (step.action !== null) {
+    const actions = MODES[currentMode].actions;
+    if (actions[step.action]) { initAudio(); actions[step.action].fn(); }
+  }
+  walkStep++;
+  if (walkStep >= steps.length) {
+    // Last step — auto-stop after delay
+    playTimer = setTimeout(stopPlaying, 4000);
+  }
+}
+
+function startPlaying() {
+  playing = true;
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '⏸ PAUSE'; btn.classList.add('on');
+  doWalkStep();
+  function scheduleNext() {
+    if (!playing || walkStep >= WALK[currentMode].length) return;
+    playTimer = setTimeout(() => {
+      if (!playing) return;
+      doWalkStep();
+      scheduleNext();
+    }, getWalkDelay());
+  }
+  scheduleNext();
+}
+
+function stopPlaying() {
+  playing = false;
+  if (playTimer) { clearInterval(playTimer); clearTimeout(playTimer); playTimer = null; }
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '▶ PLAY'; btn.classList.remove('on');
+}
+
+function togglePlay() {
+  if (playing) { stopPlaying(); }
+  else { walkStep = 0; startPlaying(); }
+}
+
+function stepForward() {
+  if (playing) stopPlaying();
+  const steps = WALK[currentMode];
+  if (!steps) return;
+  if (walkStep >= steps.length) walkStep = 0;
+  doWalkStep();
+}
+
+// ═══════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(b => {
+  b.addEventListener('click', () => { stopPlaying(); switchMode(b.dataset.mode); });
+});
+document.getElementById('btn-play').onclick = () => { initAudio(); togglePlay(); };
+document.getElementById('btn-step').onclick = () => { initAudio(); stepForward(); };
+document.getElementById('btn-reset').onclick = () => { stopPlaying(); switchMode(currentMode); };
+document.getElementById('sl-speed').addEventListener('input', e => {
+  walkSpeed = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = walkSpeed;
+});
+document.getElementById('btn-mute').onclick = () => {
+  muted = !muted;
+  const el = document.getElementById('btn-mute');
+  el.classList.toggle('muted', muted);
+  el.textContent = muted ? 'MUTED' : 'SND';
+};
+document.getElementById('btn-help').onclick = () => document.getElementById('info-overlay').classList.toggle('show');
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  switch(e.key) {
+    case ' ': e.preventDefault(); initAudio(); togglePlay(); break;
+    case 's': case 'S': initAudio(); stepForward(); break;
+    case 'r': case 'R': stopPlaying(); switchMode(currentMode); break;
+    case 'm': case 'M':
+      muted = !muted; document.getElementById('btn-mute').classList.toggle('muted',muted);
+      document.getElementById('btn-mute').textContent = muted ? 'MUTED' : 'SND'; break;
+    case '?': document.getElementById('info-overlay').classList.toggle('show'); break;
+    case '1': stopPlaying(); switchMode('fields'); break;
+    case '2': stopPlaying(); switchMode('access'); break;
+    case '3': stopPlaying(); switchMode('static'); break;
+    case '4': stopPlaying(); switchMode('constructor'); break;
+    case '5': stopPlaying(); switchMode('overload'); break;
+    case '6': stopPlaying(); switchMode('enum'); break;
+    case 'ArrowLeft': walkSpeed = Math.max(1, walkSpeed - 1); document.getElementById('sl-speed').value = walkSpeed; document.getElementById('speed-val').textContent = walkSpeed; break;
+    case 'ArrowRight': walkSpeed = Math.min(10, walkSpeed + 1); document.getElementById('sl-speed').value = walkSpeed; document.getElementById('speed-val').textContent = walkSpeed; break;
+    case 'Escape': document.getElementById('info-overlay').classList.remove('show'); break;
+  }
+});
+
+// Mouse orbit
+canvas.addEventListener('mousedown', e => { isDragging=true; lastMX=e.clientX; lastMY=e.clientY; });
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  camTheta -= (e.clientX-lastMX)*0.005;
+  camPhi = Math.max(0.05, Math.min(1.5, camPhi+(e.clientY-lastMY)*0.005));
+  lastMX=e.clientX; lastMY=e.clientY; updateCamera();
+});
+canvas.addEventListener('mouseup', () => isDragging=false);
+canvas.addEventListener('mouseleave', () => isDragging=false);
+canvas.addEventListener('wheel', e => { camDist=Math.max(8,Math.min(50,camDist+e.deltaY*0.02)); updateCamera(); });
+
+// Touch
+let touchDist=0;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length===1) { isDragging=true; lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY; }
+  if (e.touches.length===2) touchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length===1&&isDragging) {
+    camTheta-=(e.touches[0].clientX-lastMX)*0.005;
+    camPhi=Math.max(0.05,Math.min(1.5,camPhi+(e.touches[0].clientY-lastMY)*0.005));
+    lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY; updateCamera();
+  }
+  if (e.touches.length===2) {
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    camDist=Math.max(8,Math.min(50,camDist-(d-touchDist)*0.05)); touchDist=d; updateCamera();
+  }
+}, {passive:false});
+canvas.addEventListener('touchend', () => isDragging=false);
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ═══════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.01;
+  sceneMeshes.forEach((obj, i) => {
+    if (obj.userData && obj.userData.baseY !== undefined && !obj.isLine) {
+      obj.position.y = obj.userData.baseY + Math.sin(time*1.8 + i*0.4)*0.04;
+    }
+  });
+  pt1.position.x = Math.sin(time*0.3)*10;
+  pt1.position.z = Math.cos(time*0.3)*8;
+  renderer.render(scene, camera);
+}
+
+switchMode('fields');
+animate();
+</script>
+</body>
+</html>

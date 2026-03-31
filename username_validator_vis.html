@@ -120,6 +120,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 #flow-indicator.show{opacity:1}
 #flow-sub{font-size:9px;color:rgba(255,215,0,.5);letter-spacing:1px;margin-top:3px;font-family:'JetBrains Mono',monospace}
 
+/* NARRATION PANEL */
+#narration{position:fixed;right:10px;top:110px;width:240px;max-height:280px;overflow-y:auto;background:rgba(0,8,22,.93);border:1px solid rgba(57,255,20,.25);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+.narr-title{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(57,255,20,.55);margin-bottom:8px;border-bottom:1px solid rgba(57,255,20,.12);padding-bottom:7px}
+#narr-text{font-size:12px;color:rgba(200,230,255,.75);line-height:1.8}
+#narr-text strong{color:#ffd700}
+
 /* COMPLETION FLASH */
 @keyframes flashGreen{0%{opacity:0}20%{opacity:.15}100%{opacity:0}}
 #flash{position:fixed;inset:0;background:#39ff14;pointer-events:none;z-index:400;opacity:0}
@@ -225,6 +231,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <div id="flow-sub"></div>
 </div>
 
+<!-- NARRATION PANEL -->
+<div id="narration">
+  <div class="narr-title">WHAT'S HAPPENING</div>
+  <div id="narr-text">Enter a username and press <strong>&#9654; PLAY</strong> or <strong>Space</strong> to validate it step by step.</div>
+</div>
+
 <!-- CONTROLS -->
 <div id="ctrl">
   <button class="cb" id="btn-play" onclick="togglePlay()">&#9654; PLAY</button>
@@ -271,6 +283,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 function el(id){return document.getElementById(id)}
 function setText(id,t){var e=el(id);if(e)e.textContent=t}
 function setHTML(id,t){var e=el(id);if(e)e.innerHTML=t}
+function setNarration(html){var e=el('narr-text');if(e)e.innerHTML=html}
 
 /* ============================================================
    JAVA SOURCE CODE (display version)
@@ -520,32 +533,32 @@ var scanBeam=null;
 var ruleLabels=[];
 
 function makeCharTexture(ch,bgColor,textColor){
-  var cv=document.createElement('canvas');cv.width=128;cv.height=128;
+  var cv=document.createElement('canvas');cv.width=256;cv.height=256;
   var ctx=cv.getContext('2d');
   // Background
   ctx.fillStyle=bgColor||'rgba(40,50,70,1)';
-  ctx.fillRect(0,0,128,128);
+  ctx.fillRect(0,0,256,256);
   // Border
-  ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=4;ctx.strokeRect(2,2,124,124);
+  ctx.strokeStyle='rgba(0,212,255,0.3)';ctx.lineWidth=6;ctx.strokeRect(4,4,248,248);
   // Character
   ctx.fillStyle=textColor||'#e0f0ff';
-  ctx.font='bold 64px JetBrains Mono, monospace';
+  ctx.font='bold 100px JetBrains Mono, monospace';
   ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(ch,64,68);
+  ctx.fillText(ch,128,136);
   // Index will be added separately
   var tex=new THREE.CanvasTexture(cv);
   return tex;
 }
 
 function makeCharCubeTopTexture(ch,bgColor,textColor){
-  var cv=document.createElement('canvas');cv.width=128;cv.height=128;
+  var cv=document.createElement('canvas');cv.width=256;cv.height=256;
   var ctx=cv.getContext('2d');
   ctx.fillStyle=bgColor||'rgba(40,50,70,1)';
-  ctx.fillRect(0,0,128,128);
+  ctx.fillRect(0,0,256,256);
   ctx.fillStyle=textColor||'#e0f0ff';
-  ctx.font='bold 72px JetBrains Mono, monospace';
+  ctx.font='bold 120px JetBrains Mono, monospace';
   ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(ch,64,68);
+  ctx.fillText(ch,128,136);
   return new THREE.CanvasTexture(cv);
 }
 
@@ -576,12 +589,12 @@ function buildCharCubes(username){
 
     // 6 faces: +x, -x, +y (top), -y, +z (front), -z (back)
     var mats=[
-      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85}),
-      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85}),
-      new THREE.MeshPhongMaterial({map:topTex,transparent:true,opacity:0.95}),
-      new THREE.MeshPhongMaterial({color:0x1a2030,transparent:true,opacity:0.85}),
-      new THREE.MeshPhongMaterial({map:sideTex,transparent:true,opacity:0.95}),
-      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85})
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85,depthWrite:true}),
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85,depthWrite:true}),
+      new THREE.MeshPhongMaterial({map:topTex,transparent:true,opacity:0.95,depthWrite:true}),
+      new THREE.MeshPhongMaterial({color:0x1a2030,transparent:true,opacity:0.85,depthWrite:true}),
+      new THREE.MeshPhongMaterial({map:sideTex,transparent:true,opacity:0.95,depthWrite:true}),
+      new THREE.MeshPhongMaterial({color:0x283246,transparent:true,opacity:0.85,depthWrite:true})
     ];
 
     var mesh=new THREE.Mesh(geo,mats);
@@ -615,25 +628,27 @@ function buildCharCubes(username){
 function createScanBeam(){
   if(scanBeam){scene.remove(scanBeam);scanBeam.geometry.dispose();scanBeam.material.dispose()}
   var geo=new THREE.PlaneGeometry(0.1,CUBE_SIZE*2);
-  var mat=new THREE.MeshBasicMaterial({color:0x00d4ff,transparent:true,opacity:0,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+  var mat=new THREE.MeshBasicMaterial({color:0x00d4ff,transparent:true,opacity:0,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false});
   scanBeam=new THREE.Mesh(geo,mat);
   scanBeam.position.set(-100,CUBE_SIZE,0);
   scanBeam.rotation.y=Math.PI/2;
+  scanBeam.renderOrder=3;
   scene.add(scanBeam);
 }
 createScanBeam();
 
 // Rule label sprites (floating text above the scene)
 function makeTextSprite(text,color){
-  var cv=document.createElement('canvas');cv.width=512;cv.height=64;
+  var cv=document.createElement('canvas');cv.width=512;cv.height=96;
   var ctx=cv.getContext('2d');
-  ctx.font='bold 28px Orbitron, sans-serif';ctx.fillStyle=color;
+  ctx.font='bold 36px Orbitron, sans-serif';ctx.fillStyle=color;
   ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(text,256,32);
+  ctx.fillText(text,256,48);
   var tex=new THREE.CanvasTexture(cv);
-  var mat=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthWrite:false});
+  var mat=new THREE.SpriteMaterial({map:tex,transparent:true,opacity:0,depthTest:false,depthWrite:false});
   var sp=new THREE.Sprite(mat);
-  sp.scale.set(8,1,1);
+  sp.scale.set(10,1.3,1);
+  sp.renderOrder=10;
   return sp;
 }
 
@@ -1004,6 +1019,7 @@ function advancePhase(){
       showFlow('DO-WHILE LOOP','entering loop body (iteration #'+loopCount+')');
       updateConceptBadge('DO-WHILE','RUNS AT LEAST ONCE','The loop body executes before the condition is checked');
       sndLoop();
+      setNarration('The <strong>do-while</strong> loop starts! Unlike a regular while loop, it runs the body <strong>at least once</strong> before checking the condition. This is iteration #'+loopCount+'.');
       phase='read_input';
       break;
 
@@ -1011,6 +1027,7 @@ function advancePhase(){
       renderCode('read_input');
       showFlow('READ INPUT','username = "'+username+'"');
       setText('s-status','READING');el('s-status').className='sv warn';
+      setNarration('Reading user input: <strong>username = "'+username+'"</strong>. Now we\'ll check it against 3 rules.');
       phase='valid_true';
       break;
 
@@ -1029,6 +1046,7 @@ function advancePhase(){
       setAllCubes('highlight');
       showFlow('RULE 1: LENGTH CHECK','username.length() = '+username.length+' (need 6-12)');
       updateConceptBadge('IF STATEMENT','CONDITION CHECK','Evaluates whether length is in valid range');
+      setNarration('<strong>RULE 1: LENGTH CHECK</strong><br>username.length() = <strong>'+username.length+'</strong><br>Must be between 6 and 12 characters.');
 
       // Show rule label
       ruleLabelSprites[0].material.opacity=0.8;
@@ -1047,6 +1065,7 @@ function advancePhase(){
       setText('rule1-status','\u2713 PASSED (length='+username.length+')');el('rule1-status').className='rule-status pass';
       renderCode('r1_check');
       showFlow('RULE 1 PASSED','\u2713 length '+username.length+' is between 6-12');
+      setNarration('\u2713 <strong>RULE 1 PASSED!</strong> Length '+username.length+' is between 6-12. Moving to Rule 2...');
       phase='r2_init';
       break;
 
@@ -1057,6 +1076,7 @@ function advancePhase(){
       var reason=username.length<6?'too short ('+username.length+' < 6)':'too long ('+username.length+' > 12)';
       setText('rule1-status','\u2717 FAILED: '+reason);el('rule1-status').className='rule-status fail';
       showFlow('RULE 1 FAILED','\u2717 '+reason);
+      setNarration('\u2717 <strong>RULE 1 FAILED!</strong> '+reason+'. Setting valid=false, then <strong>continue</strong> will skip Rules 2 & 3.');
       renderCode('r1_fail_print');
       phase='r1_valid_false';
       break;
@@ -1087,6 +1107,7 @@ function advancePhase(){
       setAllCubes('idle');
       showFlow('RULE 2: NO SPACES','Scanning each character...');
       updateConceptBadge('FOR LOOP','CHARACTER SCAN','Checks every character one by one');
+      setNarration('<strong>RULE 2: NO SPACES</strong><br>A <strong>for loop</strong> scans each character. If a space is found, <strong>break</strong> exits early.');
       ruleLabelSprites[1].material.opacity=0.8;
       phase='r2_for';
       break;
@@ -1123,6 +1144,7 @@ function advancePhase(){
         spaceFoundIdx=scanIdx;
         burstAt(charCubes[scanIdx].origX,1.5,0,0xff4444,8);
         showFlow('SPACE FOUND!','charAt('+scanIdx+') = \' \' (space)');
+        setNarration('\u2717 <strong>SPACE FOUND</strong> at position '+scanIdx+'! Using <strong>break</strong> to exit the for loop early \u2014 no need to check remaining characters.');
         phase='r2_set_true';
       }else{
         setCubeColor(scanIdx,'checked');
@@ -1196,6 +1218,7 @@ function advancePhase(){
       setAllCubes('idle');
       showFlow('RULE 3: HAS DIGIT','Scanning for at least one digit...');
       updateConceptBadge('FOR LOOP','DIGIT SCAN','Looking for any character 0-9');
+      setNarration('<strong>RULE 3: HAS DIGIT</strong><br>Another <strong>for loop</strong> scans each character looking for at least one digit (0-9). If found, <strong>break</strong> exits early.');
       ruleLabelSprites[2].material.opacity=0.8;
       phase='r3_for';
       break;
@@ -1230,6 +1253,7 @@ function advancePhase(){
         digitFoundIdx=scanIdx;
         burstAt(charCubes[scanIdx].origX,1.5,0,0x39ff14,8);
         showFlow('DIGIT FOUND!','charAt('+scanIdx+') = \''+ch+'\' is a digit!');
+        setNarration('\u2713 <strong>DIGIT FOUND!</strong> \''+ch+'\' at position '+scanIdx+'. Using <strong>break</strong> \u2014 we only need one digit, so stop scanning.');
         phase='r3_set_true';
       }else{
         setCubeColor(scanIdx,'checked');
@@ -1260,6 +1284,7 @@ function advancePhase(){
         el('rule3-box').className='rule-box failed';
         setText('rule3-status','\u2717 FAILED: no digits');el('rule3-status').className='rule-status fail';
         showFlow('RULE 3 FAILED','\u2717 No digits found in entire string');
+        setNarration('\u2717 <strong>RULE 3 FAILED!</strong> No digits found in the entire string. Setting valid=false, then <strong>continue</strong> jumps to while condition.');
         setAllCubes('failed');
         sndFail();
         phase='r3_fail_print';
@@ -1334,6 +1359,7 @@ function advancePhase(){
 
       showFlow('LOOP BACK \u2014 ENTER NEW USERNAME','Type a new username and press PLAY or ENTER to try again');
       updateConceptBadge('DO-WHILE','WAITING FOR INPUT','Just like scanner.nextLine() \u2014 the program waits for you');
+      setNarration('<strong>LOOP BACK!</strong> while(!valid) is <strong>true</strong>, so the do-while repeats. Just like <code>scanner.nextLine()</code> \u2014 type a new username and press PLAY.');
       setText('s-status','INPUT');el('s-status').className='sv warn';
       sndLoop();
       renderCode('do_start');
@@ -1364,6 +1390,7 @@ function advancePhase(){
       setText('s-status','VALID!');el('s-status').className='sv pass';
       showFlow('VALIDATION COMPLETE','\u2713 "'+username+'" is a valid username!');
       updateConceptBadge('COMPLETE','ALL RULES PASSED','The do-while loop exits because valid = true');
+      setNarration('\u2713 <strong>VALIDATION COMPLETE!</strong><br>"<strong>'+username+'</strong>" passed all 3 rules!<br>The while(!valid) condition is <strong>false</strong>, so the do-while loop exits. Username accepted!');
       sndComplete();
 
       // Celebration animation

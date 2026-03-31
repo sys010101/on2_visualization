@@ -85,6 +85,12 @@ body{background:#020408;font-family:'JetBrains Mono',monospace;color:#e0f0ff;ove
 .annot-done{color:#39ff14;font-weight:700;font-size:11px}
 .exec-ptr{color:#39ff14;font-weight:900;margin-right:2px;text-shadow:0 0 8px rgba(57,255,20,.6)}
 
+/* NARRATION PANEL */
+#narration{position:fixed;right:10px;top:110px;width:240px;max-height:280px;overflow-y:auto;background:rgba(0,8,22,.93);border:1px solid rgba(57,255,20,.25);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+.narr-title{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(57,255,20,.55);margin-bottom:8px;border-bottom:1px solid rgba(57,255,20,.12);padding-bottom:7px}
+#narr-text{font-size:12px;color:rgba(200,230,255,.75);line-height:1.8}
+#narr-text strong{color:#ffd700}
+
 /* COMPARISON PANEL */
 #cmp-panel{position:fixed;left:10px;bottom:72px;width:240px;background:rgba(0,8,22,.95);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150;display:none}
 #cmp-panel.vis{display:block}
@@ -462,6 +468,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   <button class="cb" onclick="toggleInfo()" data-tip="About this visualizer">&#9432; INFO</button>
   <button class="cb" onclick="startRace()" data-tip="Race O(N) vs O(N&#178;) vs O(N&#179;) side-by-side">&#127939; RACE</button>
   <button class="cb" onclick="toggleGamePanel()" data-tip="Prediction, quiz, challenges, trophies [G]">&#127942; GAME</button>
+</div>
+
+<!-- Narration panel -->
+<div id="narration">
+  <div class="narr-title">WHAT'S HAPPENING</div>
+  <div id="narr-text">Press <strong>PLAY</strong> or <strong>Space</strong> to start. Each step is explained here.</div>
 </div>
 
 <!-- Controls mobile -->
@@ -1158,11 +1170,11 @@ function rebuildBreakpointMarkers(){
     var bp = breakpoints[k];
     if(bp.i >= N || bp.j >= N) continue;
     var geo = new THREE.RingGeometry(0.55, 0.72, 6);
-    var mat = new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.8, side:THREE.DoubleSide});
+    var mat = new THREE.MeshBasicMaterial({color:0xff2222, transparent:true, opacity:0.8, side:THREE.DoubleSide, depthWrite:false});
     var ring = new THREE.Mesh(geo, mat);
-    ring.position.set(bp.j * sp + off, 0.02, bp.i * sp + off);
+    ring.position.set(bp.j * sp + off, 0.05, bp.i * sp + off);
     ring.rotation.x = -Math.PI / 2;
-    ring.renderOrder = 998;
+    ring.renderOrder = 5;
     scene.add(ring);
     breakpointMeshes.push(ring);
   }
@@ -1793,14 +1805,15 @@ function pulseOps(){
 //  BUILD GRID (with proper disposal)
 // ==============================================================
 function mkSprite(txt, sz, color){
-  var c=document.createElement('canvas'); c.width=128; c.height=64;
+  var c=document.createElement('canvas'); c.width=256; c.height=96;
   var ctx=c.getContext('2d');
-  ctx.font='bold 34px monospace'; ctx.fillStyle=color; ctx.textAlign='center';
-  ctx.fillText(txt, 64, 46);
+  ctx.font='bold 44px monospace'; ctx.fillStyle=color; ctx.textAlign='center';
+  ctx.fillText(txt, 128, 68);
   var tex = new THREE.CanvasTexture(c);
-  var mat = new THREE.SpriteMaterial({map:tex, transparent:true, opacity:0.7});
+  var mat = new THREE.SpriteMaterial({map:tex, transparent:true, opacity:0.7, depthWrite:false});
   var sp = new THREE.Sprite(mat);
-  sp.scale.set(sz*1.2, sz*0.6, 1);
+  sp.scale.set(sz*1.56, sz*0.78, 1);
+  sp.renderOrder = 10;
   disposables.push(tex, mat);
   return sp;
 }
@@ -1848,20 +1861,21 @@ function buildGrid(){
       var mat = new THREE.MeshPhongMaterial({
         color:   inB?0x001833:0x000a14,
         emissive:inB?0x000d1a:0x000508,
-        transparent:true, opacity:inB?0.92:0.35, shininess:80
+        transparent:true, opacity:inB?0.92:0.35, shininess:80,
+        depthWrite:inB?true:false
       });
       var cube = new THREE.Mesh(geo, mat);
       cube.position.set(j*sp+off, 0, i*sp+off);
       cube.castShadow = true;
       var edgeGeo = new THREE.EdgesGeometry(geo);
-      var edgeMat = new THREE.LineBasicMaterial({color:0x00d4ff, transparent:true, opacity:inB?0.35:0.08});
+      var edgeMat = new THREE.LineBasicMaterial({color:0x00d4ff, transparent:true, opacity:inB?0.35:0.08, depthWrite:false});
       cube.add(new THREE.LineSegments(edgeGeo, edgeMat));
       cube.userData = {tY:0, tS:1};
       gGroup.add(cube); cubes[i][j]=cube;
       disposables.push(geo, mat, edgeGeo, edgeMat);
     }
     var rpGeo = new THREE.PlaneGeometry(N*sp+0.2, sp-0.1);
-    var rpMat = new THREE.MeshBasicMaterial({color:0xffd700, transparent:true, opacity:0, side:THREE.DoubleSide});
+    var rpMat = new THREE.MeshBasicMaterial({color:0xffd700, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false});
     var rp = new THREE.Mesh(rpGeo, rpMat);
     rp.rotation.x=-Math.PI/2; rp.position.set(0,-0.56, i*sp+off);
     gGroup.add(rp); rowHL[i]=rp;
@@ -1942,6 +1956,14 @@ function setPlayBtns(on){
 }
 
 // ==============================================================
+//  NARRATION
+// ==============================================================
+function setNarration(html) {
+  var el = document.getElementById('narr-text');
+  if (el) el.innerHTML = html;
+}
+
+// ==============================================================
 //  STEP
 // ==============================================================
 var prevRowI = -1; // track row changes for row-complete sound
@@ -1967,6 +1989,11 @@ function step(){
   // === SUB-PHASE 1: Outer loop check (only on new row) ===
   if(isNewRow && !editMode){
     renderDebug('outer-check', ci, cj);
+    if(ci === 0){
+      setNarration('Starting nested loop: <strong>i</strong> goes from 0 to '+(outerB-1)+', and for each <strong>i</strong>, <strong>j</strong> goes from 0 to '+(innerB-1));
+    } else {
+      setNarration('Row <strong>i='+ci+'</strong> \u2014 starting inner loop <strong>j=0</strong>');
+    }
   }
 
   // === SUB-PHASE 2: Inner loop condition check ===
@@ -1998,6 +2025,7 @@ function step(){
 
     // Show body executing in debugger
     if(!editMode) renderDebug('body-exec', ci, cj);
+    setNarration('Visiting cell <strong>[i='+ci+', j='+cj+']</strong> \u2014 iteration <strong>'+(totOps)+'</strong> of <strong>'+(outerB*innerB)+'</strong>');
 
     // Fade cube after brief moment
     setTimeout(function(){
@@ -2053,6 +2081,7 @@ function step(){
     if(fci >= outerB){
       // All done
       renderDebug('complete', outerB, 0);
+      setNarration('All <strong>'+outerB+'\u00d7'+innerB+' = '+(outerB*innerB)+'</strong> cells visited! That\u2019s <strong>O(N\u00b2)</strong> \u2014 quadratic growth. Double N and you get 4\u00d7 the work!');
     } else if(rowJustCompleted){
       // Show inner loop exit, then i++
       renderDebug('row-done', ci, innerB);

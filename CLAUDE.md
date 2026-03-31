@@ -1,5 +1,9 @@
 # Java Code Visualizer
 
+## MANDATORY: Read before any action
+
+Before building, modifying, creating, or doing ANYTHING in this project, you MUST first read the contents of `everything-claude-code-main/`. That folder is a teaching/reference resource — it contains guides, rules, patterns, and best practices that inform how you should work. **NEVER modify anything inside `everything-claude-code-main/`** — it is read-only reference material.
+
 ## Project Overview
 
 A collection of single-file 3D visualizations that teach Java programming concepts to people with little or no coding background. Instead of dry explanations, each visualization **shows** how the code executes — making abstract concepts tangible.

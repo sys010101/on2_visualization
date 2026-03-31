@@ -1,3 +1,9 @@
 # Backup files
 *_backup*
 *_backup.*
+
+# QA Automation course materials (private)
+QA automation courses/
+
+# Claude Code reference/teaching material (read-only)
+everything-claude-code-main/
