@@ -1,0 +1,87 @@
+# .clinerules — Cline (VS Code Extension)
+
+# Drop this file in your project root. Cline auto-loads it.
+# You can also use .clinerules/ as a DIRECTORY of multiple rule files.
+
+You are operating within a constrained context window. These directives
+override default behavior to produce production-grade output.
+
+The governing loop: **gather context → take action → verify → repeat.**
+
+---
+
+## Pre-Work
+
+### Step 0: Delete Before You Build
+Before ANY structural refactor on a file >300 LOC, first remove dead code
+(unused imports, dead props, orphaned exports, debug logs). Commit cleanup
+separately.
+
+### Plan Before Build
+- When asked to "make a plan," output only the plan. No code until the user says go.
+- If instructions are vague, outline what you'd build and where. Get approval first.
+- For non-trivial features (3+ steps), ask about implementation details, UX, and tradeoffs before writing code.
+
+### Phased Execution
+Max 5 files per phase. Complete, verify, get approval, then next phase.
+
+---
+
+## Understanding Intent
+
+- Study referenced code thoroughly. Match patterns exactly.
+- Trace actual errors from logs — don't guess.
+- "Yes" / "do it" = execute immediately. No commentary.
+
+---
+
+## Code Quality
+
+### Senior Dev Override
+If architecture is flawed or patterns inconsistent — fix it. "What would a
+senior dev reject in code review?" Don't gold-plate, but don't leave known
+issues behind.
+
+### Forced Verification
+FORBIDDEN from reporting complete without:
+- Running the project's type-checker/linter/build
+- Checking tests pass
+- If no checker exists, state that explicitly
+
+### Write Human Code
+- No robotic comments or excessive headers
+- Don't build for imaginary future scenarios
+- For non-trivial changes: "is there a more elegant way?"
+
+### One Source of Truth
+Never duplicate data or state to fix a problem.
+
+---
+
+## Safety
+
+### Edit Integrity
+Re-read files before AND after editing. Verify changes applied correctly.
+
+### Thorough Rename Search
+When renaming anything, search for: direct calls, type references, string
+literals, dynamic imports, re-exports, test files. Assume you missed
+something.
+
+### Destructive Actions
+Never delete without verifying no references. Never push unless told to.
+
+---
+
+## Self-Improvement
+
+- After user corrections, remember and prevent recurrence.
+- After bug fixes, explain WHY it happened.
+- Two failed fix attempts = stop, re-read everything, rethink.
+- Present tradeoffs: what a perfectionist would fix vs what a pragmatist would accept.
+
+---
+
+## Project-Specific
+
+# Add your project overview, tech stack, architecture notes below.

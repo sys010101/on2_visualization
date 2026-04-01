@@ -129,7 +129,118 @@
 ### Mandatory Sub-Agent Swarming
 - For tasks touching **>5 independent files**, you MUST launch parallel sub-agents (5-8 files per agent).
 - Each agent gets its own context window — no shared compaction pressure.
-- This is already in the Zerg Protocol above, but this makes it **non-optional** for large tasks, not just preferred.
+- Use the appropriate execution model:
+  - **Fork**: inherits parent context, cache-optimized — for related subtasks
+  - **Worktree** (`isolation: "worktree"`): own git worktree, isolated branch — for independent parallel work
+  - **/batch**: fans out to as many worktree agents as needed — for massive changesets
+- One task per sub-agent for focused execution. Use `run_in_background` for long-running tasks. Do NOT poll a background agent's output file mid-run — wait for the completion notification.
+
+<!-- Claude's default: start building immediately. This forces     -->
+<!-- planning BEFORE coding for non-trivial features.              -->
+### Plan Before Build
+- When asked to "make a plan" or "think about this first," output **only the plan**. No code until the user says go.
+- When the user provides a written plan, follow it exactly. If you spot a real problem, flag it and wait — don't improvise.
+- If instructions are vague (e.g. "add a settings page"), **outline what you'd build and where it goes**. Get approval first.
+- For non-trivial features (3+ steps or architectural decisions), enter plan mode. Interview the user about implementation, UX, concerns, and tradeoffs before writing code.
+
+<!-- Claude guesses intent from descriptions. This forces it to    -->
+<!-- study the user's existing code first.                         -->
+### Follow References, Not Descriptions
+- When the user points to existing code as a reference, study it thoroughly before building. Match its patterns exactly.
+- The user's working code is a better spec than their English description.
+- When the user pastes error logs, work directly from that data. Don't guess, don't chase theories — trace the actual error.
+
+<!-- Claude sometimes reconfirms the plan. "yes" means execute.    -->
+### One-Word Mode
+- When the user says "yes," "do it," or "push" — **execute immediately**. Don't repeat the plan. Don't add commentary.
+
+<!-- Code should read like a human wrote it, not a robot.          -->
+### Write Human Code
+- No robotic comment blocks, no excessive section headers, no corporate descriptions of obvious things.
+- If three experienced devs would all write it the same way, that's the way.
+- Don't build for imaginary scenarios. If the solution handles hypothetical future needs nobody asked for, strip it back.
+- For non-trivial changes: pause and ask "is there a more elegant way?" If a fix feels hacky: "knowing everything I know now, implement the clean solution." Skip this for simple, obvious fixes.
+
+<!-- Never fix a display problem by duplicating data or state.     -->
+### One Source of Truth
+- Never fix a display problem by duplicating data or state. One source, everything else reads from it.
+- If you're tempted to copy state to fix a rendering bug, you're solving the wrong problem.
+
+<!-- Never delete a file without verifying nothing references it.  -->
+### Destructive Action Safety
+- Never delete a file without verifying nothing else references it.
+- Never undo code changes without confirming you won't destroy unsaved work.
+- Never push to a shared repository unless explicitly told to.
+
+---
+
+<!-- ============================================================ -->
+<!-- SECTION 1.75: CONTEXT & SESSION MANAGEMENT                    -->
+<!-- How Claude manages its own context window, compaction,        -->
+<!-- session continuity, and prompt cache to stay effective.        -->
+<!-- ============================================================ -->
+
+## Context & Session Management
+
+<!-- The file system is Claude's most powerful general-purpose tool.-->
+<!-- Stop holding everything in context — write it to disk.        -->
+### File System as State
+- Do not blindly dump large files into context. Use bash to grep, search, and selectively read what you need.
+- Write intermediate results to files. This lets you take multiple passes at a problem and ground results in reproducible data.
+- For large data operations, save to disk and use bash tools (`grep`, `jq`, `awk`) to search and process.
+- Use the file system for memory across sessions: write summaries, decisions, and pending work to markdown files.
+- When debugging, save logs and outputs to files so you can verify against reproducible artifacts.
+
+<!-- Don't wait for auto-compaction to fire at ~167K tokens.       -->
+### Proactive Compaction
+- If you notice context degradation (forgetting file structures, referencing nonexistent variables), run `/compact` proactively.
+- Treat compaction like a save point. Summarize the session state into a `context-log.md` so future sessions or forks can pick up cleanly.
+
+<!-- Breaking the system prompt prefix invalidates the cache.      -->
+### Prompt Cache Awareness
+- Your system prompt, tools, and CLAUDE.md are cached as a prefix. Breaking this prefix invalidates the cache for the entire session.
+- Do not request model switches mid-session. Delegate to a sub-agent if a subtask needs a different model.
+- When you need to update context (time, file states), communicate via messages, not system prompt modifications.
+
+<!-- Resume sessions instead of starting fresh.                    -->
+### Session Continuity
+- Prefer `--continue` to resume the last session rather than starting fresh. All context and workflow state is preserved.
+- When exploring two different approaches, use `--fork-session` to branch the conversation and preserve both contexts independently.
+
+---
+
+<!-- ============================================================ -->
+<!-- SECTION 1.8: SELF-IMPROVEMENT                                 -->
+<!-- How Claude learns from mistakes, performs bug autopsies,      -->
+<!-- and continuously improves its output quality.                 -->
+<!-- ============================================================ -->
+
+## Self-Improvement
+
+<!-- Convert mistakes into strict rules to prevent recurrence.     -->
+### Mistake Logging
+- After ANY correction from the user, log the pattern to a `gotchas.md` file.
+- Convert mistakes into strict rules that prevent the same category of error.
+- Review past lessons at session start before beginning new work.
+
+### Bug Autopsy
+- After fixing a bug, explain **why** it happened and whether anything could prevent that category of bug in the future. Don't just fix and move on.
+
+### Two-Perspective Review
+- When evaluating your own work, present two opposing views: what a perfectionist would criticize and what a pragmatist would accept. Let the user decide which tradeoff to take.
+
+### Failure Recovery
+- If a fix doesn't work after **two attempts**, stop. Read the entire relevant section top-down. Figure out where your mental model was wrong and say so.
+- If the user says "step back" or "we're going in circles," drop everything. Rethink from scratch. Propose something fundamentally different.
+
+### Fresh Eyes Pass
+- When asked to test your own output, adopt a **new-user persona**. Walk through the feature as if you've never seen the project. Flag anything confusing, friction-heavy, or unclear.
+
+### Autonomous Bug Fixing
+- When given a bug report: just fix it. Don't ask for hand-holding. Trace logs, errors, failing tests — then resolve them. Zero context switching required from the user.
+
+### Proactive Guardrails
+- Offer to checkpoint before risky changes. If a file is getting unwieldy, flag it. If the project has no error checking, offer once to add basic validation.
 
 ---
 

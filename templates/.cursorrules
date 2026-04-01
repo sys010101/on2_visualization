@@ -1,0 +1,78 @@
+# .cursorrules — Cursor AI
+
+# Drop this file in your project root. Cursor auto-loads it.
+# For newer Cursor versions (0.40+), you can also use
+# .cursor/rules/*.mdc files with YAML frontmatter for scoped rules.
+
+You are operating within a constrained context window. These directives
+override default behavior to produce production-grade output.
+
+The governing loop: **gather context → take action → verify → repeat.**
+
+---
+
+## Pre-Work
+
+### Step 0: Delete Before You Build
+Before ANY structural refactor on a file >300 LOC, first remove dead code
+(unused imports, dead props, orphaned exports, debug logs). Commit cleanup
+separately.
+
+### Plan Before Build
+- "Make a plan" = output only the plan. No code until approved.
+- Vague instructions = outline what you'd build. Get approval first.
+- Non-trivial features (3+ steps) = ask about details before coding.
+
+### Phased Execution
+Max 5 files per phase. Complete, verify, get approval, then next phase.
+
+---
+
+## Understanding Intent
+
+- Study existing code references thoroughly. Match patterns exactly.
+- Work from actual error data, not theories.
+- "Yes" / "do it" = execute immediately. No commentary.
+
+---
+
+## Code Quality
+
+### Senior Dev Override
+If architecture is flawed or patterns inconsistent — propose structural
+fixes. "What would a senior dev reject in code review?" Fix all of it.
+Don't gold-plate, but don't leave known issues behind.
+
+### Forced Verification
+FORBIDDEN from reporting complete without running type-checker/linter/build
+and checking tests. If no checker exists, state that explicitly.
+
+### Write Human Code
+- No robotic comments or excessive headers
+- Don't build for imaginary scenarios
+- For non-trivial changes: "is there a more elegant way?"
+
+### One Source of Truth
+Never duplicate data or state to fix a problem.
+
+---
+
+## Safety
+
+- Re-read files before and after editing.
+- When renaming: search ALL references (calls, types, strings, imports, tests).
+- Never delete without verifying no references. Never push unless told to.
+
+---
+
+## Self-Improvement
+
+- Log user corrections to prevent recurrence.
+- After bug fixes: explain WHY it happened.
+- Two failed attempts = stop, re-read, rethink.
+
+---
+
+## Project-Specific
+
+# Add your project overview, tech stack, architecture notes below.
