@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>OOP Mental Map - 3D Visualizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05070c;color:#dce8f5;font-family:'JetBrains Mono',monospace;overflow:hidden;touch-action:none}
+#cv{position:fixed;inset:0}
+#tb{position:fixed;top:0;left:0;right:0;height:56px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,rgba(4,10,24,.96),rgba(8,18,38,.88));border-bottom:1px solid rgba(0,200,255,.22);backdrop-filter:blur(14px);z-index:200}
+#tb h1{font-family:'Orbitron',sans-serif;font-size:clamp(12px,2.3vw,18px);letter-spacing:2px;color:#6df0ff;text-shadow:0 0 16px rgba(109,240,255,.35)}
+.sub{font-size:10px;letter-spacing:1px;color:rgba(109,240,255,.45);margin-top:2px}
+#tb-hint{font-size:10px;letter-spacing:1px;color:rgba(220,240,255,.25)}
+#mode-sel{position:fixed;top:66px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:96vw;padding:6px 12px;border:1px solid rgba(0,200,255,.18);border-radius:28px;background:rgba(5,11,24,.95);backdrop-filter:blur(16px);z-index:190}
+.mode-btn{border:1px solid rgba(0,220,255,.2);background:rgba(0,220,255,.05);color:rgba(109,240,255,.7);padding:6px 12px;border-radius:18px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.mode-btn:hover{background:rgba(0,220,255,.14);color:#eafcff}
+.mode-btn.active{background:rgba(0,220,255,.26);color:#fff;border-color:#6df0ff;box-shadow:0 0 12px rgba(109,240,255,.25)}
+.panel{position:fixed;background:rgba(5,11,24,.92);border:1px solid rgba(0,200,255,.18);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:160}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(109,240,255,.55);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(0,200,255,.12)}
+#explain{top:118px;left:10px;width:280px;max-height:calc(100vh - 205px);overflow-y:auto}
+#explain-title{font-family:'Orbitron',sans-serif;font-size:12px;color:#ffd37a;margin-bottom:8px}
+#explain-text{font-size:11px;line-height:1.72;color:rgba(220,235,250,.72)}
+#explain-text strong{color:#6df0ff}
+#explain-text .key{color:#ffd37a;font-weight:700}
+#explain-text .warn{color:#ff7d7d;font-weight:700}
+.analogy{margin-top:12px;padding:10px;border:1px solid rgba(255,140,66,.25);border-radius:10px;background:rgba(255,140,66,.06)}
+.analogy-label{font-size:9px;letter-spacing:2px;color:#ffb172;margin-bottom:4px}
+.analogy-text{font-size:11px;line-height:1.6;color:rgba(255,215,180,.72)}
+#actions{left:10px;bottom:78px;width:280px}
+.act-btn{display:block;width:100%;margin-bottom:6px;padding:9px 12px;text-align:left;border-radius:8px;border:1px solid rgba(0,220,255,.18);background:rgba(0,220,255,.05);color:rgba(230,244,255,.78);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s}
+.act-btn:hover{background:rgba(0,220,255,.13);color:#fff;border-color:rgba(109,240,255,.42)}
+#cp{right:10px;top:118px;width:min(450px,46vw);height:calc(100vh - 196px);overflow:auto;min-width:220px}
+#cd{font-size:11px;line-height:1.48;white-space:pre;overflow-x:auto}
+.cl{display:block;padding:1px 4px;border-left:3px solid transparent;border-radius:2px}
+.cl-active{background:rgba(255,211,122,.14);border-left-color:rgba(255,211,122,.72)}
+.exec-ptr{color:#39ffb0;font-weight:900;margin-right:2px}
+#ctrl{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;padding:9px 18px;border-radius:40px;background:rgba(5,11,24,.93);border:1px solid rgba(0,200,255,.18);backdrop-filter:blur(16px);z-index:170}
+.cb{padding:6px 13px;border-radius:18px;border:1px solid rgba(0,220,255,.22);background:rgba(0,220,255,.07);color:#6df0ff;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.cb:hover{background:rgba(0,220,255,.18);box-shadow:0 0 12px rgba(109,240,255,.25)}
+.cs{width:1px;height:22px;background:rgba(0,200,255,.18)}
+#flow-ind{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);padding:8px 18px;border-radius:20px;background:rgba(5,11,24,.85);border:1px solid rgba(0,200,255,.18);font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:1px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:165}
+#flow-ind.show{opacity:1}
+#badge{position:fixed;right:10px;bottom:14px;padding:10px 14px;border-radius:10px;background:rgba(5,11,24,.9);border:1px solid rgba(255,140,66,.28);text-align:center;backdrop-filter:blur(16px);z-index:160}
+#badge-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1px}
+#badge-sub{font-size:9px;letter-spacing:1px;margin-top:3px}
+#help{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(620px,92vw);max-height:82vh;overflow:auto;padding:26px 30px;border-radius:16px;background:rgba(5,11,24,.97);border:1px solid rgba(0,220,255,.24);backdrop-filter:blur(22px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:500}
+#help.show{opacity:1;pointer-events:auto}
+#help h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:#6df0ff;text-align:center;margin-bottom:14px}
+#help p{font-size:11px;line-height:1.7;color:rgba(220,235,250,.7);margin-bottom:8px}
+#help .row{display:flex;gap:8px;align-items:baseline;margin-bottom:5px}
+#help .k{min-width:140px;color:#ffd37a;font-weight:700;font-size:11px}
+#help .d{color:rgba(220,235,250,.62);font-size:11px}
+#help button{margin-top:14px;padding:6px 18px;border-radius:18px;border:1px solid rgba(0,220,255,.22);background:rgba(0,220,255,.08);color:#6df0ff;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer}
+@media (max-width: 980px){
+  #cp{width:calc(100vw - 20px);right:10px;left:10px;top:auto;bottom:152px;height:180px}
+  #explain{width:calc(100vw - 20px);top:118px;max-height:220px}
+  #actions{width:calc(100vw - 20px);left:10px;bottom:340px}
+  #ctrl{bottom:88px}
+  #badge{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="tb">
+  <div>
+    <h1>OOP MENTAL MAP</h1>
+    <div class="sub">VAULT - DASHBOARD - BLUEPRINT - CONTRACT - FAMILY TREE - ONE BUTTON</div>
+  </div>
+  <div id="tb-hint">Drag to orbit. Wheel to zoom. Press ? for help.</div>
+</div>
+<div id="mode-sel">
+  <button class="mode-btn active" data-mode="encapsulation">Encapsulation</button>
+  <button class="mode-btn" data-mode="abstraction">Abstraction</button>
+  <button class="mode-btn" data-mode="abstract">Abstract Class</button>
+  <button class="mode-btn" data-mode="interface">Interface</button>
+  <button class="mode-btn" data-mode="inheritance">Inheritance</button>
+  <button class="mode-btn" data-mode="polymorphism">Polymorphism</button>
+</div>
+<div class="panel" id="explain"><div class="ptitle">MENTAL MODEL</div><div id="explain-title"></div><div id="explain-text"></div></div>
+<div class="panel" id="actions"><div class="ptitle">TRY IT</div><div id="act-buttons"></div></div>
+<div class="panel" id="cp"><div class="ptitle">JAVA CODE</div><div id="cd"></div></div>
+<div id="ctrl">
+  <button class="cb" id="btn-reset">RESET</button>
+  <button class="cb" id="btn-order">ORDER</button>
+  <div class="cs"></div>
+  <button class="cb" id="btn-help">?</button>
+</div>
+<div id="flow-ind"></div>
+<div id="badge"><div id="badge-title" style="color:#ff8c42;text-shadow:0 0 12px rgba(255,140,66,.35)">MAP</div><div id="badge-sub" style="color:rgba(255,140,66,.55)">See the shape first</div></div>
+<div id="help">
+  <h3>LESSON 10 LADDER</h3>
+  <p>This page is meant to reduce overload. Use the concepts in this order instead of trying to hold the whole lesson at once.</p>
+  <div class="row"><span class="k">1. Encapsulation</span><span class="d">Protect the inside with a lock. private fields, safe methods.</span></div>
+  <div class="row"><span class="k">2. Abstraction</span><span class="d">Give people a control panel, not the engine room.</span></div>
+  <div class="row"><span class="k">3. Abstract Class</span><span class="d">A shared blueprint with some finished parts and some blanks.</span></div>
+  <div class="row"><span class="k">4. Interface</span><span class="d">A contract shape. Many unrelated classes can match it.</span></div>
+  <div class="row"><span class="k">5. Inheritance</span><span class="d">A family tree. Children reuse a parent foundation.</span></div>
+  <div class="row"><span class="k">6. Polymorphism</span><span class="d">One call, different real behavior at runtime.</span></div>
+  <p>If the Java looks scary, return to the shape, say the analogy out loud, and only then read the code again.</p>
+  <div style="text-align:center"><button onclick="document.getElementById('help').classList.remove('show')">CLOSE</button></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+function escHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const canvas = document.getElementById('cv');
+const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x05070c, 0.0055);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+let camTheta = 0.28;
+let camPhi = 0.4;
+let camDist = 24;
+const camTarget = new THREE.Vector3(0, 2, 0);
+let isDragging = false;
+let lastMX = 0;
+let lastMY = 0;
+
+function updateCamera() {
+  camera.position.x = camTarget.x + camDist * Math.sin(camTheta) * Math.cos(camPhi);
+  camera.position.y = camTarget.y + camDist * Math.sin(camPhi);
+  camera.position.z = camTarget.z + camDist * Math.cos(camTheta) * Math.cos(camPhi);
+  camera.lookAt(camTarget);
+}
+updateCamera();
+
+scene.add(new THREE.AmbientLight(0x3a4f68, 0.62));
+const dir = new THREE.DirectionalLight(0xffffff, 0.88);
+dir.position.set(10, 22, 10);
+scene.add(dir);
+const pt1 = new THREE.PointLight(0x00d4ff, 0.45, 70);
+pt1.position.set(-9, 10, 6);
+scene.add(pt1);
+const pt2 = new THREE.PointLight(0xff8c42, 0.35, 60);
+pt2.position.set(9, 7, -4);
+scene.add(pt2);
+
+(function addStars() {
+  const geo = new THREE.BufferGeometry();
+  const n = 900;
+  const pos = new Float32Array(n * 3);
+  const col = new Float32Array(n * 3);
+  const palette = [[1,1,1],[0.8,0.92,1],[1,0.9,0.8],[0.9,0.8,1]];
+  for (let i = 0; i < n; i++) {
+    const r = 180 + Math.random() * 440;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i * 3 + 2] = r * Math.cos(phi);
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    const b = 0.45 + Math.random() * 0.55;
+    col[i * 3] = c[0] * b;
+    col[i * 3 + 1] = c[1] * b;
+    col[i * 3 + 2] = c[2] * b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.8, fog: false }));
+  scene.add(pts);
+})();
+
+const grid = new THREE.GridHelper(34, 34, 0x16354f, 0x0a1b2c);
+grid.position.y = -0.01;
+grid.material.transparent = true;
+grid.material.opacity = 0.24;
+scene.add(grid);
+
+let sceneMeshes = [];
+let objRefs = {};
+let codeLine = -1;
+let currentMode = 'encapsulation';
+let currentFlowTimer = null;
+
+function addToScene(obj) {
+  scene.add(obj);
+  sceneMeshes.push(obj);
+  return obj;
+}
+
+function clearScene() {
+  sceneMeshes.forEach(obj => {
+    if (obj.children) {
+      obj.children.forEach(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+    }
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (obj.material.map) obj.material.map.dispose();
+      obj.material.dispose();
+    }
+    scene.remove(obj);
+  });
+  sceneMeshes = [];
+  objRefs = {};
+}
+
+function makeText(text, opts) {
+  const settings = opts || {};
+  const fontSize = settings.fontSize || 24;
+  const color = settings.color || '#ffffff';
+  const cv = document.createElement('canvas');
+  const ctx = cv.getContext('2d');
+  ctx.font = '700 ' + (fontSize * 2) + 'px JetBrains Mono, monospace';
+  const width = Math.max(256, Math.ceil(ctx.measureText(text).width + 40));
+  cv.width = width;
+  cv.height = 96;
+  ctx.font = '700 ' + (fontSize * 2) + 'px JetBrains Mono, monospace';
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, width / 2, 48);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.minFilter = THREE.LinearFilter;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+  const aspect = width / 96;
+  const baseScale = settings.scale || 3;
+  spr.scale.set(baseScale, baseScale / aspect, 1);
+  spr.renderOrder = 10;
+  return spr;
+}
+
+function addLabel(text, x, y, z, opts) {
+  const spr = makeText(text, opts);
+  spr.position.set(x, y, z);
+  return addToScene(spr);
+}
+
+function makeBox(w, h, d, color, x, y, z, opacity) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshPhongMaterial({
+    color: color,
+    transparent: true,
+    opacity: opacity === undefined ? 0.82 : opacity,
+    shininess: 60,
+    emissive: new THREE.Color(color).multiplyScalar(0.08)
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.userData.baseY = y;
+  const edgeGeo = new THREE.EdgesGeometry(geo);
+  const edges = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: 0x7fd9ff, transparent: true, opacity: 0.22, depthWrite: false }));
+  mesh.add(edges);
+  return addToScene(mesh);
+}
+
+function makeWireBox(w, h, d, color, x, y, z) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const edgeGeo = new THREE.EdgesGeometry(geo);
+  const line = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.85, depthWrite: false }));
+  line.position.set(x, y, z);
+  line.userData.baseY = y;
+  return addToScene(line);
+}
+
+function makeSphere(r, color, x, y, z, opacity) {
+  const geo = new THREE.SphereGeometry(r, 20, 20);
+  const mat = new THREE.MeshPhongMaterial({
+    color: color,
+    transparent: true,
+    opacity: opacity === undefined ? 0.92 : opacity,
+    emissive: new THREE.Color(color).multiplyScalar(0.28)
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.userData.baseY = y;
+  return addToScene(mesh);
+}
+
+function makeCylinder(rt, rb, h, color, x, y, z, opacity) {
+  const geo = new THREE.CylinderGeometry(rt, rb, h, 24);
+  const mat = new THREE.MeshPhongMaterial({
+    color: color,
+    transparent: true,
+    opacity: opacity === undefined ? 0.88 : opacity,
+    emissive: new THREE.Color(color).multiplyScalar(0.1)
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.userData.baseY = y;
+  return addToScene(mesh);
+}
+
+function makeRing(r, t, color, x, y, z, rx, ry, rz) {
+  const geo = new THREE.TorusGeometry(r, t, 14, 36);
+  const mat = new THREE.MeshPhongMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.9,
+    emissive: new THREE.Color(color).multiplyScalar(0.16)
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.rotation.set(rx || 0, ry || 0, rz || 0);
+  mesh.userData.baseY = y;
+  return addToScene(mesh);
+}
+
+function makeLine(x1, y1, z1, x2, y2, z2, color, opacity) {
+  const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x2, y2, z2)]);
+  const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: opacity === undefined ? 0.75 : opacity, depthWrite: false }));
+  return addToScene(line);
+}
+
+function softenShell(mesh) {
+  if (!mesh || !mesh.material) return mesh;
+  mesh.material.side = THREE.DoubleSide;
+  mesh.material.depthWrite = false;
+  mesh.renderOrder = 1;
+  return mesh;
+}
+
+function bringForward(mesh, amount) {
+  if (!mesh) return mesh;
+  mesh.position.z += amount === undefined ? 0.4 : amount;
+  mesh.renderOrder = 3;
+  return mesh;
+}
+
+function flashMesh(mesh, color, dur) {
+  if (!mesh || !mesh.material || !mesh.material.color) return;
+  const oldColor = mesh.material.color.getHex();
+  const oldEmissive = mesh.material.emissive ? mesh.material.emissive.getHex() : 0;
+  mesh.material.color.setHex(color);
+  if (mesh.material.emissive) mesh.material.emissive.setHex(new THREE.Color(color).multiplyScalar(0.35).getHex());
+  mesh.scale.set(1.1, 1.1, 1.1);
+  setTimeout(() => {
+    if (mesh.material) {
+      mesh.material.color.setHex(oldColor);
+      if (mesh.material.emissive) mesh.material.emissive.setHex(oldEmissive);
+    }
+    mesh.scale.set(1, 1, 1);
+  }, dur || 700);
+}
+
+function showFlow(text, color) {
+  const el = document.getElementById('flow-ind');
+  el.textContent = text;
+  el.style.color = color || '#ffd37a';
+  el.classList.add('show');
+  if (currentFlowTimer) clearTimeout(currentFlowTimer);
+  currentFlowTimer = setTimeout(() => el.classList.remove('show'), 2300);
+}
+
+function setBadge(title, sub, color) {
+  document.getElementById('badge-title').textContent = title;
+  document.getElementById('badge-sub').textContent = sub;
+  document.getElementById('badge-title').style.color = color;
+  document.getElementById('badge-title').style.textShadow = '0 0 12px ' + color;
+  document.getElementById('badge-sub').style.color = color;
+}
+
+function renderCode() {
+  const code = MODES[currentMode].code.trim().split('\n');
+  document.getElementById('cd').innerHTML = code.map((line, index) => {
+    const cls = index === codeLine ? 'cl cl-active' : 'cl';
+    const ptr = index === codeLine ? '<span class="exec-ptr">&gt;</span>' : '  ';
+    return '<span class="' + cls + '">' + ptr + escHTML(line) + '</span>';
+  }).join('\n');
+}
+
+function setCodeLine(index) {
+  codeLine = index;
+  renderCode();
+}
+
+function buildEncapsulation() {
+  clearScene();
+  objRefs.safe = makeBox(6, 4.2, 4.2, 0x14344b, 0, 2.2, 0, 0.18);
+  softenShell(objRefs.safe);
+  objRefs.safeFrame = makeWireBox(6, 4.2, 4.2, 0x52d6ff, 0, 2.2, 0);
+  objRefs.core = makeSphere(0.9, 0x00ffb0, 0, 2.2, 0, 0.94);
+  objRefs.lockBody = makeBox(0.9, 0.8, 0.35, 0xff5050, 0, 2.3, 2.25, 0.95);
+  objRefs.lockArc = makeRing(0.32, 0.08, 0xff7a7a, 0, 2.8, 2.22, Math.PI / 2, 0, 0);
+  objRefs.deposit = makeBox(2.4, 0.55, 0.55, 0x2f8153, -4.3, 3.0, 0, 0.9);
+  objRefs.withdraw = makeBox(2.4, 0.55, 0.55, 0x815a2f, -4.3, 2.0, 0, 0.9);
+  objRefs.getter = makeBox(2.4, 0.55, 0.55, 0x2f5f81, 4.3, 2.5, 0, 0.9);
+  addLabel('private balance', 0, 3.9, 0, { color: '#ffd37a', fontSize: 22, scale: 4.2 });
+  addLabel('vault shell', 0, 0.15, 0, { color: '#5ea5c9', fontSize: 18, scale: 3.2 });
+  addLabel('deposit()', -4.3, 3.7, 0, { color: '#7dffb6', fontSize: 20, scale: 2.8 });
+  addLabel('withdraw()', -4.3, 2.7, 0, { color: '#ffc086', fontSize: 20, scale: 3.0 });
+  addLabel('getBalance()', 4.3, 3.2, 0, { color: '#8fd8ff', fontSize: 20, scale: 3.2 });
+}
+
+function buildAbstraction() {
+  clearScene();
+  objRefs.console = makeBox(7.5, 3.2, 0.7, 0x15344b, 0, 2.0, 2.2, 0.62);
+  softenShell(objRefs.console);
+  objRefs.wheel = makeRing(0.85, 0.18, 0x00d4ff, -2.1, 2.25, 2.75, Math.PI / 2, 0, 0);
+  bringForward(objRefs.wheel, 0.45);
+  objRefs.power = makeSphere(0.33, 0xff8c42, 2.6, 2.35, 2.72, 0.95);
+  bringForward(objRefs.power, 0.3);
+  objRefs.brake = makeBox(0.65, 0.22, 0.9, 0xffb347, 0.4, 0.95, 2.75, 0.92);
+  bringForward(objRefs.brake, 0.3);
+  objRefs.gas = makeBox(0.65, 0.22, 0.9, 0x48ff9c, 1.35, 0.95, 2.75, 0.92);
+  bringForward(objRefs.gas, 0.3);
+  objRefs.wall = makeBox(7.6, 3.5, 0.35, 0x102030, 0, 2.0, -0.3, 0.85);
+  objRefs.engine = makeBox(4.6, 2.4, 3.0, 0xff5b5b, 0, 2.0, -3.4, 0.28);
+  softenShell(objRefs.engine);
+  objRefs.engineCore = makeSphere(0.75, 0xffaa33, 0, 2.0, -3.4, 0.92);
+  addLabel('dashboard API', 0, 4.0, 2.2, { color: '#6df0ff', fontSize: 22, scale: 3.5 });
+  addLabel('hidden engine room', 0, 4.0, -3.4, { color: '#ff8c42', fontSize: 22, scale: 3.7 });
+  addLabel('turn()', -2.1, 3.35, 2.75, { color: '#9ee8ff', fontSize: 20, scale: 2.3 });
+  addLabel('start()', 2.6, 3.2, 2.72, { color: '#ffc791', fontSize: 20, scale: 2.4 });
+  addLabel('brake()', 0.4, 0.2, 2.75, { color: '#ffc791', fontSize: 18, scale: 2.4 });
+  addLabel('drive()', 1.35, 0.2, 2.75, { color: '#95ffca', fontSize: 18, scale: 2.3 });
+}
+
+function buildAbstract() {
+  clearScene();
+  objRefs.base = makeWireBox(7.4, 2.8, 2.6, 0xff6b6b, 0, 5.0, 0);
+  objRefs.shared1 = makeBox(2.0, 0.45, 0.45, 0x2f7fb0, -2.0, 5.3, 0, 0.92);
+  objRefs.shared2 = makeBox(2.0, 0.45, 0.45, 0x2f7fb0, 0.2, 5.3, 0, 0.92);
+  objRefs.gap = makeBox(2.2, 0.5, 0.5, 0xff5050, 2.6, 5.3, 0, 0.22);
+  objRefs.uiChild = makeBox(3.1, 2.0, 2.2, 0x1f664a, -4.0, 1.9, 0, 0.46);
+  softenShell(objRefs.uiChild);
+  objRefs.apiChild = makeBox(3.1, 2.0, 2.2, 0x1f4766, 4.0, 1.9, 0, 0.46);
+  softenShell(objRefs.apiChild);
+  objRefs.uiMethod = makeBox(1.8, 0.42, 0.42, 0x39ffb0, -4.0, 2.3, 0, 0.95);
+  bringForward(objRefs.uiMethod, 0.45);
+  objRefs.apiMethod = makeBox(1.8, 0.42, 0.42, 0x39ffb0, 4.0, 2.3, 0, 0.95);
+  bringForward(objRefs.apiMethod, 0.45);
+  makeLine(0, 3.8, 0, -4.0, 2.9, 0, 0x6df0ff, 0.55);
+  makeLine(0, 3.8, 0, 4.0, 2.9, 0, 0x6df0ff, 0.55);
+  addLabel('abstract class TestBase', 0, 7.0, 0, { color: '#ff9d9d', fontSize: 22, scale: 5.0 });
+  addLabel('setup()', -2.0, 6.0, 0, { color: '#9ed8ff', fontSize: 20, scale: 2.2 });
+  addLabel('tearDown()', 0.2, 6.0, 0, { color: '#9ed8ff', fontSize: 20, scale: 2.8 });
+  addLabel('runTest() = ???', 2.6, 6.0, 0, { color: '#ff9d9d', fontSize: 20, scale: 3.3 });
+  addLabel('UiTest', -4.0, 3.5, 0, { color: '#7dffca', fontSize: 20, scale: 2.2 });
+  addLabel('ApiTest', 4.0, 3.5, 0, { color: '#8fd8ff', fontSize: 20, scale: 2.2 });
+  addLabel('runTest()', -4.0, 3.0, 0, { color: '#a9ffd9', fontSize: 18, scale: 2.2 });
+  addLabel('runTest()', 4.0, 3.0, 0, { color: '#a9ffd9', fontSize: 18, scale: 2.2 });
+}
+
+function buildInterface() {
+  clearScene();
+  objRefs.contract = makeWireBox(6.0, 2.4, 2.2, 0xffd66b, 0, 5.2, 0);
+  objRefs.lamp = makeCylinder(0.55, 0.8, 1.9, 0x39ffb0, -4.5, 1.6, 0, 0.72);
+  objRefs.fan = makeCylinder(0.45, 0.45, 1.8, 0x6df0ff, 0, 1.6, 0, 0.72);
+  objRefs.heater = makeBox(1.6, 1.8, 1.0, 0xff8c42, 4.5, 1.6, 0, 0.72);
+  objRefs.lampPlug = makeLine(-4.6, 2.65, 0, -4.6, 3.5, 0, 0xffd66b, 0.9);
+  makeLine(-4.3, 2.65, 0, -4.3, 3.5, 0, 0xffd66b, 0.9);
+  objRefs.fanPlug = makeLine(-0.15, 2.55, 0, -0.15, 3.4, 0, 0xffd66b, 0.9);
+  makeLine(0.15, 2.55, 0, 0.15, 3.4, 0, 0xffd66b, 0.9);
+  objRefs.heaterPlug = makeLine(4.35, 2.55, 0, 4.35, 3.4, 0, 0xffd66b, 0.9);
+  makeLine(4.65, 2.55, 0, 4.65, 3.4, 0, 0xffd66b, 0.9);
+  makeLine(0, 4.0, 0, -4.45, 3.5, 0, 0xffd66b, 0.4);
+  makeLine(0, 4.0, 0, 0, 3.4, 0, 0xffd66b, 0.4);
+  makeLine(0, 4.0, 0, 4.5, 3.4, 0, 0xffd66b, 0.4);
+  addLabel('interface Switchable', 0, 6.9, 0, { color: '#ffe7a0', fontSize: 22, scale: 4.7 });
+  addLabel('turnOn()', -1.2, 5.9, 0, { color: '#ffd37a', fontSize: 18, scale: 2.0 });
+  addLabel('turnOff()', 1.2, 5.9, 0, { color: '#ffd37a', fontSize: 18, scale: 2.0 });
+  addLabel('Lamp', -4.5, 3.0, 0, { color: '#a6ffd5', fontSize: 20, scale: 1.8 });
+  addLabel('Fan', 0, 3.0, 0, { color: '#a9edff', fontSize: 20, scale: 1.6 });
+  addLabel('Heater', 4.5, 3.0, 0, { color: '#ffc791', fontSize: 20, scale: 2.2 });
+}
+
+function buildInheritance() {
+  clearScene();
+  objRefs.parent = makeBox(4.8, 2.2, 2.4, 0x21506b, 0, 5.0, 0, 0.38);
+  softenShell(objRefs.parent);
+  objRefs.setup = makeBox(1.5, 0.38, 0.38, 0x39ffb0, -1.2, 5.2, 0, 0.95);
+  bringForward(objRefs.setup, 0.55);
+  objRefs.parentRun = makeBox(1.8, 0.38, 0.38, 0xff5050, 1.3, 5.2, 0, 0.25);
+  bringForward(objRefs.parentRun, 0.55);
+  objRefs.ui = makeBox(3.0, 1.9, 2.2, 0x1f664a, -4.2, 1.9, 0, 0.44);
+  softenShell(objRefs.ui);
+  objRefs.api = makeBox(3.0, 1.9, 2.2, 0x1f4766, 0, 1.9, 0, 0.44);
+  softenShell(objRefs.api);
+  objRefs.mobile = makeBox(3.0, 1.9, 2.2, 0x663b7c, 4.2, 1.9, 0, 0.44);
+  softenShell(objRefs.mobile);
+  objRefs.uiOverride = makeBox(1.8, 0.38, 0.38, 0x39ffb0, -4.2, 2.15, 0, 0.95);
+  bringForward(objRefs.uiOverride, 0.45);
+  objRefs.apiOverride = makeBox(1.8, 0.38, 0.38, 0x39ffb0, 0, 2.15, 0, 0.95);
+  bringForward(objRefs.apiOverride, 0.45);
+  objRefs.mobileOverride = makeBox(1.8, 0.38, 0.38, 0x39ffb0, 4.2, 2.15, 0, 0.95);
+  bringForward(objRefs.mobileOverride, 0.45);
+  makeLine(0, 3.95, 0, -4.2, 2.95, 0, 0x6df0ff, 0.56);
+  makeLine(0, 3.95, 0, 0, 2.95, 0, 0x6df0ff, 0.56);
+  makeLine(0, 3.95, 0, 4.2, 2.95, 0, 0x6df0ff, 0.56);
+  addLabel('class TestBase', 0, 6.8, 0, { color: '#9ed8ff', fontSize: 22, scale: 3.7 });
+  addLabel('setup()', -1.2, 5.9, 0, { color: '#a6ffd5', fontSize: 18, scale: 1.9 });
+  addLabel('runTest() ???', 1.3, 5.9, 0, { color: '#ff9d9d', fontSize: 18, scale: 2.7 });
+  addLabel('UiTest', -4.2, 3.3, 0, { color: '#a6ffd5', fontSize: 18, scale: 1.9 });
+  addLabel('ApiTest', 0, 3.3, 0, { color: '#a9edff', fontSize: 18, scale: 1.9 });
+  addLabel('MobileTest', 4.2, 3.3, 0, { color: '#e0b3ff', fontSize: 18, scale: 2.6 });
+  addLabel('@Override runTest()', -4.2, 2.8, 0, { color: '#a6ffd5', fontSize: 16, scale: 3.0 });
+  addLabel('@Override runTest()', 0, 2.8, 0, { color: '#a6ffd5', fontSize: 16, scale: 3.0 });
+  addLabel('@Override runTest()', 4.2, 2.8, 0, { color: '#a6ffd5', fontSize: 16, scale: 3.0 });
+}
+
+function buildPolymorphism() {
+  clearScene();
+  objRefs.remote = makeBox(3.0, 0.8, 1.8, 0xffd66b, 0, 5.7, 0, 0.86);
+  objRefs.reference = makeBox(4.8, 1.2, 2.4, 0x21506b, 0, 3.9, 0, 0.42);
+  softenShell(objRefs.reference);
+  objRefs.api = makeBox(2.8, 1.8, 2.0, 0x1f4766, -4.3, 1.7, 0, 0.5);
+  softenShell(objRefs.api);
+  objRefs.ui = makeBox(2.8, 1.8, 2.0, 0x1f664a, 0, 1.7, 0, 0.5);
+  softenShell(objRefs.ui);
+  objRefs.mobile = makeBox(2.8, 1.8, 2.0, 0x663b7c, 4.3, 1.7, 0, 0.5);
+  softenShell(objRefs.mobile);
+  objRefs.apiGlow = makeSphere(0.45, 0x6df0ff, -4.3, 1.7, 0.95, 0.88);
+  bringForward(objRefs.apiGlow, 0.45);
+  objRefs.uiGlow = makeSphere(0.45, 0x39ffb0, 0, 1.7, 0.95, 0.88);
+  bringForward(objRefs.uiGlow, 0.45);
+  objRefs.mobileGlow = makeSphere(0.45, 0xe0b3ff, 4.3, 1.7, 0.95, 0.88);
+  bringForward(objRefs.mobileGlow, 0.45);
+  makeLine(0, 5.1, 0, 0, 4.55, 0, 0xffd66b, 0.7);
+  makeLine(0, 3.3, 0, -4.3, 2.8, 0, 0x6df0ff, 0.26);
+  makeLine(0, 3.3, 0, 0, 2.8, 0, 0x39ffb0, 0.26);
+  makeLine(0, 3.3, 0, 4.3, 2.8, 0, 0xe0b3ff, 0.26);
+  addLabel('call runTest()', 0, 6.7, 0, { color: '#ffe7a0', fontSize: 22, scale: 3.3 });
+  addLabel('TestBase currentTest', 0, 4.8, 0, { color: '#9ed8ff', fontSize: 20, scale: 4.0 });
+  addLabel('ApiTest', -4.3, 3.0, 0, { color: '#a9edff', fontSize: 18, scale: 1.9 });
+  addLabel('UiTest', 0, 3.0, 0, { color: '#a6ffd5', fontSize: 18, scale: 1.6 });
+  addLabel('MobileTest', 4.3, 3.0, 0, { color: '#e0b3ff', fontSize: 18, scale: 2.4 });
+  addLabel('200 OK', -4.3, 0.1, 0, { color: '#a9edff', fontSize: 18, scale: 1.9 });
+  addLabel('click + assert', 0, 0.1, 0, { color: '#a6ffd5', fontSize: 18, scale: 2.9 });
+  addLabel('swipe + assert', 4.3, 0.1, 0, { color: '#e0b3ff', fontSize: 18, scale: 2.9 });
+}
+
+const MODES = {
+  encapsulation: {
+    title: 'Encapsulation - Locked Safe',
+    explain: 'Encapsulation means <span class="key">protect the inside</span>. The important data stays locked away, and the rest of the program must use approved doors like methods.<br><br>Use <span class="key">private fields</span> to stop random code from breaking the object state. Use safe methods to read or change the value.',
+    analogy: 'Think of a bank vault. Nobody edits the balance by touching the cash directly. They use deposit(), withdraw(), and getBalance() like ATM controls.',
+    badge: ['LOCKED SAFE', 'Protect the inside', '#ff8c42'],
+    code:
+`class BankAccount {
+  private double balance;
+
+  public void deposit(double amount) {
+    if (amount > 0) balance += amount;
+  }
+
+  public double getBalance() {
+    return balance;
+  }
+}`,
+    build: buildEncapsulation,
+    actions: [
+      { label: 'Try direct balance = -1000', run: () => { flashMesh(objRefs.lockBody, 0xff0000, 800); flashMesh(objRefs.safe, 0xff4040, 800); showFlow('Blocked: private data stays locked.', '#ff7d7d'); setCodeLine(1); } },
+      { label: 'Use deposit(500)', run: () => { flashMesh(objRefs.deposit, 0x39ffb0, 700); flashMesh(objRefs.core, 0x39ffb0, 900); objRefs.core.scale.set(1.2, 1.2, 1.2); setTimeout(() => objRefs.core.scale.set(1, 1, 1), 900); showFlow('Safe path: validation then state change.', '#39ffb0'); setCodeLine(3); } },
+      { label: 'Use getBalance()', run: () => { flashMesh(objRefs.getter, 0x6df0ff, 700); flashMesh(objRefs.core, 0x6df0ff, 700); showFlow('Read through a safe door, not through the wall.', '#6df0ff'); setCodeLine(7); } }
+    ]
+  },
+  abstraction: {
+    title: 'Abstraction - Control Panel',
+    explain: 'Abstraction means <span class="key">hide the messy machinery</span> and present a simple surface. Users care about the controls, not the internals.<br><br>A good API feels like a dashboard: clear actions, fewer moving parts exposed.',
+    analogy: 'Driving a car is abstraction. You press pedals and turn the wheel. You do not manage pistons, spark timing, fuel pressure, and cooling by hand.',
+    badge: ['DASHBOARD', 'Use the controls', '#6df0ff'],
+    code:
+`class Car {
+  public void start() { ... }
+  public void drive() { ... }
+  public void brake() { ... }
+
+  // hidden engine logic stays inside
+}`,
+    build: buildAbstraction,
+    actions: [
+      { label: 'Press drive()', run: () => { flashMesh(objRefs.gas, 0x39ffb0, 700); flashMesh(objRefs.engineCore, 0xffaa33, 900); showFlow('Simple command outside. Complex work inside.', '#39ffb0'); setCodeLine(2); } },
+      { label: 'Press brake()', run: () => { flashMesh(objRefs.brake, 0xffb347, 700); flashMesh(objRefs.console, 0xffb347, 700); showFlow('You use a clean control, not raw internals.', '#ffd37a'); setCodeLine(3); } },
+      { label: 'Peek at hidden engine room', run: () => { flashMesh(objRefs.wall, 0xff7d7d, 700); flashMesh(objRefs.engine, 0xff5b5b, 900); showFlow('Abstraction hides this complexity from callers.', '#ff8c42'); setCodeLine(5); } }
+    ]
+  },
+  abstract: {
+    title: 'Abstract Class - Shared Blueprint',
+    explain: 'An <span class="key">abstract class</span> is a blueprint with a mix of finished parts and blanks. It shares common structure, but some behavior must be filled in by children.<br><br><span class="warn">You cannot instantiate the blueprint itself</span> if it still has missing pieces.',
+    analogy: 'Picture a house blueprint where the hallway and doors are already drawn, but each room still needs its own furniture plan. The children inherit the hallway and finish the missing rooms.',
+    badge: ['BLUEPRINT', 'Some shared, some missing', '#ff6b6b'],
+    code:
+`abstract class TestBase {
+  void setup() { ... }
+  void tearDown() { ... }
+  abstract void runTest();
+}
+
+class UiTest extends TestBase {
+  @Override void runTest() { ... }
+}`,
+    build: buildAbstract,
+    actions: [
+      { label: 'Try new TestBase()', run: () => { flashMesh(objRefs.base, 0xff0000, 900); showFlow('Blocked: unfinished blueprint cannot be instantiated.', '#ff7d7d'); setCodeLine(0); } },
+      { label: 'UiTest fills runTest()', run: () => { flashMesh(objRefs.uiChild, 0x39ffb0, 700); flashMesh(objRefs.uiMethod, 0x39ffb0, 900); flashMesh(objRefs.gap, 0x39ffb0, 900); showFlow('Child fills the missing behavior.', '#39ffb0'); setCodeLine(6); } },
+      { label: 'ApiTest fills runTest()', run: () => { flashMesh(objRefs.apiChild, 0x6df0ff, 700); flashMesh(objRefs.apiMethod, 0x6df0ff, 900); flashMesh(objRefs.gap, 0x6df0ff, 900); showFlow('Same base blueprint, different concrete child.', '#6df0ff'); setCodeLine(3); } }
+    ]
+  },
+  interface: {
+    title: 'Interface - Contract Shape',
+    explain: 'An <span class="key">interface</span> is a pure contract. It says what methods must exist, but not how they work.<br><br>A class can implement the contract even if it is not part of the same family tree.',
+    analogy: 'Think of a wall outlet standard. A lamp, fan, and heater are different devices, but they all fit the same plug contract.',
+    badge: ['CONTRACT', 'Same shape, many classes', '#ffd66b'],
+    code:
+`interface Switchable {
+  void turnOn();
+  void turnOff();
+}
+
+class Lamp implements Switchable { ... }
+class Fan implements Switchable { ... }`,
+    build: buildInterface,
+    actions: [
+      { label: 'Lamp matches the contract', run: () => { flashMesh(objRefs.lamp, 0x39ffb0, 800); showFlow('Lamp promises turnOn() and turnOff().', '#39ffb0'); setCodeLine(5); } },
+      { label: 'Fan matches the same contract', run: () => { flashMesh(objRefs.fan, 0x6df0ff, 800); showFlow('Different device. Same contract shape.', '#6df0ff'); setCodeLine(6); } },
+      { label: 'Heater also plugs in', run: () => { flashMesh(objRefs.heater, 0xff8c42, 800); flashMesh(objRefs.contract, 0xffd66b, 800); showFlow('Interfaces connect unrelated classes through behavior.', '#ffd66b'); setCodeLine(0); } }
+    ]
+  },
+  inheritance: {
+    title: 'Inheritance - Family Tree',
+    explain: 'Inheritance means a child class <span class="key">extends</span> a parent class. The child reuses shared members and can add or replace behavior.<br><br>Use <span class="key">super(...)</span> when the child must run parent setup first. Use <span class="key">@Override</span> when the child replaces a parent method.',
+    analogy: 'This is a family tree. The children inherit the house rules and furniture from the parent, but each child can decorate one room differently.',
+    badge: ['FAMILY TREE', 'Reuse a shared parent', '#6df0ff'],
+    code:
+`class TestBase {
+  void setup() { ... }
+  void runTest() { ... }
+}
+
+class UiTest extends TestBase {
+  @Override void runTest() { ... }
+  void boot() { super.setup(); }
+}`,
+    build: buildInheritance,
+    actions: [
+      { label: 'Show extends relationship', run: () => { flashMesh(objRefs.parent, 0x6df0ff, 800); flashMesh(objRefs.ui, 0x39ffb0, 800); flashMesh(objRefs.api, 0x6df0ff, 800); flashMesh(objRefs.mobile, 0xe0b3ff, 800); showFlow('Children reuse the parent foundation.', '#6df0ff'); setCodeLine(4); } },
+      { label: 'Call super.setup()', run: () => { flashMesh(objRefs.setup, 0x39ffb0, 900); flashMesh(objRefs.ui, 0x39ffb0, 900); showFlow('Parent setup runs before child-specific work.', '#39ffb0'); setCodeLine(6); } },
+      { label: 'Override runTest()', run: () => { flashMesh(objRefs.parentRun, 0xff5050, 700); flashMesh(objRefs.uiOverride, 0x39ffb0, 900); flashMesh(objRefs.apiOverride, 0x6df0ff, 900); showFlow('Children replace inherited behavior with their own version.', '#ffd37a'); setCodeLine(5); } }
+    ]
+  },
+  polymorphism: {
+    title: 'Polymorphism - One Button, Many Results',
+    explain: 'Polymorphism means you call a method through a parent type, but the <span class="key">real child object</span> decides which code runs.<br><br>The variable shape can stay the same while the runtime behavior changes.',
+    analogy: 'A universal remote has one START button. Point it at a TV, a game console, or a speaker and the same button triggers different real behavior.',
+    badge: ['ONE CALL', 'Runtime chooses the child', '#ffd66b'],
+    code:
+`TestBase currentTest;
+
+currentTest = new ApiTest();
+currentTest.runTest();
+
+currentTest = new UiTest();
+currentTest.runTest();`,
+    build: buildPolymorphism,
+    actions: [
+      { label: 'currentTest = new ApiTest()', run: () => { flashMesh(objRefs.reference, 0x6df0ff, 700); flashMesh(objRefs.api, 0x6df0ff, 900); flashMesh(objRefs.apiGlow, 0x6df0ff, 900); showFlow('Same variable type. API behavior runs.', '#6df0ff'); setCodeLine(2); } },
+      { label: 'currentTest = new UiTest()', run: () => { flashMesh(objRefs.reference, 0x39ffb0, 700); flashMesh(objRefs.ui, 0x39ffb0, 900); flashMesh(objRefs.uiGlow, 0x39ffb0, 900); showFlow('Same variable type. UI behavior runs.', '#39ffb0'); setCodeLine(5); } },
+      { label: 'currentTest = new MobileTest()', run: () => { flashMesh(objRefs.reference, 0xe0b3ff, 700); flashMesh(objRefs.mobile, 0xe0b3ff, 900); flashMesh(objRefs.mobileGlow, 0xe0b3ff, 900); showFlow('One call site. Different runtime target.', '#e0b3ff'); setCodeLine(0); } }
+    ]
+  }
+};
+
+function switchMode(mode) {
+  currentMode = mode;
+  codeLine = -1;
+  MODES[mode].build();
+  document.getElementById('explain-title').textContent = MODES[mode].title;
+  document.getElementById('explain-text').innerHTML =
+    MODES[mode].explain +
+    '<div class="analogy"><div class="analogy-label">REAL LIFE ANALOGY</div><div class="analogy-text">' +
+    MODES[mode].analogy +
+    '</div></div>';
+  const actWrap = document.getElementById('act-buttons');
+  actWrap.innerHTML = '';
+  MODES[mode].actions.forEach(action => {
+    const btn = document.createElement('button');
+    btn.className = 'act-btn';
+    btn.textContent = action.label;
+    btn.onclick = action.run;
+    actWrap.appendChild(btn);
+  });
+  renderCode();
+  setBadge(MODES[mode].badge[0], MODES[mode].badge[1], MODES[mode].badge[2]);
+  document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+  camDist = mode === 'inheritance' || mode === 'polymorphism' ? 26 : 24;
+  camTheta = 0.28;
+  camPhi = 0.4;
+  camTarget.set(0, 2, 0);
+  updateCamera();
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+});
+document.getElementById('btn-reset').onclick = () => switchMode(currentMode);
+document.getElementById('btn-order').onclick = () => {
+  document.getElementById('help').classList.add('show');
+  showFlow('Use the ladder: protect -> simplify -> share -> promise -> inherit -> dispatch.', '#ffd37a');
+};
+document.getElementById('btn-help').onclick = () => document.getElementById('help').classList.toggle('show');
+
+document.addEventListener('keydown', e => {
+  if (e.key === '?') document.getElementById('help').classList.toggle('show');
+  if (e.key === 'Escape') document.getElementById('help').classList.remove('show');
+  if (e.key === '1') switchMode('encapsulation');
+  if (e.key === '2') switchMode('abstraction');
+  if (e.key === '3') switchMode('abstract');
+  if (e.key === '4') switchMode('interface');
+  if (e.key === '5') switchMode('inheritance');
+  if (e.key === '6') switchMode('polymorphism');
+  if (e.key === 'r' || e.key === 'R') switchMode(currentMode);
+});
+
+canvas.addEventListener('mousedown', e => {
+  isDragging = true;
+  lastMX = e.clientX;
+  lastMY = e.clientY;
+});
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  camTheta -= (e.clientX - lastMX) * 0.005;
+  camPhi = Math.max(0.05, Math.min(1.45, camPhi + (e.clientY - lastMY) * 0.005));
+  lastMX = e.clientX;
+  lastMY = e.clientY;
+  updateCamera();
+});
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mouseleave', () => { isDragging = false; });
+canvas.addEventListener('wheel', e => {
+  camDist = Math.max(9, Math.min(42, camDist + e.deltaY * 0.02));
+  updateCamera();
+});
+
+let touchDist = 0;
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    lastMX = e.touches[0].clientX;
+    lastMY = e.touches[0].clientY;
+  }
+  if (e.touches.length === 2) {
+    touchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    camTheta -= (e.touches[0].clientX - lastMX) * 0.005;
+    camPhi = Math.max(0.05, Math.min(1.45, camPhi + (e.touches[0].clientY - lastMY) * 0.005));
+    lastMX = e.touches[0].clientX;
+    lastMY = e.touches[0].clientY;
+    updateCamera();
+  }
+  if (e.touches.length === 2) {
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    camDist = Math.max(9, Math.min(42, camDist - (d - touchDist) * 0.05));
+    touchDist = d;
+    updateCamera();
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', () => { isDragging = false; });
+
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.01;
+  sceneMeshes.forEach((obj, index) => {
+    if (obj.userData && obj.userData.baseY !== undefined) {
+      obj.position.y = obj.userData.baseY + Math.sin(time * 1.7 + index * 0.35) * 0.03;
+    }
+  });
+  pt1.position.x = Math.sin(time * 0.4) * 10;
+  pt1.position.z = Math.cos(time * 0.4) * 8;
+  renderer.render(scene, camera);
+}
+
+switchMode('encapsulation');
+animate();
+</script>
+</body>
+</html>

@@ -379,33 +379,33 @@ function buildFieldsMode() {
   // The "class" object — a translucent building
   const body = makeBox(5, 3, 3, 0x1a4466, 0, 1.5, 0, 0.3);
   objMeshes.body = body;
-  addLabel('class Masina', 0, 3.8, 0, {color:'#00d4ff',fontSize:22,scale:3});
+  addLabel('class Car', 0, 3.8, 0, {color:'#00d4ff',fontSize:22,scale:3});
 
   // Fields (inside the box) — small colored cubes
-  const fieldMarca = makeBox(1.8, 0.5, 0.5, 0x2266aa, -1.2, 1.0, 0, 0.9);
-  objMeshes.fMarca = fieldMarca;
-  addLabel('marca = "Tesla"', -1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:3.2});
+  const fieldBrand = makeBox(1.8, 0.5, 0.5, 0x2266aa, -1.2, 1.0, 0, 0.9);
+  objMeshes.fBrand = fieldBrand;
+  addLabel('brand = "Tesla"', -1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:3.2});
 
-  const fieldAn = makeBox(1.8, 0.5, 0.5, 0x2266aa, 1.2, 1.0, 0, 0.9);
-  objMeshes.fAn = fieldAn;
-  addLabel('an = 2023', 1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:2.8});
+  const fieldYear = makeBox(1.8, 0.5, 0.5, 0x2266aa, 1.2, 1.0, 0, 0.9);
+  objMeshes.fYear = fieldYear;
+  addLabel('year = 2023', 1.2, 1.7, 0, {color:'#ffd700',fontSize:22,scale:2.8});
 
-  const fieldViteza = makeBox(1.8, 0.5, 0.5, 0x2266aa, 0, 2.2, 0, 0.9);
-  objMeshes.fViteza = fieldViteza;
-  addLabel('viteza = 0.0', 0, 2.9, 0, {color:'#ffd700',fontSize:22,scale:2.8});
+  const fieldSpeed = makeBox(1.8, 0.5, 0.5, 0x2266aa, 0, 2.2, 0, 0.9);
+  objMeshes.fSpeed = fieldSpeed;
+  addLabel('speed = 0.0', 0, 2.9, 0, {color:'#ffd700',fontSize:22,scale:2.8});
 
   // Methods (outside the box, like buttons)
-  const mAccel = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 1.0, 0, 0.9);
-  objMeshes.mAccel = mAccel;
-  addLabel('accelereaza()', -3.5, 1.7, 0, {color:'#39ff14',fontSize:22,scale:3.2});
+  const mAccelerate = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 1.0, 0, 0.9);
+  objMeshes.mAccelerate = mAccelerate;
+  addLabel('accelerate()', -3.5, 1.7, 0, {color:'#39ff14',fontSize:22,scale:3.2});
 
-  const mFran = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 2.2, 0, 0.9);
-  objMeshes.mFran = mFran;
-  addLabel('franeaza()', -3.5, 2.9, 0, {color:'#39ff14',fontSize:22,scale:2.8});
+  const mBrake = makeBox(2.2, 0.6, 0.6, 0x226644, -3.5, 2.2, 0, 0.9);
+  objMeshes.mBrake = mBrake;
+  addLabel('brake()', -3.5, 2.9, 0, {color:'#39ff14',fontSize:22,scale:2.8});
 
-  const mGet = makeBox(2.2, 0.6, 0.6, 0x226644, 3.5, 1.5, 0, 0.9);
-  objMeshes.mGet = mGet;
-  addLabel('getDescriere()', 3.5, 2.2, 0, {color:'#39ff14',fontSize:22,scale:3.2});
+  const mDescribe = makeBox(2.2, 0.6, 0.6, 0x226644, 3.5, 1.5, 0, 0.9);
+  objMeshes.mDescribe = mDescribe;
+  addLabel('getDescription()', 3.5, 2.2, 0, {color:'#39ff14',fontSize:22,scale:3.2});
 
   // Labels
   addLabel('FIELDS (data inside)', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:3.8});
@@ -420,7 +420,7 @@ function buildAccessMode() {
   // Building (the class)
   const body = makeBox(6, 4, 4, 0x1a4466, 0, 2, 0, 0.15);
   objMeshes.body = body;
-  addLabel('class ContBancar', 0, 4.8, 0, {color:'#00d4ff',fontSize:20,scale:3.5});
+  addLabel('class BankAccount', 0, 4.8, 0, {color:'#00d4ff',fontSize:20,scale:3.5});
 
   // PUBLIC field — open door (green)
   const pubDoor = makeWall(0.1, 2.5, 1.5, 0x39ff14, -3, 1.5, 0, 0.5);
@@ -428,7 +428,7 @@ function buildAccessMode() {
   addLabel('public', -3, 3.5, 0, {color:'#39ff14',fontSize:20,scale:1.8});
   addLabel('Open Door', -3, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
   const pubField = makeSphere(0.4, 0x39ff14, -3, 1.5, 0);
-  addLabel('nume', -3, 1.0, 0.8, {color:'#aaffaa',fontSize:22,scale:2});
+  addLabel('name', -3, 1.0, 0.8, {color:'#aaffaa',fontSize:22,scale:2});
 
   // PRIVATE field — locked vault (red wall)
   const privWall = makeWall(0.3, 2.5, 1.5, 0xff4444, 0, 1.5, 0, 0.7);
@@ -436,7 +436,7 @@ function buildAccessMode() {
   addLabel('private', 0, 3.5, 0, {color:'#ff4444',fontSize:24,scale:2.2});
   addLabel('Locked Vault!', 0, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
   const privField = makeSphere(0.4, 0xff4444, 0, 1.5, 0);
-  addLabel('sold', 0, 1.0, 0.8, {color:'#ffaaaa',fontSize:22,scale:1.8});
+  addLabel('balance', 0, 1.0, 0.8, {color:'#ffaaaa',fontSize:22,scale:1.8});
   // Lock icon
   makeBox(0.4, 0.4, 0.4, 0xff2222, 0, 2.5, 0.9, 0.9);
 
@@ -446,16 +446,16 @@ function buildAccessMode() {
   addLabel('protected', 3, 3.5, 0, {color:'#ffd700',fontSize:24,scale:2.5});
   addLabel('Family Only', 3, 0.0, 0, {color:'#558899',fontSize:20,scale:2.5});
   const protField = makeSphere(0.4, 0xffd700, 3, 1.5, 0);
-  addLabel('tipCont', 3, 1.0, 0.8, {color:'#ffffaa',fontSize:22,scale:2});
+  addLabel('accountType', 3, 1.0, 0.8, {color:'#ffffaa',fontSize:22,scale:2});
 
   // Getter/Setter (the correct way)
   const getter = makeBox(2, 0.5, 0.5, 0x226644, 0, -1.0, 2.5, 0.9);
   objMeshes.getter = getter;
-  addLabel('getSold() → reads safely', 0, -1.6, 2.5, {color:'#39ff14',fontSize:20,scale:4.5});
+  addLabel('getBalance() -> reads safely', 0, -1.6, 2.5, {color:'#39ff14',fontSize:20,scale:4.8});
 
   const setter = makeBox(2, 0.5, 0.5, 0x226644, 0, -1.0, -2.5, 0.9);
   objMeshes.setter = setter;
-  addLabel('depune(500) → validates first!', 0, -1.6, -2.5, {color:'#39ff14',fontSize:20,scale:5});
+  addLabel('deposit(500) -> validates first!', 0, -1.6, -2.5, {color:'#39ff14',fontSize:20,scale:5.6});
 }
 
 // ═══════════════════════════════════════
@@ -484,11 +484,11 @@ function buildStaticMode() {
     const x = (i - 1) * 4;
     const body = makeBox(2.5, 2, 2, 0x1a4466, x, 1, 0, 0.4);
     objMeshes[`obj${i}`] = body;
-    addLabel(`masina${i+1}`, x, 2.6, 0, {color:'#00d4ff',fontSize:22,scale:2.8});
+    addLabel(`car${i+1}`, x, 2.6, 0, {color:'#00d4ff',fontSize:22,scale:2.8});
     // Instance field (unique per object)
-    const brands = ['Dacia', 'Ford', 'Tesla'];
+    const brands = ['BMW', 'Ford', 'Tesla'];
     makeSphere(0.3, 0x2266aa, x, 1, 0);
-    addLabel(`marca="${brands[i]}"`, x, 0.4, 0, {color:'#ffd700',fontSize:20,scale:3});
+    addLabel(`brand="${brands[i]}"`, x, 0.4, 0, {color:'#ffd700',fontSize:20,scale:3});
     // Connection line to class
     const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, 2.2, 0), new THREE.Vector3(x*0.3, 4.8, 0)]);
     const line = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({color:0x8a2be2,transparent:true,opacity:0.3,depthWrite:false}));
@@ -505,9 +505,9 @@ function buildConstructorMode() {
   // Blueprint (class) on the left
   const blueprint = makeBox(3, 3.5, 0.15, 0x1a5577, -5, 2, 0, 0.6);
   addLabel('CLASS (Blueprint)', -5, 4.2, 0, {color:'#558899',fontSize:22,scale:3.8});
-  addLabel('class Masina {', -5, 3.2, 0, {color:'#00d4ff',fontSize:20,scale:3.2});
-  addLabel('  marca', -5, 2.5, 0, {color:'#ffd700',fontSize:20,scale:2});
-  addLabel('  an', -5, 2.0, 0, {color:'#ffd700',fontSize:20,scale:1.6});
+  addLabel('class Car {', -5, 3.2, 0, {color:'#00d4ff',fontSize:20,scale:3.2});
+  addLabel('  brand', -5, 2.5, 0, {color:'#ffd700',fontSize:20,scale:2});
+  addLabel('  year', -5, 2.0, 0, {color:'#ffd700',fontSize:20,scale:1.6});
   addLabel('}', -5, 1.2, 0, {color:'#00d4ff',fontSize:20,scale:1.2});
 
   // Arrow pointing to constructor
@@ -519,7 +519,7 @@ function buildConstructorMode() {
   const assembler = makeBox(2, 3, 2, 0xffd700, 0, 2, 0, 0.25);
   objMeshes.assembler = assembler;
   addLabel('CONSTRUCTOR', 0, 4.0, 0, {color:'#ffd700',fontSize:24,scale:3.2});
-  addLabel('Masina("Tesla", 2023)', 0, -0.3, 0, {color:'#ffd700',fontSize:20,scale:4.5});
+  addLabel('Car("Tesla", 2023)', 0, -0.3, 0, {color:'#ffd700',fontSize:20,scale:4.5});
 
   // Parameters flowing in from top
   const param1 = makeSphere(0.35, 0xff8800, -0.5, 3.2, 0);
@@ -539,10 +539,10 @@ function buildConstructorMode() {
   objMeshes.result = result;
   addLabel('OBJECT (Instance)', 5, 3.8, 0, {color:'#39ff14',fontSize:22,scale:3.8});
   makeSphere(0.25, 0x2266aa, 4.3, 1.5, 0);
-  addLabel('marca="Tesla"', 4.5, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:3});
+  addLabel('brand="Tesla"', 4.5, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:3});
   makeSphere(0.25, 0x2266aa, 5.7, 1.5, 0);
-  addLabel('an=2023', 5.7, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:2});
-  addLabel('viteza=0.0', 5, 2.2, 0.5, {color:'#558899',fontSize:18,scale:2.5});
+  addLabel('year=2023', 5.7, 1.0, 0.5, {color:'#ffd700',fontSize:20,scale:2});
+  addLabel('speed=0.0', 5, 2.2, 0.5, {color:'#558899',fontSize:18,scale:2.5});
 }
 
 // ═══════════════════════════════════════
@@ -557,9 +557,9 @@ function buildOverloadMode() {
   const door1 = makeBox(3, 3.5, 0.3, 0x2266aa, -4.5, 2, 0, 0.7);
   objMeshes.door1 = door1;
   addLabel('Constructor 1', -4.5, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
-  addLabel('Student(name, nota, bursier)', -4.5, 3.5, 0, {color:'#ffd700',fontSize:18,scale:5});
+  addLabel('Student(name, grade, scholarship)', -4.5, 3.5, 0, {color:'#ffd700',fontSize:18,scale:6});
   // Three param slots
-  makeSphere(0.25, 0xff8800, -5.3, 2, 0.5); addLabel('"Ana"', -5.3, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
+  makeSphere(0.25, 0xff8800, -5.3, 2, 0.5); addLabel('"Alice"', -5.3, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
   makeSphere(0.25, 0xff8800, -4.5, 2, 0.5); addLabel('10', -4.5, 1.4, 0.5, {color:'#ff8800',fontSize:22,scale:1.2});
   makeSphere(0.25, 0xff8800, -3.7, 2, 0.5); addLabel('true', -3.7, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:1.6});
 
@@ -567,18 +567,18 @@ function buildOverloadMode() {
   const door2 = makeBox(2.5, 3.5, 0.3, 0x226688, 0, 2, 0, 0.7);
   objMeshes.door2 = door2;
   addLabel('Constructor 2', 0, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
-  addLabel('Student(name, nota)', 0, 3.5, 0, {color:'#ffd700',fontSize:18,scale:4});
-  makeSphere(0.25, 0xff8800, -0.4, 2, 0.5); addLabel('"Bog"', -0.4, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:1.6});
+  addLabel('Student(name, grade)', 0, 3.5, 0, {color:'#ffd700',fontSize:18,scale:4});
+  makeSphere(0.25, 0xff8800, -0.4, 2, 0.5); addLabel('"Ben"', -0.4, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:1.6});
   makeSphere(0.25, 0xff8800, 0.4, 2, 0.5); addLabel('8', 0.4, 1.4, 0.5, {color:'#ff8800',fontSize:22,scale:1.2});
-  addLabel('bursier=false', 0, 0.5, 0, {color:'#558899',fontSize:18,scale:2.8});
+  addLabel('scholarship=false', 0, 0.5, 0, {color:'#558899',fontSize:18,scale:3.8});
 
   // Constructor 3 (minimal)
   const door3 = makeBox(2, 3.5, 0.3, 0x224466, 4.5, 2, 0, 0.7);
   objMeshes.door3 = door3;
   addLabel('Constructor 3', 4.5, 4.2, 0, {color:'#00d4ff',fontSize:22,scale:3.2});
   addLabel('Student(name)', 4.5, 3.5, 0, {color:'#ffd700',fontSize:18,scale:3.2});
-  makeSphere(0.25, 0xff8800, 4.5, 2, 0.5); addLabel('"Vlad"', 4.5, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
-  addLabel('nota=5, bursier=false', 4.5, 0.5, 0, {color:'#558899',fontSize:18,scale:3.8});
+  makeSphere(0.25, 0xff8800, 4.5, 2, 0.5); addLabel('"Chris"', 4.5, 1.4, 0.5, {color:'#ff8800',fontSize:20,scale:2});
+  addLabel('grade=5, scholarship=false', 4.5, 0.5, 0, {color:'#558899',fontSize:18,scale:5.2});
 
   addLabel('Java picks the right constructor based on the arguments you pass!', 0, -1, 0, {color:'#39ff14',fontSize:20,scale:8});
 }
@@ -588,7 +588,7 @@ function buildOverloadMode() {
 // ═══════════════════════════════════════
 function buildEnumMode() {
   clearScene();
-  addLabel('enum StatusTest', 0, 5.5, 0, {color:'#8a2be2',fontSize:28,scale:4.5});
+  addLabel('enum TestStatus', 0, 5.5, 0, {color:'#8a2be2',fontSize:28,scale:4.5});
 
   // Fixed set of enum values — locked, labeled cubes
   const enumVals = ['PASSED','FAILED','SKIPPED','BLOCKED'];
@@ -620,35 +620,35 @@ const MODES = {
   fields: {
     title: 'Fields & Methods',
     explain: `An <strong>object</strong> has two things:<br><br>
-      <span class="key">Fields</span> = the <strong>data inside</strong> (like a car's color, speed, brand). They are <strong>variables declared in the class</strong>.<br><br>
-      <span class="key">Methods</span> = the <strong>actions it can do</strong> (like accelerate, brake, honk). They are <strong>functions that can read/change fields</strong>.<br><br>
+      <span class="key">Fields</span> = the <strong>data inside</strong> (like a car's brand, year, and speed). They are <strong>variables declared in the class</strong>.<br><br>
+      <span class="key">Methods</span> = the <strong>actions it can do</strong> (like accelerate, brake, or describe itself). They are <strong>functions that can read/change fields</strong>.<br><br>
       In the 3D scene: fields are the <em>cubes INSIDE</em> the blue building. Methods are the <em>green buttons OUTSIDE</em>.`,
-    analogy: 'Think of a CAR. The color, brand, and speed are FIELDS (what it IS). The accelerate() and brake() are METHODS (what it DOES).',
+    analogy: 'Think of a CAR. The brand, year, and speed are FIELDS (what it IS). accelerate() and brake() are METHODS (what it DOES).',
     actions: [
-      { label: 'Call accelereaza(50)', fn: () => { flashMesh(objMeshes.mAccel, 0x39ff14); sndCall(); showFlow('viteza += 50 → viteza = 50.0', '#39ff14'); setCodeHL(5); } },
-      { label: 'Call franeaza()', fn: () => { flashMesh(objMeshes.mFran, 0x39ff14); sndCall(); showFlow('viteza = 0.0', '#ffd700'); setCodeHL(9); } },
-      { label: 'Call getDescriere()', fn: () => { flashMesh(objMeshes.mGet, 0x39ff14); sndCall(); showFlow('→ "Tesla Model S"', '#00d4ff'); setCodeHL(13); } },
-      { label: 'Read marca field', fn: () => { flashMesh(objMeshes.fMarca, 0x00d4ff); sndSet(); showFlow('marca = "Tesla"', '#ffd700'); setCodeHL(2); } },
+      { label: 'Call accelerate(50)', fn: () => { flashMesh(objMeshes.mAccelerate, 0x39ff14); sndCall(); showFlow('speed += 50 -> speed = 50.0', '#39ff14'); setCodeHL(5); } },
+      { label: 'Call brake()', fn: () => { flashMesh(objMeshes.mBrake, 0x39ff14); sndCall(); showFlow('speed = 0.0', '#ffd700'); setCodeHL(9); } },
+      { label: 'Call getDescription()', fn: () => { flashMesh(objMeshes.mDescribe, 0x39ff14); sndCall(); showFlow('-> "Tesla 2023"', '#00d4ff'); setCodeHL(13); } },
+      { label: 'Read brand field', fn: () => { flashMesh(objMeshes.fBrand, 0x00d4ff); sndSet(); showFlow('brand = "Tesla"', '#ffd700'); setCodeHL(2); } },
     ],
-    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
-    <span class="cm">// FIELDS — data stored inside the object</span>
-    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">marca</span>;
-    <span class="kw">public</span> <span class="tp">int</span> <span class="vr">an</span>;
-    <span class="kw">public</span> <span class="tp">double</span> <span class="vr">viteza</span>;
+    code: `<span class="kw">public class</span> <span class="tp">Car</span> {
+    <span class="cm">// FIELDS - data stored inside the object</span>
+    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">brand</span>;
+    <span class="kw">public</span> <span class="tp">int</span> <span class="vr">year</span>;
+    <span class="kw">public</span> <span class="tp">double</span> <span class="vr">speed</span>;
 
-    <span class="cm">// METHOD — modifies field (behavior)</span>
-    <span class="kw">public void</span> <span class="fn">accelereaza</span>(<span class="tp">double</span> <span class="vr">v</span>) {
-        <span class="kw">this</span>.<span class="vr">viteza</span> += <span class="vr">v</span>;
+    <span class="cm">// METHOD - modifies a field (behavior)</span>
+    <span class="kw">public void</span> <span class="fn">accelerate</span>(<span class="tp">double</span> <span class="vr">value</span>) {
+        <span class="kw">this</span>.<span class="vr">speed</span> += <span class="vr">value</span>;
     }
 
-    <span class="cm">// METHOD — resets speed</span>
-    <span class="kw">public void</span> <span class="fn">franeaza</span>() {
-        <span class="kw">this</span>.<span class="vr">viteza</span> = <span class="nu">0</span>;
+    <span class="cm">// METHOD - resets speed</span>
+    <span class="kw">public void</span> <span class="fn">brake</span>() {
+        <span class="kw">this</span>.<span class="vr">speed</span> = <span class="nu">0</span>;
     }
 
-    <span class="cm">// METHOD — returns a value</span>
-    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">getDescriere</span>() {
-        <span class="kw">return</span> <span class="vr">marca</span> + <span class="str">" "</span> + <span class="vr">an</span>;
+    <span class="cm">// METHOD - returns a value</span>
+    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">getDescription</span>() {
+        <span class="kw">return</span> <span class="vr">brand</span> + <span class="str">" "</span> + <span class="vr">year</span>;
     }
 }`,
     badge: ['FIELDS+METHODS', 'State + Behavior', '#00d4ff']
@@ -661,33 +661,33 @@ const MODES = {
       <span class="warn">private</span> = <span style="color:#ff4444">Locked vault</span> — ONLY the class itself can touch it. Nobody outside!<br><br>
       <span class="key">protected</span> = <span style="color:#ffd700">Family only</span> — the class + its children (subclasses)<br><br>
       <strong>THE RULE:</strong> Fields should ALWAYS be <span class="warn">private</span>. Use <em>getter/setter methods</em> to control access with VALIDATION!`,
-    analogy: 'Without private: anyone can do cont.sold = -10000 (negative balance!). With private + setter: depune() checks if amount > 0 BEFORE changing sold. The vault PROTECTS the data.',
+    analogy: 'Without private: anyone can do account.balance = -10000 (negative balance!). With private + a setter: deposit() checks if amount > 0 BEFORE changing balance. The vault PROTECTS the data.',
     actions: [
-      { label: 'Try: cont.sold = -10000', fn: () => { flashMesh(objMeshes.privWall, 0xff0000, 800); sndBlock(); showFlow('COMPILE ERROR! sold is private!', '#ff4444'); setCodeHL(4); } },
-      { label: 'Try: cont.getSold()', fn: () => { flashMesh(objMeshes.getter, 0x39ff14); sndOk(); showFlow('→ 500.0 (safe read via getter)', '#39ff14'); setCodeHL(10); } },
-      { label: 'Try: cont.depune(500)', fn: () => { flashMesh(objMeshes.setter, 0x39ff14); sndOk(); showFlow('if (500 > 0) ✓ → sold += 500', '#39ff14'); setCodeHL(6); } },
-      { label: 'Try: cont.depune(-50)', fn: () => { flashMesh(objMeshes.setter, 0xff6600); sndBlock(); showFlow('if (-50 > 0) ✗ → REJECTED!', '#ff4444'); setCodeHL(8); } },
-      { label: 'Try: cont.nume (public)', fn: () => { flashMesh(objMeshes.pubDoor, 0x39ff14); sndOk(); showFlow('→ OK! nume is public', '#39ff14'); setCodeHL(1); } },
+      { label: 'Try: account.balance = -10000', fn: () => { flashMesh(objMeshes.privWall, 0xff0000, 800); sndBlock(); showFlow('COMPILE ERROR! balance is private!', '#ff4444'); setCodeHL(4); } },
+      { label: 'Try: account.getBalance()', fn: () => { flashMesh(objMeshes.getter, 0x39ff14); sndOk(); showFlow('-> 500.0 (safe read via getter)', '#39ff14'); setCodeHL(10); } },
+      { label: 'Try: account.deposit(500)', fn: () => { flashMesh(objMeshes.setter, 0x39ff14); sndOk(); showFlow('if (500 > 0) -> balance += 500', '#39ff14'); setCodeHL(6); } },
+      { label: 'Try: account.deposit(-50)', fn: () => { flashMesh(objMeshes.setter, 0xff6600); sndBlock(); showFlow('if (-50 > 0) -> REJECTED!', '#ff4444'); setCodeHL(8); } },
+      { label: 'Try: account.name (public)', fn: () => { flashMesh(objMeshes.pubDoor, 0x39ff14); sndOk(); showFlow('-> OK! name is public', '#39ff14'); setCodeHL(1); } },
     ],
-    code: `<span class="kw">public class</span> <span class="tp">ContBancar</span> {
-    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">nume</span>;     <span class="cm">// Anyone can read</span>
+    code: `<span class="kw">public class</span> <span class="tp">BankAccount</span> {
+    <span class="kw">public</span> <span class="tp">String</span> <span class="vr">name</span>;     <span class="cm">// Anyone can read</span>
 
-    <span class="cm">// PRIVATE — only this class can touch!</span>
-    <span class="kw">private</span> <span class="tp">double</span> <span class="vr">sold</span>;
-    <span class="cm">// cont.sold = -10000; → COMPILE ERROR!</span>
+    <span class="cm">// PRIVATE - only this class can touch!</span>
+    <span class="kw">private</span> <span class="tp">double</span> <span class="vr">balance</span>;
+    <span class="cm">// account.balance = -10000; -> COMPILE ERROR!</span>
 
     <span class="cm">// SETTER with VALIDATION</span>
-    <span class="kw">public void</span> <span class="fn">depune</span>(<span class="tp">double</span> <span class="vr">suma</span>) {
-        <span class="kw">if</span> (<span class="vr">suma</span> > <span class="nu">0</span>) {
-            <span class="kw">this</span>.<span class="vr">sold</span> += <span class="vr">suma</span>; <span class="cm">// ✓</span>
+    <span class="kw">public void</span> <span class="fn">deposit</span>(<span class="tp">double</span> <span class="vr">amount</span>) {
+        <span class="kw">if</span> (<span class="vr">amount</span> > <span class="nu">0</span>) {
+            <span class="kw">this</span>.<span class="vr">balance</span> += <span class="vr">amount</span>; <span class="cm">// OK</span>
         } <span class="kw">else</span> {
             System.out.<span class="fn">println</span>(<span class="str">"Invalid!"</span>);
         }
     }
 
-    <span class="cm">// GETTER — safe read-only access</span>
-    <span class="kw">public double</span> <span class="fn">getSold</span>() {
-        <span class="kw">return this</span>.<span class="vr">sold</span>;
+    <span class="cm">// GETTER - safe read-only access</span>
+    <span class="kw">public double</span> <span class="fn">getBalance</span>() {
+        <span class="kw">return this</span>.<span class="vr">balance</span>;
     }
 }`,
     badge: ['ENCAPSULATION', 'private + getter/setter', '#ff4444']
@@ -703,31 +703,31 @@ const MODES = {
       A static method <span class="warn">CANNOT access instance fields</span> (it has no <code>this</code>)`,
     analogy: 'The BLOCK ADDRESS (static) is the same for all 100 apartments. But each apartment NUMBER (instance) is different. static final = the address that NEVER changes.',
     actions: [
-      { label: 'new Masina("BMW")', fn: () => { flashMesh(objMeshes.staticCounter, 0x39ff14); sndBuild(); showFlow('count++ → count = 4', '#8a2be2'); setCodeHL(8); } },
-      { label: 'Masina.getCount()', fn: () => { flashMesh(objMeshes.staticCounter, 0x00d4ff); sndCall(); showFlow('→ 4 (called on CLASS, no object)', '#8a2be2'); setCodeHL(11); } },
+      { label: 'new Car("BMW")', fn: () => { flashMesh(objMeshes.staticCounter, 0x39ff14); sndBuild(); showFlow('count++ -> count = 4', '#8a2be2'); setCodeHL(8); } },
+      { label: 'Car.getCount()', fn: () => { flashMesh(objMeshes.staticCounter, 0x00d4ff); sndCall(); showFlow('-> 4 (called on CLASS, no object)', '#8a2be2'); setCodeHL(11); } },
       { label: 'Try: BROWSER = "Firefox"', fn: () => { sndBlock(); showFlow('COMPILE ERROR! final cannot be changed!', '#ff4444'); setCodeHL(4); } },
-      { label: 'Read masina1.marca', fn: () => { flashMesh(objMeshes.obj0, 0x00d4ff); sndSet(); showFlow('→ "Dacia" (instance field, unique)', '#ffd700'); setCodeHL(2); } },
+      { label: 'Read car1.brand', fn: () => { flashMesh(objMeshes.obj0, 0x00d4ff); sndSet(); showFlow('-> "BMW" (instance field, unique)', '#ffd700'); setCodeHL(2); } },
     ],
-    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
-    <span class="cm">// Instance field — each object has its own</span>
-    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">marca</span>;
+    code: `<span class="kw">public class</span> <span class="tp">Car</span> {
+    <span class="cm">// Instance field - each object has its own</span>
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">brand</span>;
 
     <span class="cm">// static final = CONSTANT (shared, locked)</span>
     <span class="kw">public static final</span> <span class="tp">String</span> <span class="vr">BROWSER</span> = <span class="str">"Chrome"</span>;
 
-    <span class="cm">// static field — ONE copy for ALL objects</span>
+    <span class="cm">// static field - ONE copy for ALL objects</span>
     <span class="kw">private static int</span> <span class="vr">count</span> = <span class="nu">0</span>;
 
-    <span class="kw">public</span> <span class="fn">Masina</span>(<span class="tp">String</span> <span class="vr">marca</span>) {
-        <span class="kw">this</span>.<span class="vr">marca</span> = <span class="vr">marca</span>;
+    <span class="kw">public</span> <span class="fn">Car</span>(<span class="tp">String</span> <span class="vr">brand</span>) {
+        <span class="kw">this</span>.<span class="vr">brand</span> = <span class="vr">brand</span>;
         <span class="vr">count</span>++; <span class="cm">// shared counter</span>
     }
 
-    <span class="cm">// static method — call on CLASS</span>
+    <span class="cm">// static method - call on CLASS</span>
     <span class="kw">public static int</span> <span class="fn">getCount</span>() {
         <span class="kw">return</span> <span class="vr">count</span>;
         <span class="cm">// Cannot use 'this' here!</span>
-        <span class="cm">// Cannot access 'marca' here!</span>
+        <span class="cm">// Cannot access 'brand' here!</span>
     }
 }`,
     badge: ['STATIC', 'Class-level sharing', '#8a2be2']
@@ -735,34 +735,34 @@ const MODES = {
 
   constructor: {
     title: 'Constructors — Building Objects',
-    explain: `A <span class="key">constructor</span> is a special method called <strong>automatically</strong> when you write <em>new Masina(...)</em>.<br><br>
+    explain: `A <span class="key">constructor</span> is a special method called <strong>automatically</strong> when you write <em>new Car(...)</em>.<br><br>
       Rules:<br>
       &#8226; Same name as the class<br>
       &#8226; NO return type (not even void!)<br>
       &#8226; Runs ONCE at creation time<br><br>
-      <span class="key">this.marca = marca</span> — <code>this</code> means "the object being built". It separates the <strong>field</strong> (this.marca) from the <strong>parameter</strong> (marca).<br><br>
+      <span class="key">this.brand = brand</span> — <code>this</code> means "the object being built". It separates the <strong>field</strong> (this.brand) from the <strong>parameter</strong> (brand).<br><br>
       If you write NO constructor, Java gives you an empty default one. But the moment you write ANY constructor, the default disappears!`,
     analogy: 'A constructor is like IKEA assembly instructions. When you buy a table (new Table()), the instructions (constructor) tell you exactly how to put the pieces (fields) together into a working product (valid object).',
     actions: [
-      { label: 'new Masina("Tesla", 2023)', fn: () => { flashMesh(objMeshes.assembler, 0xffd700, 800); sndBuild(); showFlow('Constructor runs → marca="Tesla", an=2023, viteza=0', '#ffd700'); setCodeHL(5); } },
-      { label: 'Show: this.marca = marca', fn: () => { flashMesh(objMeshes.param1, 0xff8800, 800); flashMesh(objMeshes.result, 0x39ff14, 800); sndSet(); showFlow('Parameter "Tesla" flows INTO the field this.marca', '#ff8800'); setCodeHL(6); } },
-      { label: 'Show: this.an = an', fn: () => { flashMesh(objMeshes.param2, 0xff8800, 800); sndSet(); showFlow('Parameter 2023 flows INTO the field this.an', '#ff8800'); setCodeHL(7); } },
+      { label: 'new Car("Tesla", 2023)', fn: () => { flashMesh(objMeshes.assembler, 0xffd700, 800); sndBuild(); showFlow('Constructor runs -> brand="Tesla", year=2023, speed=0', '#ffd700'); setCodeHL(5); } },
+      { label: 'Show: this.brand = brand', fn: () => { flashMesh(objMeshes.param1, 0xff8800, 800); flashMesh(objMeshes.result, 0x39ff14, 800); sndSet(); showFlow('Parameter "Tesla" flows INTO the field this.brand', '#ff8800'); setCodeHL(6); } },
+      { label: 'Show: this.year = year', fn: () => { flashMesh(objMeshes.param2, 0xff8800, 800); sndSet(); showFlow('Parameter 2023 flows INTO the field this.year', '#ff8800'); setCodeHL(7); } },
     ],
-    code: `<span class="kw">public class</span> <span class="tp">Masina</span> {
-    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">marca</span>;
-    <span class="kw">private int</span> <span class="vr">an</span>;
-    <span class="kw">private double</span> <span class="vr">viteza</span>;
+    code: `<span class="kw">public class</span> <span class="tp">Car</span> {
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">brand</span>;
+    <span class="kw">private int</span> <span class="vr">year</span>;
+    <span class="kw">private double</span> <span class="vr">speed</span>;
 
-    <span class="cm">// CONSTRUCTOR — same name as class, NO return type</span>
-    <span class="kw">public</span> <span class="fn">Masina</span>(<span class="tp">String</span> <span class="vr">marca</span>, <span class="kw">int</span> <span class="vr">an</span>) {
-        <span class="kw">this</span>.<span class="vr">marca</span> = <span class="vr">marca</span>;  <span class="cm">// field = param</span>
-        <span class="kw">this</span>.<span class="vr">an</span> = <span class="vr">an</span>;
-        <span class="kw">this</span>.<span class="vr">viteza</span> = <span class="nu">0</span>;     <span class="cm">// default</span>
+    <span class="cm">// CONSTRUCTOR - same name as class, NO return type</span>
+    <span class="kw">public</span> <span class="fn">Car</span>(<span class="tp">String</span> <span class="vr">brand</span>, <span class="kw">int</span> <span class="vr">year</span>) {
+        <span class="kw">this</span>.<span class="vr">brand</span> = <span class="vr">brand</span>;  <span class="cm">// field = param</span>
+        <span class="kw">this</span>.<span class="vr">year</span> = <span class="vr">year</span>;
+        <span class="kw">this</span>.<span class="vr">speed</span> = <span class="nu">0</span>;     <span class="cm">// default</span>
     }
 }
 
 <span class="cm">// Usage:</span>
-<span class="tp">Masina</span> <span class="vr">m</span> = <span class="kw">new</span> <span class="fn">Masina</span>(<span class="str">"Tesla"</span>, <span class="nu">2023</span>);
+<span class="tp">Car</span> <span class="vr">car</span> = <span class="kw">new</span> <span class="fn">Car</span>(<span class="str">"Tesla"</span>, <span class="nu">2023</span>);
 <span class="cm">// ↑ 'new' calls the constructor</span>
 <span class="cm">// ↑ parameters flow into fields via 'this'</span>
 <span class="cm">// ↑ object is now fully initialized!</span>`,
@@ -773,42 +773,42 @@ const MODES = {
     title: 'Overloading — Multiple Constructors',
     explain: `<span class="key">Overloading</span> = <strong>same name, DIFFERENT parameters</strong>.<br><br>
       You can have MULTIPLE constructors for the same class. Java picks the right one based on what arguments you pass:<br><br>
-      &#8226; <em>new Student("Ana", 10, true)</em> → calls Constructor 1 (3 params)<br>
-      &#8226; <em>new Student("Bog", 8)</em> → calls Constructor 2 (2 params)<br>
-      &#8226; <em>new Student("Vlad")</em> → calls Constructor 3 (1 param)<br><br>
+      &#8226; <em>new Student("Alice", 10, true)</em> → calls Constructor 1 (3 params)<br>
+      &#8226; <em>new Student("Ben", 8)</em> → calls Constructor 2 (2 params)<br>
+      &#8226; <em>new Student("Chris")</em> → calls Constructor 3 (1 param)<br><br>
       <span class="key">this()</span> = call ANOTHER constructor from within a constructor. Must be the FIRST line! This is called <strong>constructor chaining</strong>.`,
     analogy: 'Like ordering food: "pizza with everything" (3 params), "pizza with cheese only" (1 param), or just "pizza" and the chef picks defaults. Same product, different levels of customization.',
     actions: [
-      { label: 'new Student("Ana", 10, true)', fn: () => { flashMesh(objMeshes.door1, 0x39ff14, 800); sndBuild(); showFlow('Constructor 1: all 3 params specified', '#00d4ff'); setCodeHL(6); } },
-      { label: 'new Student("Bog", 8)', fn: () => { flashMesh(objMeshes.door2, 0x39ff14, 800); sndBuild(); showFlow('Constructor 2: bursier defaults to false', '#ffd700'); setCodeHL(12); } },
-      { label: 'new Student("Vlad")', fn: () => { flashMesh(objMeshes.door3, 0x39ff14, 800); sndBuild(); showFlow('Constructor 3: nota=5, bursier=false (defaults)', '#ff8800'); setCodeHL(17); } },
+      { label: 'new Student("Alice", 10, true)', fn: () => { flashMesh(objMeshes.door1, 0x39ff14, 800); sndBuild(); showFlow('Constructor 1: all 3 params specified', '#00d4ff'); setCodeHL(6); } },
+      { label: 'new Student("Ben", 8)', fn: () => { flashMesh(objMeshes.door2, 0x39ff14, 800); sndBuild(); showFlow('Constructor 2: scholarship defaults to false', '#ffd700'); setCodeHL(12); } },
+      { label: 'new Student("Chris")', fn: () => { flashMesh(objMeshes.door3, 0x39ff14, 800); sndBuild(); showFlow('Constructor 3: grade=5, scholarship=false (defaults)', '#ff8800'); setCodeHL(17); } },
     ],
     code: `<span class="kw">public class</span> <span class="tp">Student</span> {
-    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">nume</span>;
-    <span class="kw">private int</span> <span class="vr">nota</span>;
-    <span class="kw">private boolean</span> <span class="vr">bursier</span>;
+    <span class="kw">private</span> <span class="tp">String</span> <span class="vr">name</span>;
+    <span class="kw">private int</span> <span class="vr">grade</span>;
+    <span class="kw">private boolean</span> <span class="vr">scholarship</span>;
 
     <span class="cm">// Constructor 1: ALL parameters</span>
-    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>, <span class="kw">int</span> <span class="vr">nota</span>, <span class="kw">boolean</span> <span class="vr">b</span>) {
-        <span class="kw">this</span>.<span class="vr">nume</span> = <span class="vr">n</span>;
-        <span class="kw">this</span>.<span class="vr">nota</span> = <span class="vr">nota</span>;
-        <span class="kw">this</span>.<span class="vr">bursier</span> = <span class="vr">b</span>;
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">name</span>, <span class="kw">int</span> <span class="vr">grade</span>, <span class="kw">boolean</span> <span class="vr">scholarship</span>) {
+        <span class="kw">this</span>.<span class="vr">name</span> = <span class="vr">name</span>;
+        <span class="kw">this</span>.<span class="vr">grade</span> = <span class="vr">grade</span>;
+        <span class="kw">this</span>.<span class="vr">scholarship</span> = <span class="vr">scholarship</span>;
     }
 
-    <span class="cm">// Constructor 2: 2 params (bursier = false)</span>
-    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>, <span class="kw">int</span> <span class="vr">nota</span>) {
-        <span class="kw">this</span>(<span class="vr">n</span>, <span class="vr">nota</span>, <span class="kw">false</span>); <span class="cm">// chains to #1!</span>
+    <span class="cm">// Constructor 2: 2 params (scholarship = false)</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">name</span>, <span class="kw">int</span> <span class="vr">grade</span>) {
+        <span class="kw">this</span>(<span class="vr">name</span>, <span class="vr">grade</span>, <span class="kw">false</span>); <span class="cm">// chains to #1!</span>
     }
 
-    <span class="cm">// Constructor 3: 1 param (nota=5, bursier=false)</span>
-    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">n</span>) {
-        <span class="kw">this</span>(<span class="vr">n</span>, <span class="nu">5</span>);            <span class="cm">// chains to #2!</span>
+    <span class="cm">// Constructor 3: 1 param (grade=5, scholarship=false)</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="tp">String</span> <span class="vr">name</span>) {
+        <span class="kw">this</span>(<span class="vr">name</span>, <span class="nu">5</span>);            <span class="cm">// chains to #2!</span>
     }
 }
 <span class="cm">// Java picks based on arguments:</span>
-<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Ana"</span>, <span class="nu">10</span>, <span class="kw">true</span>); <span class="cm">// → #1</span>
-<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Bog"</span>, <span class="nu">8</span>);          <span class="cm">// → #2</span>
-<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Vlad"</span>);             <span class="cm">// → #3</span>`,
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Alice"</span>, <span class="nu">10</span>, <span class="kw">true</span>); <span class="cm">// → #1</span>
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Ben"</span>, <span class="nu">8</span>);            <span class="cm">// → #2</span>
+<span class="kw">new</span> <span class="fn">Student</span>(<span class="str">"Chris"</span>);              <span class="cm">// → #3</span>`,
     badge: ['OVERLOADING', 'Same name, diff params', '#00d4ff']
   },
 
@@ -817,19 +817,19 @@ const MODES = {
     explain: `An <span class="key">enum</span> defines a <strong>FIXED set of named constants</strong>. You can ONLY use the values listed in the enum — nothing else!<br><br>
       <strong>The problem it solves:</strong><br>
       With Strings: <span class="warn">"passsed"</span> (typo!) compiles fine → BUG in production!<br>
-      With enum: <span class="warn">StatusTest.PASSSED</span> → <strong>COMPILE ERROR!</strong> Caught instantly!<br><br>
+      With enum: <span class="warn">TestStatus.PASSSED</span> → <strong>COMPILE ERROR!</strong> Caught instantly!<br><br>
       <span class="key">enum + switch</span> = powerful combo. Compiler warns if you forget a case!<br><br>
-      Enums can also have <strong>fields, constructors, and methods</strong> (they're secretly classes!). Example: <em>Priority.HIGH.getCod()</em> → 5`,
-    analogy: 'Like a restaurant MENU. You can only order what\'s ON the menu — you can\'t request "cartofi mov cu sclipici" if it\'s not listed. This eliminates invalid orders completely.',
+      Enums can also have <strong>fields, constructors, and methods</strong> (they're secretly classes!). Example: <em>Priority.HIGH.getCode()</em> → 5`,
+    analogy: 'Like a restaurant MENU. You can only order what is ON the menu — you cannot request "purple glitter fries" if it is not listed. This eliminates invalid orders completely.',
     actions: [
-      { label: 'StatusTest.PASSED', fn: () => { flashMesh(objMeshes.enum0, 0x39ff14, 800); sndEnum(); showFlow('✓ PASSED — valid enum constant', '#39ff14'); setCodeHL(2); } },
-      { label: 'StatusTest.FAILED', fn: () => { flashMesh(objMeshes.enum1, 0xff4444, 800); sndEnum(); showFlow('✓ FAILED — valid enum constant', '#ff4444'); setCodeHL(3); } },
+      { label: 'TestStatus.PASSED', fn: () => { flashMesh(objMeshes.enum0, 0x39ff14, 800); sndEnum(); showFlow('✓ PASSED — valid enum constant', '#39ff14'); setCodeHL(2); } },
+      { label: 'TestStatus.FAILED', fn: () => { flashMesh(objMeshes.enum1, 0xff4444, 800); sndEnum(); showFlow('✓ FAILED — valid enum constant', '#ff4444'); setCodeHL(3); } },
       { label: 'Try: "passsed" (String)', fn: () => { sndBlock(); showFlow('⚠ DANGER: "passsed" compiles but is WRONG! Silent bug!', '#ff4444'); setCodeHL(10); } },
-      { label: 'StatusTest.PASSSED (enum)', fn: () => { sndBlock(); showFlow('COMPILE ERROR! PASSSED does not exist in StatusTest! Bug caught!', '#39ff14'); setCodeHL(12); } },
+      { label: 'TestStatus.PASSSED (enum)', fn: () => { sndBlock(); showFlow('COMPILE ERROR! PASSSED does not exist in TestStatus! Bug caught!', '#39ff14'); setCodeHL(12); } },
       { label: 'Show: enum with switch', fn: () => { sndEnum(); showFlow('switch(status) { case PASSED: ... case FAILED: ... }', '#ffd700'); setCodeHL(14); } },
     ],
     code: `<span class="cm">// ENUM — fixed set of constants</span>
-<span class="kw">public enum</span> <span class="tp">StatusTest</span> {
+<span class="kw">public enum</span> <span class="tp">TestStatus</span> {
     <span class="en">PASSED</span>,
     <span class="en">FAILED</span>,
     <span class="en">SKIPPED</span>,
@@ -837,13 +837,13 @@ const MODES = {
 }
 
 <span class="cm">// Usage — type-safe!</span>
-<span class="tp">StatusTest</span> <span class="vr">s</span> = <span class="tp">StatusTest</span>.<span class="en">PASSED</span>; <span class="cm">// ✓</span>
+<span class="tp">TestStatus</span> <span class="vr">status</span> = <span class="tp">TestStatus</span>.<span class="en">PASSED</span>; <span class="cm">// ✓</span>
 
 <span class="cm">// String approach: DANGEROUS</span>
 <span class="tp">String</span> <span class="vr">bad</span> = <span class="str">"passsed"</span>; <span class="cm">// typo compiles!</span>
 
 <span class="cm">// Enum approach: SAFE</span>
-<span class="cm">// StatusTest.PASSSED → COMPILE ERROR!</span>
+<span class="cm">// TestStatus.PASSSED → COMPILE ERROR!</span>
 
 <span class="cm">// enum + switch = powerful!</span>
 <span class="kw">switch</span> (<span class="vr">status</span>) {
@@ -856,9 +856,9 @@ const MODES = {
 <span class="cm">// Enum with fields (superpower!):</span>
 <span class="kw">enum</span> <span class="tp">Priority</span> {
     <span class="en">LOW</span>(<span class="nu">1</span>), <span class="en">HIGH</span>(<span class="nu">5</span>), <span class="en">CRITICAL</span>(<span class="nu">10</span>);
-    <span class="kw">private final int</span> <span class="vr">cod</span>;
-    <span class="fn">Priority</span>(<span class="kw">int</span> <span class="vr">cod</span>) { <span class="kw">this</span>.<span class="vr">cod</span>=<span class="vr">cod</span>; }
-    <span class="kw">public int</span> <span class="fn">getCod</span>() { <span class="kw">return</span> <span class="vr">cod</span>; }
+    <span class="kw">private final int</span> <span class="vr">code</span>;
+    <span class="fn">Priority</span>(<span class="kw">int</span> <span class="vr">code</span>) { <span class="kw">this</span>.<span class="vr">code</span>=<span class="vr">code</span>; }
+    <span class="kw">public int</span> <span class="fn">getCode</span>() { <span class="kw">return</span> <span class="vr">code</span>; }
 }`,
     badge: ['ENUM', 'Type-safe constants', '#8a2be2']
   }
@@ -944,56 +944,56 @@ function getWalkDelay() { return Math.max(1000, 7000 - walkSpeed * 600); }
 // Narration steps for each mode — each step triggers an action + shows narration
 const WALK = {
   fields: [
-    { narr: '<span class="narr-step">Step 1:</span> This blue box is a <strong>class Masina</strong> (Car). It\'s a blueprint — a template for creating objects.', action: null },
-    { narr: '<span class="narr-step">Step 2:</span> Inside the box you see <strong>fields</strong> — marca, an, viteza. These are the <strong>data</strong> stored in every car object. Like a real car has a brand, year, and speed.', action: 3 },
-    { narr: '<span class="narr-step">Step 3:</span> Outside the box are <strong>methods</strong> — accelereaza(), franeaza(), getDescriere(). These are the <strong>actions</strong> the car can do.', action: null },
-    { narr: '<span class="narr-step">Step 4:</span> Watch — calling <strong>accelereaza(50)</strong> changes the speed field! Methods can READ and MODIFY fields.', action: 0 },
-    { narr: '<span class="narr-step">Step 5:</span> Now calling <strong>franeaza()</strong> — it sets viteza back to 0. Methods control how fields change.', action: 1 },
-    { narr: '<span class="narr-step">Step 6:</span> <strong>getDescriere()</strong> RETURNS a value — it reads marca + an and gives back a string. Not all methods change things; some just report.', action: 2 },
+    { narr: '<span class="narr-step">Step 1:</span> This blue box is a <strong>class Car</strong>. It is a blueprint — a template for creating objects.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> Inside the box you see <strong>fields</strong> — brand, year, speed. These are the <strong>data</strong> stored in every car object.', action: 3 },
+    { narr: '<span class="narr-step">Step 3:</span> Outside the box are <strong>methods</strong> — accelerate(), brake(), getDescription(). These are the <strong>actions</strong> the car can do.', action: null },
+    { narr: '<span class="narr-step">Step 4:</span> Watch — calling <strong>accelerate(50)</strong> changes the speed field. Methods can READ and MODIFY fields.', action: 0 },
+    { narr: '<span class="narr-step">Step 5:</span> Now calling <strong>brake()</strong> — it sets speed back to 0. Methods control how fields change.', action: 1 },
+    { narr: '<span class="narr-step">Step 6:</span> <strong>getDescription()</strong> RETURNS a value — it reads brand + year and gives back a string. Not all methods change things; some just report.', action: 2 },
     { narr: '✅ <strong>Summary:</strong> An object = FIELDS (what it IS) + METHODS (what it DOES). Fields are variables inside the class. Methods are functions that work with those fields.', action: null },
   ],
   access: [
-    { narr: '<span class="narr-step">Step 1:</span> This is a <strong>ContBancar</strong> (bank account). It has fields and methods, but now with <strong>access control</strong>.', action: null },
-    { narr: '<span class="narr-step">Step 2:</span> The <strong style="color:#39ff14">green door</strong> = <strong>public</strong>. Anyone can access "nume" from anywhere. No restrictions.', action: 4 },
-    { narr: '<span class="narr-step">Step 3:</span> The <strong style="color:#ff4444">red wall</strong> = <strong>private</strong>. Try accessing "sold" directly...', action: 0 },
-    { narr: '<span class="narr-warn">BLOCKED!</span> You can\'t do <code>cont.sold = -10000</code> — it\'s private! This PROTECTS the data from bad values.', action: null },
-    { narr: '<span class="narr-step">Step 4:</span> The safe way — use a <strong>getter</strong>: cont.getSold() reads the value without exposing the field.', action: 1 },
-    { narr: '<span class="narr-step">Step 5:</span> To CHANGE it, use a <strong>setter with validation</strong>: depune(500) checks if amount > 0 first!', action: 2 },
+    { narr: '<span class="narr-step">Step 1:</span> This is a <strong>BankAccount</strong>. It has fields and methods, but now with <strong>access control</strong>.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> The <strong style="color:#39ff14">green door</strong> = <strong>public</strong>. Anyone can access "name" from anywhere. No restrictions.', action: 4 },
+    { narr: '<span class="narr-step">Step 3:</span> The <strong style="color:#ff4444">red wall</strong> = <strong>private</strong>. Try accessing "balance" directly...', action: 0 },
+    { narr: '<span class="narr-warn">BLOCKED!</span> You cannot do <code>account.balance = -10000</code> — it is private! This PROTECTS the data from bad values.', action: null },
+    { narr: '<span class="narr-step">Step 4:</span> The safe way — use a <strong>getter</strong>: account.getBalance() reads the value without exposing the field.', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> To CHANGE it, use a <strong>setter with validation</strong>: deposit(500) checks if amount > 0 first!', action: 2 },
     { narr: '<span class="narr-step">Step 6:</span> Try depositing -50... the setter REJECTS it! This is <strong>encapsulation</strong> — private fields + public getters/setters = safe data.', action: 3 },
     { narr: '✅ <strong>THE RULE:</strong> Always make fields <strong style="color:#ff4444">private</strong>. Use getter/setter methods to control access with validation. This prevents bugs like negative balances.', action: null },
   ],
   static: [
     { narr: '<span class="narr-step">Step 1:</span> See the <strong style="color:#8a2be2">purple platform</strong> floating above? That\'s the <strong>CLASS level</strong> — shared by ALL objects.', action: null },
     { narr: '<span class="narr-step">Step 2:</span> <strong>static int count = 3</strong> belongs to the CLASS, not to any single car. All 3 cars below share this ONE counter.', action: null },
-    { narr: '<span class="narr-step">Step 3:</span> Creating a new car with <strong>new Masina("BMW")</strong> — watch the static counter increment!', action: 0 },
-    { narr: '<span class="narr-step">Step 4:</span> Call <strong>Masina.getCount()</strong> — notice you call it on the CLASS name, not on an object. No object needed!', action: 1 },
+    { narr: '<span class="narr-step">Step 3:</span> Creating a new car with <strong>new Car("BMW")</strong> — watch the static counter increment!', action: 0 },
+    { narr: '<span class="narr-step">Step 4:</span> Call <strong>Car.getCount()</strong> — notice you call it on the CLASS name, not on an object. No object needed!', action: 1 },
     { narr: '<span class="narr-step">Step 5:</span> <strong>static final BROWSER = "Chrome"</strong> is a CONSTANT. Try changing it...', action: 2 },
     { narr: '<span class="narr-warn">BLOCKED!</span> final means it can NEVER be changed after initialization. The compiler stops you.', action: null },
-    { narr: '<span class="narr-step">Step 6:</span> Each car\'s <strong>marca</strong> is different — that\'s an instance field. Only each object has its own copy.', action: 3 },
+    { narr: '<span class="narr-step">Step 6:</span> Each car\'s <strong>brand</strong> is different — that\'s an instance field. Only each object has its own copy.', action: 3 },
     { narr: '✅ <strong>Summary:</strong> static = belongs to CLASS (one copy for all). final = CONSTANT (can\'t change). Instance fields = unique per object.', action: null },
   ],
   constructor: [
-    { narr: '<span class="narr-step">Step 1:</span> On the left is the <strong>CLASS</strong> — just a blueprint with field names (marca, an). No values yet!', action: null },
-    { narr: '<span class="narr-step">Step 2:</span> In the middle is the <strong style="color:#ffd700">CONSTRUCTOR</strong> — a special method that runs when you write <code>new Masina("Tesla", 2023)</code>.', action: null },
+    { narr: '<span class="narr-step">Step 1:</span> On the left is the <strong>CLASS</strong> — just a blueprint with field names (brand, year). No values yet!', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> In the middle is the <strong style="color:#ffd700">CONSTRUCTOR</strong> — a special method that runs when you write <code>new Car("Tesla", 2023)</code>.', action: null },
     { narr: '<span class="narr-step">Step 3:</span> Parameters "Tesla" and 2023 flow INTO the constructor as orange spheres. The constructor assigns them to fields.', action: 0 },
-    { narr: '<span class="narr-step">Step 4:</span> On the right is the RESULT — a fully initialized <strong style="color:#39ff14">OBJECT</strong> with marca="Tesla", an=2023, viteza=0.0.', action: 1 },
-    { narr: '<span class="narr-step">Step 5:</span> Without a constructor, you\'d have to set each field manually. The constructor does it in ONE step: <code>new Masina("Tesla", 2023)</code>.', action: 2 },
+    { narr: '<span class="narr-step">Step 4:</span> On the right is the RESULT — a fully initialized <strong style="color:#39ff14">OBJECT</strong> with brand="Tesla", year=2023, speed=0.0.', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> Without a constructor, you would have to set each field manually. The constructor does it in ONE step: <code>new Car("Tesla", 2023)</code>.', action: 2 },
     { narr: '✅ <strong>Summary:</strong> A constructor is a special method with the SAME name as the class. It runs automatically with <code>new</code>. It initializes all the fields.', action: null },
   ],
   overload: [
     { narr: '<span class="narr-step">Step 1:</span> One class <strong>Student</strong> has THREE different constructors! Same class name, but different parameters.', action: null },
-    { narr: '<span class="narr-step">Step 2:</span> <strong>Constructor 1</strong> takes ALL 3 parameters: name, nota, bursier. You set everything explicitly.', action: 0 },
-    { narr: '<span class="narr-step">Step 3:</span> <strong>Constructor 2</strong> takes only name and nota. bursier gets a DEFAULT value (false).', action: 1 },
-    { narr: '<span class="narr-step">Step 4:</span> <strong>Constructor 3</strong> takes only name. nota=5 and bursier=false are both defaults.', action: 2 },
+    { narr: '<span class="narr-step">Step 2:</span> <strong>Constructor 1</strong> takes ALL 3 parameters: name, grade, scholarship. You set everything explicitly.', action: 0 },
+    { narr: '<span class="narr-step">Step 3:</span> <strong>Constructor 2</strong> takes only name and grade. scholarship gets a DEFAULT value (false).', action: 1 },
+    { narr: '<span class="narr-step">Step 4:</span> <strong>Constructor 3</strong> takes only name. grade=5 and scholarship=false are both defaults.', action: 2 },
     { narr: '<span class="narr-step">Step 5:</span> Java automatically picks the right constructor based on what you pass. This is <strong>OVERLOADING</strong> — same name, different signatures.', action: null },
     { narr: '✅ <strong>Summary:</strong> Overloading = multiple methods/constructors with the SAME name but DIFFERENT parameter lists. Java picks the right one automatically.', action: null },
   ],
   enum: [
-    { narr: '<span class="narr-step">Step 1:</span> The top row shows an <strong style="color:#8a2be2">enum StatusTest</strong> — a FIXED set of 4 values: PASSED, FAILED, SKIPPED, BLOCKED.', action: null },
+    { narr: '<span class="narr-step">Step 1:</span> The top row shows an <strong style="color:#8a2be2">enum TestStatus</strong> — a FIXED set of 4 values: PASSED, FAILED, SKIPPED, BLOCKED.', action: null },
     { narr: '<span class="narr-step">Step 2:</span> Each value is <strong>locked</strong> (see the lock cubes on top). You can ONLY use these exact values — no typos possible!', action: 0 },
     { narr: '<span class="narr-step">Step 3:</span> Now look at the <strong style="color:#ff4444">danger zone</strong> below — using a regular String instead of enum...', action: 1 },
     { narr: '<span class="narr-warn">DANGER!</span> With String: "passsed" (typo!) compiles fine. "passed" vs "Passed" vs "PASSED" — which is right? The compiler has NO idea.', action: 2 },
-    { narr: '<span class="narr-step">Step 4:</span> With enum: <code>StatusTest.PASSSED</code> → COMPILE ERROR! The compiler catches the typo immediately. That\'s the power of enum.', action: 3 },
+    { narr: '<span class="narr-step">Step 4:</span> With enum: <code>TestStatus.PASSSED</code> → COMPILE ERROR! The compiler catches the typo immediately. That\'s the power of enum.', action: 3 },
     { narr: '✅ <strong>Summary:</strong> Use <strong>enum</strong> when you have a fixed set of choices. It prevents typos, gives autocomplete, and is type-safe. Much better than String!', action: null },
   ],
 };

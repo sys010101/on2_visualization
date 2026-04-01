@@ -1,0 +1,692 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QA::AUTOMATION - Sessions 1-10</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0d12; font-family: "Courier New", monospace; color: #c8d8e8; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0d12; }
+  ::-webkit-scrollbar-thumb { background: #1a4a2a; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useEffect, useState } = React;
+
+const SESSIONS = {
+  s1: {
+    title: "Session 1 - Test Automation Fundamentals",
+    accent: "#00ff88",
+    cards: [
+      {
+        title: "What automation is",
+        points: [
+          "Automation is code that checks other code.",
+          "It gives faster feedback and removes repetitive work.",
+          "It helps QA focus on exploratory and risk-based testing."
+        ],
+        code: ["@Test void testAddition() { assertEquals(4, 2 + 2); }", "// Arrange -> Act -> Assert"]
+      },
+      {
+        title: "Automation layers",
+        points: [
+          "Unit tests are fast and cheap.",
+          "API tests validate service behavior without UI fragility.",
+          "UI tests should stay focused on critical user flows."
+        ],
+        code: ["JUnit", "REST Assured", "Selenium or Playwright"]
+      },
+      {
+        title: "Testing pyramid",
+        points: [
+          "Many unit tests, fewer API tests, very few UI tests.",
+          "Lower layers are cheaper and faster to maintain.",
+          "A UI-heavy strategy usually slows delivery."
+        ],
+        code: ["Unit -> API -> UI", "Catch bugs as low as possible"]
+      }
+    ]
+  },
+  s2: {
+    title: "Session 2 - Git and Collaboration",
+    accent: "#ffaa00",
+    cards: [
+      {
+        title: "Core Git model",
+        points: [
+          "Git tracks history through commits and branches.",
+          "Local work is private and fast; remotes are shared.",
+          "Small, focused commits make review easier."
+        ],
+        code: ["git init", "git status", "git log"]
+      },
+      {
+        title: "Pull requests",
+        points: [
+          "PRs combine code review, discussion, and CI results.",
+          "Small PRs get better feedback.",
+          "QA review should look for coverage and side effects."
+        ],
+        code: ["git switch -c feature/x", "git push -u origin feature/x"]
+      },
+      {
+        title: "Conflicts",
+        points: [
+          "Conflicts are normal when the same area changes differently.",
+          "Git marks both sides, but a human must decide the result.",
+          "Rerun checks after resolving."
+        ],
+        code: ["git status", "git add <file>", "git commit"]
+      }
+    ]
+  },
+  s3: {
+    title: "Session 3 - Docker Basics",
+    accent: "#00ccff",
+    cards: [
+      {
+        title: "Why Docker matters",
+        points: [
+          "Docker helps solve 'works on my machine' problems.",
+          "It gives QA reproducible environments.",
+          "It makes version-matrix testing easier."
+        ],
+        code: ["docker run hello-world", "docker images"]
+      },
+      {
+        title: "Image vs container",
+        points: [
+          "An image is the template; a container is the running instance.",
+          "Containers are lighter than full virtual machines.",
+          "Tags, volumes, and networks are part of the model."
+        ],
+        code: ["docker images", "docker ps -a"]
+      },
+      {
+        title: "QA workflow",
+        points: [
+          "compose up starts the stack.",
+          "logs helps inspect failures.",
+          "down -v resets both containers and persisted data."
+        ],
+        code: ["docker compose up -d", "docker compose logs -f", "docker compose down -v"]
+      }
+    ]
+  },
+  s4: {
+    title: "Session 4 - Linux and CLI Work",
+    accent: "#ff6600",
+    cards: [
+      {
+        title: "Why Linux matters",
+        points: [
+          "Most CI runners and servers are Linux-based.",
+          "Terminal fluency improves debugging depth.",
+          "Case sensitivity is a real cross-platform difference."
+        ],
+        code: ["uname -a", "pwd", "ls -la"]
+      },
+      {
+        title: "Logs and filtering",
+        points: [
+          "tail -f is ideal for live logs.",
+          "grep filters large files fast.",
+          "Pipes build precise inspection chains."
+        ],
+        code: ["tail -f app.log", "grep 'ERROR' app.log", "tail -n 500 app.log | grep -v DEBUG"]
+      },
+      {
+        title: "Environment variables",
+        points: [
+          "Secrets should not be hardcoded.",
+          "PATH explains why commands are found or missing.",
+          "CI systems inject secrets through environment values."
+        ],
+        code: ["export API_URL='https://staging.api.com'", "echo $PATH", "source ~/.bashrc"]
+      }
+    ]
+  },
+  s5: {
+    title: "Session 5 - Data and Config Formats",
+    accent: "#aa88ff",
+    cards: [
+      {
+        title: "JSON",
+        points: [
+          "JSON is the default format for modern APIs.",
+          "It is compact and easy to parse.",
+          "JSON Schema can validate the contract."
+        ],
+        code: ['{ "id": 1, "completed": false }']
+      },
+      {
+        title: "YAML",
+        points: [
+          "YAML is common in Docker Compose and GitHub Actions.",
+          "Indentation defines structure.",
+          "Quote values when implicit typing could surprise you."
+        ],
+        code: ["service:", "  baseUrl: 'https://api.example.com'"]
+      },
+      {
+        title: "XML and TOML",
+        points: [
+          "XML stays common in legacy and schema-heavy systems.",
+          "TOML is explicit and predictable for config.",
+          "Format choice is a maintainability choice."
+        ],
+        code: ["pom.xml", "pyproject.toml", "Cargo.toml"]
+      }
+    ]
+  },
+  s6: {
+    title: "Session 6 - Java Foundations",
+    accent: "#44ffcc",
+    cards: [
+      {
+        title: "JVM, JRE, JDK",
+        points: [
+          "The JVM runs Java bytecode.",
+          "The JRE runs apps; the JDK adds developer tools.",
+          "main is the entry point the JVM looks for."
+        ],
+        code: ["java -version", "javac -version", "public static void main(String[] args) { ... }"]
+      },
+      {
+        title: "Types and strings",
+        points: [
+          "Java has primitive types plus object types.",
+          "String is immutable.",
+          "Use equals for content comparison, not ==."
+        ],
+        code: ["int age = 25;", 'String name = "Alice";', 'name.equals("Alice");']
+      },
+      {
+        title: "if-else and switch",
+        points: [
+          "if and else model branching logic.",
+          "switch is cleaner for many fixed options.",
+          "break prevents accidental fall-through."
+        ],
+        code: ['if (age >= 18) { ... }', 'switch (day) { case "MONDAY": ... break; }']
+      }
+    ]
+  },
+  s7: {
+    title: "Session 7 - Loops",
+    accent: "#ff44aa",
+    cards: [
+      {
+        title: "for loop",
+        points: [
+          "Initialization runs once.",
+          "The condition is checked before each iteration.",
+          "The increment runs after the loop body."
+        ],
+        code: ["for (int i = 1; i <= 5; i++) {", "  System.out.println(i);", "}"]
+      },
+      {
+        title: "for-each and while",
+        points: [
+          "for-each is great when you care about items, not indexes.",
+          "while may run zero times.",
+          "do-while always runs at least once."
+        ],
+        code: ["for (String browser : browsers) { ... }", "do { ... } while (!valid);"]
+      },
+      {
+        title: "break and continue",
+        points: [
+          "break exits the loop immediately.",
+          "continue skips the current iteration.",
+          "return exits the whole method."
+        ],
+        code: ['if (status.equals("BLOCKED")) break;', 'if (line.startsWith("#")) continue;']
+      }
+    ]
+  },
+  s8: {
+    title: "Session 8 - Data Structures",
+    accent: "#00aaff",
+    cards: [
+      {
+        title: "Arrays and ArrayList",
+        points: [
+          "Arrays are fixed-size and fast to index.",
+          "ArrayList is dynamic and common in production code.",
+          "Front insertions in ArrayList are relatively expensive."
+        ],
+        code: ["int[] scores = {10, 8, 9};", "ArrayList<String> list = new ArrayList<>();"]
+      },
+      {
+        title: "LinkedList and HashSet",
+        points: [
+          "LinkedList trades memory for cheap structural updates.",
+          "HashSet keeps unique elements.",
+          "equals and hashCode matter for custom set items."
+        ],
+        code: ['list.addFirst("Start");', 'users.add("alice");', 'users.contains("alice");']
+      },
+      {
+        title: "HashMap and Big O",
+        points: [
+          "HashMap stores key-value pairs.",
+          "Data structure choice changes runtime behavior.",
+          "O(1), O(n), and O(n^2) matter in practical QA code."
+        ],
+        code: ['env.put("staging", "https://stg.api.com");', 'env.get("staging");', 'O(1) -> map.get(key)']
+      }
+    ]
+  },
+  s9: {
+    title: "Session 9 - OOP Basics",
+    accent: "#ffd700",
+    cards: [
+      {
+        title: "Fields and methods",
+        points: [
+          "Objects have state and behavior.",
+          "Fields store state and methods define actions.",
+          "Methods usually operate on the current object's data."
+        ],
+        code: ["class Car {", "  String brand;", "  void accelerate(double v) { speed += v; }", "}"]
+      },
+      {
+        title: "Access, static, final",
+        points: [
+          "private protects internal state.",
+          "static belongs to the class, not the instance.",
+          "final values cannot change after initialization."
+        ],
+        code: ["private double balance;", "public static final int MAX_RETRY = 3;"]
+      },
+      {
+        title: "Constructors and enums",
+        points: [
+          "Constructors initialize objects created with new.",
+          "Overloading means the same name with different parameters.",
+          "Enums replace typo-prone magic strings."
+        ],
+        code: ['public User(String name) { this.name = name; }', 'enum Status { PASSED, FAILED, SKIPPED }']
+      }
+    ]
+  },
+  s10: {
+    title: "Session 10 - Advanced OOP Mental Map",
+    accent: "#ff8c42",
+    cards: [
+      {
+        title: "Start with the shape, not the syntax",
+        points: [
+          "This lesson is easier if you picture each concept as a shape or real object first.",
+          "Use this order: encapsulation -> abstraction -> abstract class -> interface -> inheritance -> polymorphism.",
+          "If the code feels heavy, come back to the visual analogy before reading the Java again."
+        ],
+        code: [
+          "Vault = encapsulation",
+          "Dashboard = abstraction",
+          "Blueprint = abstract class",
+          "Plug contract = interface",
+          "Family tree = inheritance",
+          "Same button, different result = polymorphism"
+        ],
+        links: [
+          { label: "Open lesson 10 mental map visualizer", href: "../oop_mental_map_vis.html" }
+        ]
+      },
+      {
+        title: "Encapsulation and abstraction",
+        points: [
+          "Encapsulation protects internal state with private fields and safe methods.",
+          "Abstraction hides messy internals and gives you a clean control surface.",
+          "In real life: a bank vault protects the money, while an ATM gives you the buttons you are allowed to press."
+        ],
+        code: [
+          "private double balance;",
+          "public void deposit(double amount) { ... }",
+          "public double getBalance() { return balance; }"
+        ],
+        links: [
+          { label: "Open OOP basics visualizer", href: "../oop_visualizer.html" }
+        ]
+      },
+      {
+        title: "Abstract class = shared foundation",
+        points: [
+          "An abstract class is a partial blueprint: some parts are complete, some parts are left blank on purpose.",
+          "Children inherit the common structure and must fill the missing behavior.",
+          "Use it when related classes share both data and implementation."
+        ],
+        code: [
+          "abstract class TestBase {",
+          "  void setup() { ... }",
+          "  abstract void runTest();",
+          "}"
+        ]
+      },
+      {
+        title: "Interface = behavior contract",
+        points: [
+          "An interface is a pure promise: classes agree to provide specific behavior.",
+          "It is closer to a plug standard than a family tree.",
+          "Very different classes can still share the same interface if they support the same action."
+        ],
+        code: [
+          "interface Reportable { void export(); }",
+          "class ApiReport implements Reportable { ... }",
+          "class UiReport implements Reportable { ... }"
+        ]
+      },
+      {
+        title: "Inheritance, super, override, polymorphism",
+        points: [
+          "Inheritance builds a parent-child hierarchy with extends.",
+          "super(...) calls the parent setup first, and @Override replaces inherited behavior.",
+          "Polymorphism means one reference type can point to many concrete child objects and still call the right method at runtime."
+        ],
+        code: [
+          "class UiTest extends TestBase { ... }",
+          "@Override void runTest() { ... }",
+          "TestBase test = new UiTest();",
+          "test.runTest();"
+        ],
+        links: [
+          { label: "Open inheritance and polymorphism visualizer", href: "../inheritance_polymorphism_vis.html" }
+        ]
+      }
+    ]
+  }
+};
+
+const HOMEWORK = {
+  hw2: {
+    title: "Final Homework - Advanced Git Workflow",
+    accent: "#ff44aa",
+    intro: "Objective: prove that you can manage parallel Git work, bug fixing, and a real merge conflict in a controlled QA-style workflow.",
+    steps: [
+      "Create a new public GitHub repository named qa-advanced-git-lab.",
+      "Add Calculator.java on main with the starter Calculator class, then commit it as the initial Calculator version.",
+      "Create a new branch from main named refactor/extrage-bonus and move the bonus value into a class constant.",
+      "Commit the refactor and push the branch.",
+      "Return to main, create a second branch named fix/bonus-incorect, and change the inline bonus value from 2 to 5 inside aduna.",
+      "Commit the fix, then merge fix/bonus-incorect back into main.",
+      "Merge main into refactor/extrage-bonus and resolve the conflict by keeping both intentions: the bonus becomes a class constant and its value becomes 5.",
+      "Finish the merge cleanly and push the updated refactor/extrage-bonus branch."
+    ],
+    deliverables: [
+      "Submit the GitHub link to qa-advanced-git-lab.",
+      "The repository should clearly show the created branches, the commit history, and the merge commit that resolves the conflict."
+    ],
+    review: [
+      "The repo is public and named qa-advanced-git-lab.",
+      "Calculator.java exists on main before the branch split.",
+      "The refactor branch extracts the bonus into a class constant.",
+      "The fix branch changes the bonus value from 2 to 5.",
+      "Main receives the bug fix before the refactor branch is updated.",
+      "The final merge keeps both the refactor and the corrected value."
+    ],
+    cheat: ["git switch -c <branch>", "git switch main", "git merge <branch>", "git add <file> && git commit"]
+  },
+  hw3: {
+    title: "Homework - Multi-Service Test Environment with Docker Compose",
+    accent: "#00ccff",
+    intro: "Objective: define, start, validate, and fully reset a multi-container QA environment where an app depends on both a database and a cache service.",
+    steps: [
+      "Create a new public GitHub repository named qa-docker-compose-lab and clone it locally.",
+      "Create compose.yaml with three services: db using postgres:16-alpine, cache using redis:7-alpine, and adminer using adminer:latest.",
+      "For db, set POSTGRES_USER=qa_user, POSTGRES_PASSWORD=qa_pass, POSTGRES_DB=qa_db, map port 5432:5432, and persist the data with a named volume called db-data.",
+      "For adminer, map port 8888 on your machine to port 8080 in the container.",
+      "Add a db healthcheck with pg_isready and configure adminer to wait until db becomes healthy.",
+      "Start the stack with docker compose up -d, then verify with docker compose ps that all three containers run and db is healthy.",
+      "Open Adminer at http://localhost:8888, connect using server name db and the credentials from the compose file, then create a simple table such as CREATE TABLE tests (id INT);",
+      "Stop and fully reset the environment, including the volume, with docker compose down -v."
+    ],
+    deliverables: [
+      "Submit the GitHub link to qa-docker-compose-lab.",
+      "Include the final compose.yaml file in the repository.",
+      "Add a REZOLVARE.md file that contains a screenshot from Adminer showing the tests table and a short explanation of why the -v flag matters in docker compose down -v."
+    ],
+    review: [
+      "compose.yaml defines db, cache, and adminer.",
+      "db uses postgres:16-alpine with qa_user, qa_pass, qa_db, port 5432, and db-data persistence.",
+      "adminer is reachable on localhost:8888 and waits for a healthy db service.",
+      "The stack starts cleanly with docker compose up -d.",
+      "The environment is validated through Adminer by creating a tests table.",
+      "The reset uses docker compose down -v so both containers and data are removed."
+    ],
+    cheat: ["docker compose up -d", "docker compose ps", "docker compose logs -f", "docker compose down -v"]
+  },
+  hw4: {
+    title: "Homework - First Stage of the Final Project (40 points)",
+    accent: "#ff6600",
+    intro: "Objective: build a complete QA automation project skeleton, from the GitHub repository setup to a working Docker-based CI/CD pipeline for a Java project.",
+    steps: [
+      "Create a new public GitHub repository named qa-final-project-java and make sure it contains a real README.md.",
+      "Create the project structure locally as a Java/Maven-style project: config/, data/, src/test/java/com/yourname/tests/, and .github/workflows/.",
+      "Inside config/, create app.yaml with at least the keys env, service.baseUrl, and timeouts. The course example uses https://apps.qualiadept.eu/hapifyme for service.baseUrl.",
+      "Inside src/test/java/com/yourname/tests/, create ApiTest.txt and write the API test logic in pseudocode: a GET request to https://jsonplaceholder.typicode.com/todos/1 must return status 200 and include a title.",
+      "Create a Dockerfile at the project root that can build and run a Java/Maven project. The course suggests maven:3.8.4-openjdk-17 as a valid base image.",
+      "Create .github/workflows/ci.yml so it runs on push to main, contains a test job with mvn test, and contains a build-and-push job that runs only after test passes using needs: test.",
+      "Configure GitHub repository secrets for Docker Hub exactly as DOCKERHUB_USERNAME and DOCKERHUB_TOKEN so the pipeline can publish securely.",
+      "Update README.md so it explains what the project does, how to run mvn test locally, how to build and run the Docker image, and how to read the live GitHub Actions status badge."
+    ],
+    deliverables: [
+      "Submit the GitHub link to the public qa-final-project-java repository.",
+      "Make sure the latest run in the Actions tab is green before submission."
+    ],
+    review: [
+      "The repo is public, named qa-final-project-java, and includes README.md.",
+      "The Maven-style folder structure exists: config/, data/, src/test/java/com/yourname/tests/, and .github/workflows/.",
+      "config/app.yaml includes env, service.baseUrl, and timeouts.",
+      "ApiTest.txt contains Arrange-Act-Assert style pseudocode for GET /todos/1 with status 200 and a title check.",
+      "The Dockerfile builds a Java/Maven environment without errors.",
+      "ci.yml runs on push to main and uses test plus build-and-push with needs: test.",
+      "GitHub secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN are configured in the repository settings.",
+      "README.md explains the project, local mvn test usage, Docker usage, and includes a live GitHub Actions status badge."
+    ],
+    cheat: ["mvn test", "docker build -t qa-final-project-java:local .", "git push origin main"]
+  },
+  hw6: {
+    title: "Homework - Java Username Validator (5 points)",
+    accent: "#44ffcc",
+    intro: "Objective: write a Java UsernameValidator program that uses do-while and for loops, then integrate it into your existing qa-final-project-java repository.",
+    steps: [
+      "Open the existing qa-final-project-java project you created for the intermediate project.",
+      "Create the standard Maven source path src/main/java/com/yourname/homework/ using the same identifier you used under src/test/java/.",
+      "Create UsernameValidator.java in that folder and implement the logic in a main method.",
+      "The program must repeatedly ask for a username until all rules are valid.",
+      "Validate length first: the username must be between 6 and 12 characters, inclusive.",
+      "If the input contains spaces, print a specific spaces error and ask again without continuing to the other checks for that same input.",
+      "Use a for loop to scan the characters and make sure the username contains at least one digit.",
+      "When the input is valid, print the success message Username accepted: [valid username].",
+      "Add the files to Git, commit with a clear message, push to main, and verify that the Actions pipeline starts automatically and ends green."
+    ],
+    deliverables: [
+      "Submit the GitHub link to the updated qa-final-project-java repository.",
+      "The review expects UsernameValidator.java in src/main/java/.../homework/ and the validation logic to work correctly."
+    ],
+    review: [
+      "UsernameValidator.java exists under src/main/java/com/yourname/homework/.",
+      "A do-while loop repeats input until the username becomes valid.",
+      "A for loop iterates through the username characters.",
+      "Length is validated correctly between 6 and 12 characters.",
+      "The spaces rule shows a specific error and stops the other checks for that input attempt.",
+      "The digit rule requires at least one numeric character.",
+      "The final success message appears only when the username is fully valid.",
+      "The code is committed, pushed, and the GitHub Actions pipeline finishes green."
+    ],
+    cheat: ["do { ... } while (!valid);", "Character.isDigit(c)", 'System.out.println("Username accepted: " + username);']
+  },
+  hw9: {
+    title: "Homework - BrowserConfig for Test Automation (5 points)",
+    accent: "#ffd700",
+    intro: "Objective: extend qa-final-project-java with a BrowserConfig model that demonstrates enums, overloaded constructors with this(), and a static factory method.",
+    steps: [
+      "Open the existing qa-final-project-java project and make sure both src/main/java/ and src/test/java/ already exist.",
+      "Inside src/main/java/com/yourname/homework/, create BrowserType.java, BrowserConfig.java, and TestConfigRunner.java.",
+      "In BrowserType.java, define a public enum BrowserType with the values CHROME, FIREFOX, and EDGE.",
+      "In BrowserConfig.java, define the private fields browser, version, and isHeadless.",
+      "Implement three overloaded public constructors: one with browser, version, isHeadless; one with browser and version that uses this() and defaults isHeadless to false; and one with only browser that uses this() and defaults version to latest and isHeadless to false.",
+      "Add a public static BrowserConfig createDefaultChromeConfig() factory method that returns CHROME, latest, and headless=true.",
+      "Add a public void afiseazaConfig() method that prints the current configuration in a readable console format.",
+      "In TestConfigRunner.main, create at least one BrowserConfig with each constructor plus one through createDefaultChromeConfig(), then call afiseazaConfig() on each instance.",
+      "Make sure the code under src/main/java/ compiles, then add, commit, and push the new files to main."
+    ],
+    deliverables: [
+      "Submit the GitHub link to the updated qa-final-project-java repository.",
+      "The review expects BrowserType.java, BrowserConfig.java, and TestConfigRunner.java in the correct src/main/java/... structure, and the code should compile and run."
+    ],
+    review: [
+      "The new Java files are placed correctly under src/main/java/com/yourname/homework/.",
+      "BrowserType contains CHROME, FIREFOX, and EDGE.",
+      "BrowserConfig has the required private fields and all three overloaded constructors.",
+      "The static factory createDefaultChromeConfig() returns a CHROME/latest/headless=true config.",
+      "afiseazaConfig() prints the object state clearly.",
+      "TestConfigRunner demonstrates each constructor plus the static factory.",
+      "The code compiles cleanly and was committed and pushed with normal Git workflow."
+    ],
+    cheat: ["enum BrowserType { CHROME, FIREFOX, EDGE }", 'this(browser, "latest", false);', "BrowserConfig.createDefaultChromeConfig();", "config.afiseazaConfig();"]
+  }
+};
+
+function SessionView({ session }) {
+  const [openIndex, setOpenIndex] = useState(0);
+
+  return (
+    <div style={{ padding: "24px", maxWidth: "1000px", margin: "0 auto" }}>
+      <div style={{ color: session.accent, fontSize: "18px", letterSpacing: "2px", marginBottom: "8px" }}>{session.title}</div>
+      <div style={{ color: "#558866", fontSize: "14px", marginBottom: "18px" }}>English dashboard edition. Source PDFs and DOCX lesson files remain unchanged in Romanian.</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
+        {session.cards.map((card, index) => (
+          <div key={card.title} onClick={() => setOpenIndex(index)} style={{ border: `1px solid ${openIndex === index ? session.accent : "#1a3a2a"}`, background: openIndex === index ? `${session.accent}08` : "#0d1510", padding: "16px", cursor: "pointer", transition: "all 0.2s" }}>
+            <div style={{ color: session.accent, fontSize: "18px", fontWeight: "bold", marginBottom: "10px" }}>{card.title}</div>
+            <ul style={{ paddingLeft: "18px", color: "#a0c0b0", lineHeight: "1.6", marginBottom: "12px" }}>
+              {card.points.map(point => <li key={point}>{point}</li>)}
+            </ul>
+            {openIndex === index && (
+              <div>
+                <div style={{ color: "#558866", fontSize: "13px", letterSpacing: "1px", marginBottom: "6px" }}>KEY EXAMPLES</div>
+                {card.code.map(line => (
+                  <div key={line} style={{ background: "#040810", border: "1px solid #1a2a1a", padding: "4px 8px", fontSize: "13px", color: "#88ffaa", marginBottom: "4px", fontFamily: "monospace" }}>{line}</div>
+                ))}
+                {card.links && card.links.length > 0 && (
+                  <div style={{ marginTop: "12px" }}>
+                    <div style={{ color: "#558866", fontSize: "13px", letterSpacing: "1px", marginBottom: "6px" }}>VISUAL AIDS</div>
+                    {card.links.map(link => (
+                      <a
+                        key={link.href}
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          display: "inline-block",
+                          border: `1px solid ${session.accent}`,
+                          color: session.accent,
+                          textDecoration: "none",
+                          padding: "6px 10px",
+                          marginRight: "8px",
+                          marginBottom: "6px",
+                          fontSize: "13px"
+                        }}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeworkView({ hw }) {
+  const [checked, setChecked] = useState({});
+
+  useEffect(() => {
+    setChecked({});
+  }, [hw.title]);
+
+  const toggle = item => setChecked(current => ({ ...current, [item]: !current[item] }));
+  const done = hw.review ? hw.review.filter(item => checked[item]).length : 0;
+
+  return (
+    <div style={{ padding: "24px", maxWidth: "860px", margin: "0 auto" }}>
+      <div style={{ color: hw.accent, fontSize: "18px", letterSpacing: "2px", marginBottom: "8px" }}>{hw.title}</div>
+      <div style={{ color: "#c0a0d8", background: "#100a18", border: "1px solid #2a1a3a", padding: "14px", lineHeight: "1.7", marginBottom: "18px" }}>{hw.intro}</div>
+      <div style={{ border: `1px solid ${hw.accent}44`, background: "#0d0a14", padding: "18px", marginBottom: "18px" }}>
+        {hw.steps.map((step, index) => (
+          <div key={step} style={{ marginBottom: "12px", color: "#a0c0b0", lineHeight: "1.6" }}>
+            <span style={{ color: hw.accent, fontWeight: "bold", marginRight: "8px" }}>{`${index + 1}.`}</span>
+            {step}
+          </div>
+        ))}
+      </div>
+      {hw.deliverables && hw.deliverables.length > 0 && (
+        <div style={{ border: "1px solid #3a2a1a", padding: "16px", background: "#120d08", marginBottom: "18px" }}>
+          <div style={{ color: "#c79f6e", fontSize: "14px", letterSpacing: "2px", marginBottom: "10px" }}>DELIVERABLES</div>
+          {hw.deliverables.map(item => (
+            <div key={item} style={{ marginBottom: "10px", color: "#d8c0a0", lineHeight: "1.6" }}>{item}</div>
+          ))}
+        </div>
+      )}
+      {hw.review && hw.review.length > 0 && (
+        <div style={{ border: "1px solid #1a3a2a", background: "#0d0f0a", padding: "16px", marginBottom: "18px" }}>
+          <div style={{ color: "#558866", fontSize: "14px", letterSpacing: "2px", marginBottom: "6px" }}>INTEGRATED REVIEW CHECKLIST</div>
+          <div style={{ color: "#558866", fontSize: "13px", marginBottom: "12px" }}>{`${done}/${hw.review.length} checks marked`}</div>
+          {hw.review.map(item => (
+            <div key={item} onClick={() => toggle(item)} style={{ display: "flex", gap: "12px", alignItems: "flex-start", padding: "8px", cursor: "pointer", background: checked[item] ? "#00ff8808" : "transparent" }}>
+              <div style={{ width: "16px", height: "16px", minWidth: "16px", border: "1px solid #00ff88", background: checked[item] ? "#00ff88" : "transparent", marginTop: "2px" }} />
+              <div style={{ color: checked[item] ? "#558866" : "#a0c0b0", textDecoration: checked[item] ? "line-through" : "none", lineHeight: "1.6" }}>{item}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {hw.cheat && hw.cheat.length > 0 && (
+        <div style={{ border: "1px solid #1a3a2a", padding: "16px", background: "#050a08" }}>
+          <div style={{ color: "#558866", fontSize: "14px", letterSpacing: "2px", marginBottom: "10px" }}>CHEAT SHEET</div>
+          {hw.cheat.map(line => (
+            <div key={line} style={{ background: "#040810", padding: "4px 8px", fontSize: "13px", color: "#66cc88", fontFamily: "monospace", marginBottom: "4px" }}>{line}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [tab, setTab] = useState("s1");
+  const tabs = [["s1", "S1"], ["s2", "S2"], ["s3", "S3"], ["s4", "S4"], ["s5", "S5"], ["s6", "S6"], ["s7", "S7"], ["s8", "S8"], ["s9", "S9"], ["s10", "S10"], ["hw2", "HW2"], ["hw3", "HW3"], ["hw4", "HW4"], ["hw6", "HW6"], ["hw9", "HW9"]];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#0a0d12", fontFamily: "'Courier New', monospace", color: "#c8d8e8" }}>
+      <div style={{ borderBottom: "1px solid #1e3a2a", padding: "14px 24px", display: "flex", alignItems: "center", gap: "12px", background: "linear-gradient(90deg,#0a0d12,#0d1a10)", flexWrap: "wrap" }}>
+        <div style={{ color: "#00ff88", fontSize: "28px", fontWeight: "bold", letterSpacing: "3px" }}>QA::AUTOMATION</div>
+        <div style={{ color: "#2a4a35" }}>|</div>
+        <div style={{ color: "#558866", fontSize: "16px", letterSpacing: "2px" }}>SESSIONS 1-10</div>
+        <div style={{ marginLeft: "auto", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {tabs.map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} style={{ background: tab === id ? "#00ff88" : "transparent", color: tab === id ? "#0a0d12" : "#00ff88", border: "1px solid #00ff88", padding: "5px 12px", fontSize: "14px", letterSpacing: "1px", cursor: "pointer", fontFamily: "inherit", fontWeight: tab === id ? "bold" : "normal" }}>{`[ ${label} ]`}</button>
+          ))}
+        </div>
+      </div>
+      {tab.startsWith("s") && <SessionView session={SESSIONS[tab]} />}
+      {tab.startsWith("hw") && <HomeworkView hw={HOMEWORK[tab]} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

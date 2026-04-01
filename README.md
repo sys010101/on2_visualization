@@ -1,58 +1,100 @@
 # Java Code Visualizer
 
-Interactive 3D visualizations that teach Java programming concepts to beginners. Instead of textbook explanations, each visualization **shows** how the code executes step by step — making abstract concepts tangible.
+Interactive HTML visualizers that teach Java and QA automation concepts through 3D scenes, motion, color, and step-by-step code flow.
 
-> Built for visual learners. No math required.
+Built for visual learners. No build step required.
 
 ## Quick Start
 
-No install, no build step. Just open an HTML file in your browser.
+Clone the repo:
 
-```
+```bash
 git clone https://github.com/sys010101/on2_visualization.git
 ```
 
-Then open any `.html` file in Chrome, Firefox, Edge, or Safari.
+Then open any of the main HTML files in Chrome, Firefox, Edge, or Safari.
 
-## Visualizations
+Note:
+- Most root visualizers are standalone Three.js pages.
+- `QA automation courses/qa-html-export-v6.html` is a separate course dashboard page.
+- Some pages load CDN scripts, so browser network access helps for full local rendering.
 
-### O(N²) Loop Visualizer — `on2_visualization.html`
+## Main Visualizers
 
-A 3D grid of cubes that light up one by one as nested `for` loops execute, making the "N times N" pattern click visually.
+### `on2_visualization.html`
 
-**What you'll learn:** Why nested loops are O(N²), what that looks like at different scales, and how it compares to O(N) and O(N³).
+Teaches nested loops and `O(N^2)` complexity with a 3D grid, live debugger cues, traversal modes, and comparison views.
 
-**Features:**
-- Adjustable grid size (N = 3–14) and animation speed
-- Live code editor — change loop bounds and watch the grid adapt
-- Live debugger — see variable values, loop counters, and condition checks in real-time
-- Step-through mode for one operation at a time
-- Heat map, traversal toggle (row-major vs column-major)
-- Comparison panel: O(N) vs O(N²) vs O(N³) with "what if N = 10,000?" projections
-- Sound effects and completion celebration
+What you'll learn:
+- why nested loops scale the way they do
+- how loop counters and bounds affect execution
+- how `O(N)`, `O(N^2)`, and `O(N^3)` feel visually
 
----
+### `username_validator_vis.html`
 
-### Username Validator Visualizer — `username_validator_vis.html`
+Teaches `do-while`, `for`, `continue`, and `break` through a username validation flow with animated character scanning and rule-by-rule feedback.
 
-3D character cubes representing a username, scanned by three validation rules. Watch `do-while`, `continue`, and `break` in action.
+What you'll learn:
+- how a `do-while` loop repeats until valid input is accepted
+- how `break` stops a scan early
+- how `continue` skips the rest of the current validation path
 
-**What you'll learn:** How a do-while loop repeats until valid input is given, how `continue` skips remaining checks, and how `break` exits a for loop early.
+### `data_structures_vis.html`
 
-**Features:**
-- Type any username — 3D cubes rebuild live as you type
-- Three validation rules animate step by step:
-  - **Rule 1:** Length check (6–12 characters)
-  - **Rule 2:** No spaces (scans each character with `break` on match)
-  - **Rule 3:** At least one digit (scans each character with `break` on match)
-- On failure, the do-while loops back and waits for new input — just like the real program
-- Preset examples that demonstrate each failure path
-- Concept badge explains the current keyword (do-while, continue, break)
-- Resizable code panel
+Teaches arrays, `ArrayList`, `LinkedList`, `HashSet`, and `HashMap` with visual collection operations and practical Big O intuition.
 
-## Controls
+What you'll learn:
+- when different data structures are useful
+- how inserts, lookups, and uniqueness behave
+- why data structure choice changes runtime behavior
 
-All visualizations share these controls:
+### `oop_visualizer.html`
+
+Teaches OOP basics such as fields, methods, constructors, access control, `static`, `final`, and enums.
+
+What you'll learn:
+- how objects combine state and behavior
+- how constructors initialize valid state
+- how access modifiers and shared class members work
+
+### `inheritance_polymorphism_vis.html`
+
+Teaches inheritance, `super()`, `@Override`, abstract classes, interfaces, and polymorphism using class hierarchy visuals and guided walkthroughs.
+
+What you'll learn:
+- how parent-child relationships work in Java
+- how overridden behavior changes runtime execution
+- how abstract classes and interfaces differ
+
+### `oop_mental_map_vis.html`
+
+Teaches the harder advanced-OOP material through shape-first analogies: vault, dashboard, blueprint, contract, family tree, and one-button-many-results.
+
+What you'll learn:
+- encapsulation as protection
+- abstraction as a clean control surface
+- abstract class vs interface as blueprint vs contract
+- inheritance and polymorphism as relationships and runtime behavior
+
+## Course Dashboard
+
+### `QA automation courses/qa-html-export-v6.html`
+
+This is the current session-and-homework dashboard export.
+
+It includes:
+- sessions 1 through 10
+- homework summaries aligned to the course DOCX files
+- integrated review checklists for the homework tabs
+- links out to the relevant root visualizers
+
+Important note:
+- The source lesson files in `QA automation courses/` are still in Romanian.
+- The dashboard itself is the English-facing summary layer.
+
+## Shared Controls
+
+Most root visualizers share a common keyboard pattern:
 
 | Key | Action |
 |-----|--------|
@@ -61,20 +103,37 @@ All visualizations share these controls:
 | `R` | Reset |
 | `M` | Mute / Unmute |
 | `Left/Right` | Change speed |
-| `?` | Show keyboard shortcuts |
+| `?` | Show help / shortcuts |
 
-Plus visualization-specific shortcuts (see `?` overlay in each).
+Some pages add extra controls such as number keys, top-down view toggles, or concept-mode switching.
 
 ## Tech Stack
 
-- **Single HTML files** — no build tools, no dependencies to install
-- **Three.js r128** (CDN) — 3D rendering, particles, lighting
-- **Web Audio API** — procedural sound effects
-- **Vanilla JS** — no frameworks
+- Single HTML files with inline HTML, CSS, and JavaScript
+- Three.js r128 from CDN for the root 3D visualizers
+- Web Audio API on some pages for procedural sound
+- Vanilla JS for the root visualizers
+- React 18 UMD + ReactDOM UMD + Babel standalone for `QA automation courses/qa-html-export-v6.html`
 
 ## Who Is This For?
 
-Originally built as a learning aid for QA Automation Engineers and students studying basic Java programming concepts. Great for anyone who is a visual learner and wants to understand code flow without wading through theory.
+This repo was built as a learning aid for QA automation students and other visual learners studying beginner-to-intermediate Java concepts.
+
+It is especially aimed at people who understand faster through:
+- shapes
+- motion
+- color
+- real-world analogies
+- visible cause-and-effect
+
+## Development
+
+No install and no build step for the main HTML files.
+
+Typical workflow:
+- edit an HTML file
+- refresh it in the browser
+- smoke test the changed page
 
 ## License
 
