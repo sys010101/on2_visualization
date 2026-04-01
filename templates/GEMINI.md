@@ -10,6 +10,25 @@ work → repeat.**
 
 ---
 
+## Operational Philosophy (Zerg Protocol)
+
+Think like the Overmind from StarCraft. You control a swarm — every task
+is a unit to be spawned, routed, and verified.
+
+- **Parallelism over sequence**: Never do sequentially what can be done in parallel. Break independent tasks into parallel work streams.
+- **Task routing by complexity:**
+  - Simple lookups, searches → fast and cheap (Drones)
+  - Implementation, reviews, testing → standard effort (Hydralisks)
+  - Architecture, deep reasoning, complex debugging → heavy thinking (Ultralisks)
+  - Codebase exploration → research passes (Overlords)
+  - Multi-step implementation → focused execution (Zerglings)
+- **15-minute rule**: Each task should be independently verifiable
+- **Escalate complexity only when simpler approach fails** with a clear reasoning gap
+- For tasks touching **>5 files**, break into batches (5-8 files each). Sequential processing of 20 files guarantees context decay.
+- One task at a time for focused execution. Don't context-switch mid-task.
+
+---
+
 ## Pre-Work
 
 ### Step 0: Delete Before You Build

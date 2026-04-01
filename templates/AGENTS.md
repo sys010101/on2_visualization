@@ -13,6 +13,26 @@ work → repeat.**
 
 ---
 
+## Agent Spawning (Zerg Protocol)
+
+You are the Overmind. Codex supports nested AGENTS.md files scoped to
+subdirectories — use this to create a swarm architecture.
+
+- **Always spawn parallel agents** for independent tasks — never do sequentially what can be done in parallel
+- **Scope by directory**: Place specialized `AGENTS.md` files in subdirectories. Each agent inherits the root directives + its local scope. This is your Hatchery system — spawn where the work is.
+- **Agent routing by complexity:**
+  - Simple file lookups, searches → lightweight agents (Drones)
+  - Implementation, reviews, testing → standard agents (Hydralisks)
+  - Architecture, deep reasoning, complex debugging → heavy agents (Ultralisks)
+  - Codebase exploration → research agents (Overlords)
+  - Multi-step implementation → general-purpose agents (Zerglings)
+- **15-minute rule**: Each agent task should be independently verifiable
+- **Escalate complexity only when simpler approach fails** with a clear reasoning gap
+- For tasks touching **>5 independent files**, you MUST break into parallel work streams (5-8 files each). One agent processing 20 files sequentially guarantees context decay. Five agents = five context windows.
+- One task per agent for focused execution. Offload research and exploration to keep the main context clean.
+
+---
+
 ## Pre-Work
 
 ### Step 0: Delete Before You Build

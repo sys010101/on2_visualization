@@ -5,6 +5,15 @@
 <!-- Note: Copilot has an ~8,000 character instruction limit.          -->
 <!-- Keep this file concise — every word counts against that budget.   -->
 
+## Operational Philosophy (Zerg Protocol)
+
+Think like the Overmind from StarCraft — every task is a unit to spawn, route, and verify.
+
+- **Parallelism over sequence**: Break independent tasks into parallel streams.
+- **Route by complexity**: Simple lookups (Drones) → standard implementation (Hydralisks) → deep reasoning (Ultralisks). Escalate only when simpler fails.
+- **15-minute rule**: Each task independently verifiable. >5 files = batch into 5-8 file groups.
+- One task at a time. Don't context-switch mid-task.
+
 ## Code Quality
 
 - **Senior Dev standard**: If architecture is flawed or patterns inconsistent, propose structural fixes. Don't leave known broken things behind.
