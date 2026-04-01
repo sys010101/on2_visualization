@@ -325,7 +325,6 @@ let playing = false;
 let playTimer = null;
 let stepQueue = [];
 let stepIndex = 0;
-let animating = false;
 
 // 3D objects tracking
 let dsMeshes = [];        // all meshes for current DS
@@ -1180,6 +1179,7 @@ function renderOpButtons() {
 // ═══════════════════════════════════════
 // NARRATION
 // ═══════════════════════════════════════
+function escHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setNarration(html) {
   const el = document.getElementById('narr-text');
   if (el) el.innerHTML = html;
@@ -1226,6 +1226,8 @@ const OP_NARRATIONS = {
 function runOp(opIndex) {
   const ops = DS_OPS[currentDS];
   if (!ops[opIndex]) return;
+  // Prevent overwriting a running operation — finish current first
+  if (stepQueue.length > 0 && stepIndex < stepQueue.length) return;
   stepQueue = ops[opIndex].fn();
   stepIndex = 0;
   // Narrate

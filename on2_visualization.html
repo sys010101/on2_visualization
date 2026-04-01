@@ -702,6 +702,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 // ==============================================================
 function el(id){ return document.getElementById(id); }
 function setText(id, v){ var e=el(id); if(e) e.textContent=v; }
+function escHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setHTML(id, v){ var e=el(id); if(e) e.innerHTML=v; }
 function setStyle(id, prop, v){ var e=el(id); if(e) e.style[prop]=v; }
 function toggleClass(id, cls, on){ var e=el(id); if(e) e.classList.toggle(cls,on); }
@@ -2560,11 +2561,16 @@ function renderQuiz(){
   el('gp-quiz-q').textContent = d.q;
   el('gp-quiz-explain').textContent = '';
   el('gp-quiz-next').style.display = 'none';
-  var html = '';
+  var container = el('gp-quiz-opts');
+  container.innerHTML = '';
   for(var i=0; i<d.opts.length; i++){
-    html += '<button class="gp-quiz-opt" onclick="answerQuiz('+i+')">' + String.fromCharCode(65+i) + '. ' + d.opts[i] + '</button>';
+    var btn = document.createElement('button');
+    btn.className = 'gp-quiz-opt';
+    btn.textContent = String.fromCharCode(65+i) + '. ' + d.opts[i];
+    btn.setAttribute('data-idx', i);
+    btn.onclick = (function(idx){ return function(){ answerQuiz(idx); }; })(i);
+    container.appendChild(btn);
   }
-  el('gp-quiz-opts').innerHTML = html;
 }
 
 function answerQuiz(idx){
@@ -2607,19 +2613,23 @@ var challengeBank = [
 function newChallenge(){
   var idx = Math.floor(Math.random() * challengeBank.length);
   currentChallenge = challengeBank[idx];
-  el('gp-chal-desc').innerHTML = currentChallenge.desc;
-  el('gp-chal-status').innerHTML = '';
+  el('gp-chal-desc').textContent = currentChallenge.desc;
+  el('gp-chal-status').textContent = '';
 }
 
 function checkChallenge(){
   if(!currentChallenge){ newChallenge(); return; }
   if(currentChallenge.check()){
-    el('gp-chal-status').innerHTML = '<span style="color:#39ff14;font-weight:700">CHALLENGE COMPLETE! +75 pts</span>';
+    el('gp-chal-status').textContent = 'CHALLENGE COMPLETE! +75 pts';
+    el('gp-chal-status').style.color = '#39ff14';
+    el('gp-chal-status').style.fontWeight = '700';
     addScore(75);
     checkAchievement('challenger');
     setTimeout(newChallenge, 2500);
   } else {
-    el('gp-chal-status').innerHTML = '<span style="color:#ff6b35">Not quite. Hint: ' + currentChallenge.hint + '</span>';
+    el('gp-chal-status').textContent = 'Not quite. Hint: ' + currentChallenge.hint;
+    el('gp-chal-status').style.color = '#ff6b35';
+    el('gp-chal-status').style.fontWeight = '';
   }
 }
 
@@ -2884,11 +2894,16 @@ function nextBossQuestion(){
   bossQuizIdx = idx;
   var q = pool[idx];
   el('boss-q').textContent = q.q;
-  var html = '';
+  var bossContainer = el('boss-opts');
+  bossContainer.innerHTML = '';
   for(var i=0; i<q.opts.length; i++){
-    html += '<button class="gp-quiz-opt" onclick="bossAnswer('+i+')">' + String.fromCharCode(65+i) + '. ' + q.opts[i] + '</button>';
+    var btn = document.createElement('button');
+    btn.className = 'gp-quiz-opt';
+    btn.textContent = String.fromCharCode(65+i) + '. ' + q.opts[i];
+    btn.setAttribute('data-idx', i);
+    btn.onclick = (function(idx){ return function(){ bossAnswer(idx); }; })(i);
+    bossContainer.appendChild(btn);
   }
-  el('boss-opts').innerHTML = html;
   el('boss-explain').textContent = '';
 }
 

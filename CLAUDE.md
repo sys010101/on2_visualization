@@ -215,6 +215,9 @@ Built as standalone HTML files using Three.js (r128) — no build step, no depen
 |------|---------|-------------|
 | `on2_visualization.html` | O(N²) nested loops | 3D NxN grid of cubes that light up as nested `for` loops run |
 | `username_validator_vis.html` | do-while / continue / break | 3D character cubes scanned by sequential validation rules |
+| `data_structures_vis.html` | Arrays, ArrayList, LinkedList, HashSet, HashMap | 3D cubes representing collection operations with step-through |
+| `oop_visualizer.html` | Fields, Methods, Constructors, Overloading, Enum | 3D class/object visualization with walkthrough narration |
+| `inheritance_polymorphism_vis.html` | Inheritance, @Override, super(), Polymorphism, abstract, interface | 3D class hierarchy with parent→child relationships and runtime dispatch |
 
 ## Target Audience
 
@@ -307,6 +310,35 @@ Expression evaluation uses a **safe recursive-descent parser** (`safeEvalBound()
 | `Enter` | Start validation (when input focused) |
 | `?` | Help overlay |
 
+## Inheritance & Polymorphism Visualizer (`inheritance_polymorphism_vis.html`)
+
+### Concepts Taught
+- **Inheritance** — `extends` keyword, child inherits all parent fields/methods
+- **@Override** — child replaces parent's method, annotation catches typos
+- **super()** — constructor chaining, parent constructor runs first
+- **Polymorphism** — one variable type (Animal), many runtime behaviors (Cat/Dog/Bird)
+- **abstract** — incomplete class, forces children to implement abstract methods
+- **interface** — pure contract, unrelated classes share behavior
+
+### Features
+- 6 interactive modes with 3D scene builders
+- Guided walkthrough narration for each concept (Play/Step)
+- Analogies panel with real-world metaphors
+- Code panel with syntax highlighting and execution pointer
+- Flash animations on mesh interaction
+- Arrow/line connections showing class relationships
+
+### Keyboard Shortcuts
+| Key | Action |
+|-----|--------|
+| `Space` | Play / Pause |
+| `S` | Step forward |
+| `R` | Reset |
+| `M` | Mute / Unmute |
+| `1-6` | Switch concept |
+| `Left/Right` | Change speed |
+| `?` | Help overlay |
+
 <!-- ============================================================ -->
 <!-- TECHNICAL NOTES                                              -->
 <!-- Performance rules and known issues. Important for Claude to  -->
@@ -337,6 +369,18 @@ To test: open any visualization file in a modern browser (Chrome, Firefox, Edge,
 <!-- ============================================================ -->
 
 ## Changelog
+
+### v5.0 (2026-04-01)
+- **New visualization**: Inheritance & Polymorphism (`inheritance_polymorphism_vis.html`)
+  - 6 interactive modes: Inheritance, @Override, super(), Polymorphism, abstract, interface
+  - 3D class hierarchy with parent→child boxes, extends/implements arrows
+  - Animal/Cat/Dog/Bird/Robot example classes for intuitive learning
+  - Guided walkthrough narration for each concept (Play/Step)
+  - Analogies panel with real-world metaphors for every concept
+  - Code panel with syntax highlighting and execution pointer
+  - Keyboard shortcuts, speed control, Web Audio sound effects
+- **Security fixes**: Added `escHTML()` to all 4 existing visualizers, replaced innerHTML with safe DOM creation
+- **Bug fixes**: Removed dead code, fixed race condition in data_structures step queue, extracted toggleMute()
 
 ### v4.0 (2026-03-29)
 - **New visualization**: Username Validator (`username_validator_vis.html`)

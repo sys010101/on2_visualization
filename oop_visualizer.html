@@ -998,6 +998,7 @@ const WALK = {
   ],
 };
 
+function escHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setNarration(html) {
   document.getElementById('narr-text').innerHTML = html;
 }
@@ -1036,7 +1037,7 @@ function startPlaying() {
 
 function stopPlaying() {
   playing = false;
-  if (playTimer) { clearInterval(playTimer); clearTimeout(playTimer); playTimer = null; }
+  if (playTimer) { clearTimeout(playTimer); playTimer = null; }
   const btn = document.getElementById('btn-play');
   btn.textContent = '▶ PLAY'; btn.classList.remove('on');
 }
@@ -1064,15 +1065,16 @@ document.getElementById('btn-play').onclick = () => { initAudio(); togglePlay();
 document.getElementById('btn-step').onclick = () => { initAudio(); stepForward(); };
 document.getElementById('btn-reset').onclick = () => { stopPlaying(); switchMode(currentMode); };
 document.getElementById('sl-speed').addEventListener('input', e => {
-  walkSpeed = parseInt(e.target.value);
+  walkSpeed = parseInt(e.target.value, 10);
   document.getElementById('speed-val').textContent = walkSpeed;
 });
-document.getElementById('btn-mute').onclick = () => {
+function toggleMute(){
   muted = !muted;
   const el = document.getElementById('btn-mute');
   el.classList.toggle('muted', muted);
   el.textContent = muted ? 'MUTED' : 'SND';
-};
+}
+document.getElementById('btn-mute').onclick = toggleMute;
 document.getElementById('btn-help').onclick = () => document.getElementById('info-overlay').classList.toggle('show');
 
 document.addEventListener('keydown', e => {
@@ -1081,9 +1083,7 @@ document.addEventListener('keydown', e => {
     case ' ': e.preventDefault(); initAudio(); togglePlay(); break;
     case 's': case 'S': initAudio(); stepForward(); break;
     case 'r': case 'R': stopPlaying(); switchMode(currentMode); break;
-    case 'm': case 'M':
-      muted = !muted; document.getElementById('btn-mute').classList.toggle('muted',muted);
-      document.getElementById('btn-mute').textContent = muted ? 'MUTED' : 'SND'; break;
+    case 'm': case 'M': toggleMute(); break;
     case '?': document.getElementById('info-overlay').classList.toggle('show'); break;
     case '1': stopPlaying(); switchMode('fields'); break;
     case '2': stopPlaying(); switchMode('access'); break;

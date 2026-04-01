@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Java Inheritance &amp; Polymorphism — 3D Visualizer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Orbitron:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#020408;font-family:'JetBrains Mono',monospace;color:#e0f0ff;overflow:hidden;touch-action:none}
+#cv{position:fixed;inset:0}
+
+#tb{position:fixed;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,rgba(0,10,30,.96),rgba(0,20,50,.88));border-bottom:1px solid rgba(0,180,255,.25);display:flex;align-items:center;justify-content:space-between;padding:0 14px;backdrop-filter:blur(12px);z-index:300}
+#tb h1{font-family:'Orbitron',sans-serif;font-size:clamp(11px,2.3vw,17px);font-weight:900;color:#00d4ff;text-shadow:0 0 20px rgba(0,212,255,.6);letter-spacing:2px}
+.sub{font-size:10px;color:rgba(0,212,255,.42);letter-spacing:1px;margin-top:2px}
+#tb-hint{font-size:10px;color:rgba(200,230,255,.2);letter-spacing:1px}
+
+/* MODE SELECTOR */
+#mode-sel{position:fixed;top:60px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,8,22,.95);border:1px solid rgba(0,180,255,.2);border-radius:30px;padding:6px 12px;backdrop-filter:blur(16px);z-index:250;flex-wrap:wrap;justify-content:center;max-width:95vw}
+.mode-btn{background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(0,212,255,.6);font-family:'JetBrains Mono',monospace;font-size:10px;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.mode-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff}
+.mode-btn.active{background:rgba(0,212,255,.25);color:#fff;border-color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.3)}
+
+.panel{position:fixed;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+.ptitle{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:rgba(0,212,255,.55);margin-bottom:11px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+
+/* EXPLANATION PANEL */
+#explain{left:10px;top:110px;width:260px;max-height:calc(100vh - 200px);overflow-y:auto}
+#explain-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#ffd700;margin-bottom:8px}
+#explain-text{font-size:11px;color:rgba(200,230,255,.65);line-height:1.7}
+#explain-text strong{color:#00d4ff}
+#explain-text em{color:#39ff14;font-style:normal;font-weight:700}
+#explain-text .warn{color:#ff6644}
+#explain-text .key{color:#ffd700;font-weight:700}
+.analogy{margin-top:10px;padding:10px;border:1px solid rgba(138,43,226,.3);border-radius:8px;background:rgba(138,43,226,.06)}
+.analogy-label{font-size:9px;letter-spacing:2px;color:#8a2be2;margin-bottom:4px}
+.analogy-text{font-size:11px;color:rgba(200,180,255,.7);line-height:1.6}
+
+/* ACTION BUTTONS */
+#actions{left:10px;bottom:80px;width:260px}
+.act-btn{display:block;width:100%;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);color:rgba(200,230,255,.7);font-family:'JetBrains Mono',monospace;font-size:11px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px;margin-bottom:5px;text-align:left}
+.act-btn:hover{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.4)}
+.act-btn.running{background:rgba(255,215,0,.12);border-color:rgba(255,215,0,.5);color:#ffd700}
+
+/* CODE PANEL */
+#cp{right:10px;top:110px;width:min(440px,45vw);height:calc(100vh - 190px);overflow-y:auto;min-width:200px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(0,180,255,.12);padding-bottom:7px}
+.ch .ptitle{margin-bottom:0;border:none;padding:0}
+#cd{font-size:11px;line-height:1.5;white-space:pre;overflow-x:auto}
+.kw{color:#569cd6}.fn{color:#dcdcaa}.nu{color:#b5cea8}.cm{color:rgba(140,170,140,.5);font-style:italic}.vr{color:#9cdcfe}.str{color:#ce9178}.tp{color:#4ec9b0}.an{color:#d7ba7d}
+
+.cl{display:block;padding:1px 4px;border-left:3px solid transparent;border-radius:2px;transition:background .15s,border-color .15s}
+.cl-active{background:rgba(255,215,0,.12);border-left-color:rgba(255,215,0,.7)}
+.cl-exec{background:rgba(57,255,20,.10);border-left-color:#39ff14}
+.cl-fail{background:rgba(255,60,60,.12);border-left-color:rgba(255,80,80,.6)}
+.annot{font-size:10px;font-style:italic;margin-left:6px;letter-spacing:0}
+.annot-var{color:#ffd700}
+.annot-ok{color:#39ff14;font-weight:700}
+.annot-fail{color:#ff5555;font-weight:700}
+.exec-ptr{color:#39ff14;font-weight:900;margin-right:2px;text-shadow:0 0 8px rgba(57,255,20,.6)}
+
+/* CONTROLS */
+#ctrl{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:rgba(0,8,22,.93);border:1px solid rgba(0,180,255,.2);border-radius:50px;padding:9px 18px;backdrop-filter:blur(16px);z-index:200}
+.cb{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 13px;border-radius:20px;cursor:pointer;transition:all .2s;letter-spacing:1px;white-space:nowrap}
+.cb:hover{background:rgba(0,212,255,.22);box-shadow:0 0 12px rgba(0,212,255,.3)}
+.cb.on{background:rgba(0,212,255,.28);box-shadow:0 0 18px rgba(0,212,255,.5)}
+.cb.muted{opacity:0.4}
+.cs{width:1px;height:22px;background:rgba(0,180,255,.2)}
+
+/* FLOW INDICATOR */
+#flow-ind{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;z-index:160;opacity:0;transition:opacity .4s;pointer-events:none;text-align:center;padding:8px 20px;background:rgba(0,8,22,.85);border-radius:20px;border:1px solid rgba(0,180,255,.2)}
+#flow-ind.show{opacity:1}
+
+/* CONCEPT BADGE */
+#cx-badge{position:fixed;right:10px;bottom:14px;background:rgba(0,8,22,.9);border:1px solid rgba(138,43,226,.35);border-radius:10px;padding:10px 16px;text-align:center;z-index:150;backdrop-filter:blur(16px)}
+.cx-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1px}
+.cx-sub{font-size:9px;letter-spacing:1px;margin-top:2px}
+
+/* NARRATION PANEL */
+#narration{position:fixed;right:10px;top:110px;width:240px;max-height:280px;overflow-y:auto;background:rgba(0,8,22,.93);border:1px solid rgba(57,255,20,.25);border-radius:12px;padding:14px;backdrop-filter:blur(16px);z-index:150}
+#narr-text{font-size:12px;color:rgba(200,230,255,.75);line-height:1.8}
+#narr-text strong{color:#ffd700}
+#narr-text .narr-step{color:#39ff14;font-weight:700}
+#narr-text .narr-warn{color:#ff4444;font-weight:700}
+
+/* INFO OVERLAY */
+#info-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,8,22,.97);border:1px solid rgba(0,180,255,.3);border-radius:16px;padding:28px 32px;backdrop-filter:blur(20px);z-index:500;opacity:0;pointer-events:none;transition:opacity .3s;width:min(560px,90vw);max-height:80vh;overflow-y:auto}
+#info-overlay.show{opacity:1;pointer-events:auto}
+#info-overlay h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:3px;color:#00d4ff;margin-bottom:14px;text-align:center}
+#info-overlay p{font-size:11px;color:rgba(200,230,255,.6);line-height:1.7;margin-bottom:6px}
+.info-feat{display:flex;gap:8px;align-items:baseline;margin-bottom:5px}
+.info-key{color:#00d4ff;font-weight:700;min-width:100px;flex-shrink:0;font-size:11px}
+.info-desc{color:rgba(200,230,255,.55);font-size:11px}
+#info-overlay h4{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:#ffd700;margin:14px 0 6px}
+#info-overlay .info-close{text-align:center;margin-top:16px}
+#info-overlay .info-close button{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 20px;border-radius:20px;cursor:pointer;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<canvas id="cv"></canvas>
+
+<div id="tb">
+  <div>
+    <h1>INHERITANCE &amp; POLYMORPHISM</h1>
+    <div class="sub">EXTENDS · OVERRIDE · SUPER · POLYMORPHISM · ABSTRACT · INTERFACE</div>
+  </div>
+  <div id="tb-hint">Press ? for help</div>
+</div>
+
+<div id="mode-sel">
+  <button class="mode-btn active" data-mode="inheritance">Inheritance</button>
+  <button class="mode-btn" data-mode="override">@Override</button>
+  <button class="mode-btn" data-mode="super">super()</button>
+  <button class="mode-btn" data-mode="polymorphism">Polymorphism</button>
+  <button class="mode-btn" data-mode="abstract">abstract</button>
+  <button class="mode-btn" data-mode="interface">interface</button>
+</div>
+
+<div class="panel" id="explain">
+  <div class="ptitle">CONCEPT</div>
+  <div id="explain-title"></div>
+  <div id="explain-text"></div>
+</div>
+
+<div class="panel" id="actions">
+  <div class="ptitle">TRY IT</div>
+  <div id="act-buttons"></div>
+</div>
+
+<div class="panel" id="cp">
+  <div class="ch"><div class="ptitle">JAVA CODE</div></div>
+  <div id="cd"></div>
+</div>
+
+<div id="ctrl">
+  <button class="cb" id="btn-play" title="Play/Pause (Space)">&#9654; PLAY</button>
+  <button class="cb" id="btn-step" title="Step (S)">STEP</button>
+  <button class="cb" id="btn-reset" title="Reset (R)">RESET</button>
+  <div class="cs"></div>
+  <span style="color:rgba(0,212,255,.4);font-size:9px;letter-spacing:1px">SPEED</span>
+  <input type="range" id="sl-speed" min="1" max="10" value="3" style="width:70px" title="Speed (Left/Right arrows)">
+  <span class="cb" id="speed-val" style="padding:4px 8px;cursor:default;min-width:20px;text-align:center">3</span>
+  <div class="cs"></div>
+  <button class="cb" id="btn-mute" title="Mute (M)">SND</button>
+  <button class="cb" id="btn-help" title="Help (?)">?</button>
+</div>
+
+<div id="narration">
+  <div class="ptitle">WHAT'S HAPPENING</div>
+  <div id="narr-text">Click <strong>&#9654; PLAY</strong> or press <strong>Space</strong> to start a guided walkthrough of this concept. Each step explains what's happening in the 3D scene.</div>
+</div>
+
+<div id="cx-badge">
+  <div class="cx-title" id="cx-text" style="color:#ff8800;text-shadow:0 0 12px rgba(255,136,0,.5)">INHERITANCE</div>
+  <div class="cx-sub" id="cx-sub" style="color:rgba(255,136,0,.5)">Parent → Child</div>
+</div>
+
+<div id="flow-ind"></div>
+
+<div id="info-overlay">
+  <h3>INHERITANCE &amp; POLYMORPHISM</h3>
+  <p>Interactive 3D visualization of Java Inheritance and Polymorphism. Watch classes extend parents, methods get overridden, and polymorphic calls resolve at runtime.</p>
+  <h4>CONCEPTS</h4>
+  <div class="info-feat"><span class="info-key">Inheritance</span><span class="info-desc">Child class inherits fields and methods from parent</span></div>
+  <div class="info-feat"><span class="info-key">@Override</span><span class="info-desc">Child replaces parent's method with its own version</span></div>
+  <div class="info-feat"><span class="info-key">super()</span><span class="info-desc">Child constructor calls parent constructor first</span></div>
+  <div class="info-feat"><span class="info-key">Polymorphism</span><span class="info-desc">One variable type, many actual behaviors at runtime</span></div>
+  <div class="info-feat"><span class="info-key">abstract</span><span class="info-desc">Incomplete class — forces children to implement methods</span></div>
+  <div class="info-feat"><span class="info-key">interface</span><span class="info-desc">Pure contract — defines WHAT, not HOW</span></div>
+  <h4>KEYBOARD SHORTCUTS</h4>
+  <div class="info-feat"><span class="info-key">Space</span><span class="info-desc">Play / Pause guided walkthrough</span></div>
+  <div class="info-feat"><span class="info-key">S</span><span class="info-desc">Step forward one narration step</span></div>
+  <div class="info-feat"><span class="info-key">R</span><span class="info-desc">Reset current scene</span></div>
+  <div class="info-feat"><span class="info-key">Left/Right</span><span class="info-desc">Change speed</span></div>
+  <div class="info-feat"><span class="info-key">1–6</span><span class="info-desc">Switch concept</span></div>
+  <div class="info-feat"><span class="info-key">M</span><span class="info-desc">Mute / Unmute</span></div>
+  <div class="info-feat"><span class="info-key">?</span><span class="info-desc">Toggle this help</span></div>
+  <div class="info-close"><button onclick="document.getElementById('info-overlay').classList.remove('show')">CLOSE</button></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════
+function escHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════════════════════════════
+// THREE.JS SCENE
+// ═══════════════════════════════════════
+var canvas = document.getElementById('cv');
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+var scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020408, 0.006);
+
+var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+var camTheta = 0.3, camPhi = 0.45, camDist = 24, camTarget = new THREE.Vector3(0, 2, 0);
+var isDragging = false, lastMX = 0, lastMY = 0;
+
+function updateCamera() {
+  camera.position.x = camTarget.x + camDist * Math.sin(camTheta) * Math.cos(camPhi);
+  camera.position.y = camTarget.y + camDist * Math.sin(camPhi);
+  camera.position.z = camTarget.z + camDist * Math.cos(camTheta) * Math.cos(camPhi);
+  camera.lookAt(camTarget);
+}
+updateCamera();
+
+// Lights
+scene.add(new THREE.AmbientLight(0x334466, 0.6));
+var dirLight = new THREE.DirectionalLight(0xffffff, 0.8); dirLight.position.set(10, 20, 10); scene.add(dirLight);
+var pt1 = new THREE.PointLight(0x00aaff, 0.5, 60); pt1.position.set(-8, 12, 5); scene.add(pt1);
+var pt2 = new THREE.PointLight(0xff6600, 0.3, 50); pt2.position.set(8, 5, -5); scene.add(pt2);
+
+// Stars
+(function() {
+  var geo = new THREE.BufferGeometry();
+  var n = 1000, pos = new Float32Array(n*3), col = new Float32Array(n*3);
+  var cs = [[1,1,1],[0.7,0.8,1],[1,0.9,0.7],[0.8,0.7,1]];
+  for (var i = 0; i < n; i++) {
+    var r = 200+Math.random()*500, th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
+    pos[i*3]=r*Math.sin(ph)*Math.cos(th); pos[i*3+1]=r*Math.sin(ph)*Math.sin(th); pos[i*3+2]=r*Math.cos(ph);
+    var c=cs[Math.floor(Math.random()*cs.length)], b=0.5+Math.random()*0.5;
+    col[i*3]=c[0]*b; col[i*3+1]=c[1]*b; col[i*3+2]=c[2]*b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({size:1.5,vertexColors:true,transparent:true,opacity:0.8,fog:false})));
+})();
+
+// Grid
+var grid = new THREE.GridHelper(30,30,0x0a2040,0x061530);
+grid.position.y = -0.01; grid.material.transparent = true; grid.material.opacity = 0.25;
+scene.add(grid);
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+var audioCtx = null, muted = false;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, type, vol) {
+  type = type || 'sine'; vol = vol || 0.06;
+  if (muted || !audioCtx) return;
+  var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + dur);
+}
+function sndExtend() { playTone(440,.12); setTimeout(function(){playTone(554,.1);},60); setTimeout(function(){playTone(659,.15);},120); }
+function sndOverride() { playTone(659,.1,'triangle'); setTimeout(function(){playTone(880,.12,'triangle');},70); }
+function sndSuper() { playTone(330,.15); setTimeout(function(){playTone(440,.12);},80); setTimeout(function(){playTone(554,.1);},160); }
+function sndPoly() { playTone(523,.08); setTimeout(function(){playTone(659,.08);},50); setTimeout(function(){playTone(784,.12);},100); }
+function sndBlock() { playTone(200,.2,'sawtooth',.04); setTimeout(function(){playTone(150,.25,'sawtooth',.03);},80); }
+function sndOk() { playTone(659,.12); setTimeout(function(){playTone(880,.15);},80); }
+
+// ═══════════════════════════════════════
+// TEXT SPRITES
+// ═══════════════════════════════════════
+function makeText(text, opts) {
+  opts = opts || {};
+  var fs = opts.fontSize || 26, color = opts.color || '#ffffff';
+  var cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+  ctx.font = 'bold ' + (fs*2) + 'px JetBrains Mono, monospace';
+  var tw = Math.max(256, Math.ceil(ctx.measureText(text).width + 40));
+  cv.width = tw; cv.height = 96;
+  ctx.font = 'bold ' + (fs*2) + 'px JetBrains Mono, monospace';
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, tw/2, 48);
+  var tex = new THREE.CanvasTexture(cv); tex.minFilter = THREE.LinearFilter;
+  var spr = new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,depthWrite:false}));
+  var aspect = tw / 96;
+  var baseScale = opts.scale || 2.5;
+  spr.scale.set(baseScale, baseScale/aspect, 1);
+  spr.renderOrder = 10;
+  return spr;
+}
+
+// ═══════════════════════════════════════
+// SCENE OBJECTS MANAGEMENT
+// ═══════════════════════════════════════
+var sceneMeshes = [];
+var objMeshes = {};
+
+function clearScene() {
+  sceneMeshes.forEach(function(obj) {
+    if (obj.children) obj.children.forEach(function(child) {
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+    });
+    if (obj.userData && obj.userData.edgeGeo) obj.userData.edgeGeo.dispose();
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) { if (obj.material.map) obj.material.map.dispose(); obj.material.dispose(); }
+    scene.remove(obj);
+  });
+  sceneMeshes = [];
+}
+
+function addToScene(obj) { scene.add(obj); sceneMeshes.push(obj); return obj; }
+
+function showFlow(text, color) {
+  color = color || '#ffd700';
+  var el = document.getElementById('flow-ind');
+  el.textContent = text; el.style.color = color; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+function setBadge(text, sub, color) {
+  color = color || '#ff8800';
+  document.getElementById('cx-text').textContent = text;
+  document.getElementById('cx-text').style.color = color;
+  document.getElementById('cx-text').style.textShadow = '0 0 12px ' + color;
+  document.getElementById('cx-sub').textContent = sub;
+  document.getElementById('cx-sub').style.color = color;
+}
+
+// ═══════════════════════════════════════
+// 3D OBJECT BUILDERS
+// ═══════════════════════════════════════
+function makeBox(w,h,d,color,x,y,z,opacity) {
+  if (opacity === undefined) opacity = 0.8;
+  var geo = new THREE.BoxGeometry(w,h,d);
+  var mat = new THREE.MeshPhongMaterial({color:color,transparent:true,opacity:opacity,depthWrite:opacity>0.5,emissive:new THREE.Color(color).multiplyScalar(0.1),shininess:60});
+  var mesh = new THREE.Mesh(geo,mat);
+  mesh.position.set(x,y,z);
+  mesh.renderOrder = opacity < 0.5 ? 0 : 2;
+  var edgeGeo = new THREE.EdgesGeometry(geo);
+  var edges = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({color:0x00aaff,transparent:true,opacity:0.25,depthWrite:false}));
+  edges.renderOrder = 3;
+  mesh.add(edges);
+  mesh.userData.baseY = y;
+  mesh.userData.edgeGeo = edgeGeo;
+  return addToScene(mesh);
+}
+
+function makeSphere(r,color,x,y,z) {
+  var geo = new THREE.SphereGeometry(r,16,16);
+  var mat = new THREE.MeshPhongMaterial({color:color,transparent:true,opacity:0.9,depthWrite:true,emissive:new THREE.Color(color).multiplyScalar(0.3)});
+  var mesh = new THREE.Mesh(geo,mat);
+  mesh.position.set(x,y,z);
+  mesh.renderOrder = 5;
+  mesh.userData.baseY = y;
+  return addToScene(mesh);
+}
+
+function addLabel(text,x,y,z,opts) {
+  var spr = makeText(text, opts);
+  spr.position.set(x,y,z);
+  return addToScene(spr);
+}
+
+function makeLine(x1,y1,z1,x2,y2,z2,color,opacity) {
+  color = color || 0xffd700; opacity = opacity || 0.6;
+  var geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,y1,z1), new THREE.Vector3(x2,y2,z2)]);
+  var line = new THREE.Line(geo, new THREE.LineBasicMaterial({color:color,transparent:true,opacity:opacity,depthWrite:false}));
+  return addToScene(line);
+}
+
+function makeArrow(x1,y1,z1,x2,y2,z2,color,opacity) {
+  makeLine(x1,y1,z1,x2,y2,z2,color,opacity);
+  // Arrowhead as small cone
+  var dx=x2-x1, dy=y2-y1, dz=z2-z1;
+  var len=Math.sqrt(dx*dx+dy*dy+dz*dz);
+  var geo = new THREE.ConeGeometry(0.15, 0.4, 6);
+  var mat = new THREE.MeshPhongMaterial({color:color||0xffd700,transparent:true,opacity:opacity||0.8,emissive:new THREE.Color(color||0xffd700).multiplyScalar(0.2)});
+  var cone = new THREE.Mesh(geo,mat);
+  cone.position.set(x2,y2,z2);
+  // Orient cone along direction
+  if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > Math.abs(dz)) {
+    if (dy < 0) cone.rotation.x = Math.PI;
+  } else {
+    cone.lookAt(new THREE.Vector3(x2+dx,y2+dy,z2+dz));
+    cone.rotation.x += Math.PI/2;
+  }
+  cone.userData.baseY = y2;
+  return addToScene(cone);
+}
+
+function flashMesh(mesh, color, dur) {
+  dur = dur || 600;
+  if (!mesh || !mesh.material) return;
+  var orig = mesh.material.color.getHex();
+  var origE = mesh.material.emissive ? mesh.material.emissive.getHex() : 0;
+  mesh.material.color.setHex(color);
+  if (mesh.material.emissive) mesh.material.emissive.setHex(new THREE.Color(color).multiplyScalar(0.4).getHex());
+  mesh.scale.set(1.1,1.1,1.1);
+  setTimeout(function() {
+    if (mesh.material) { mesh.material.color.setHex(orig); if (mesh.material.emissive) mesh.material.emissive.setHex(origE); }
+    mesh.scale.set(1,1,1);
+  }, dur);
+}
+
+// ═══════════════════════════════════════
+// MODE: INHERITANCE (extends)
+// ═══════════════════════════════════════
+function buildInheritanceMode() {
+  clearScene();
+  // Parent class — Animal (top)
+  var parent = makeBox(5, 2.5, 3, 0xff8800, 0, 5, 0, 0.35);
+  objMeshes.parent = parent;
+  addLabel('class Animal', 0, 6.8, 0, {color:'#ff8800',fontSize:24,scale:3.5});
+
+  // Parent fields
+  makeSphere(0.25, 0x2266aa, -1.2, 5.2, 0);
+  addLabel('name', -1.2, 4.5, 0, {color:'#ffd700',fontSize:20,scale:2});
+  makeSphere(0.25, 0x2266aa, 0.5, 5.2, 0);
+  addLabel('age', 0.5, 4.5, 0, {color:'#ffd700',fontSize:20,scale:1.6});
+
+  // Parent method
+  makeSphere(0.25, 0x226644, 1.8, 5.2, 0);
+  addLabel('speak()', 1.8, 4.5, 0, {color:'#39ff14',fontSize:20,scale:2.2});
+
+  // "extends" arrows down
+  makeArrow(- 2.5, 3.5, 0, -4, 2.8, 0, 0x39ff14, 0.7);
+  addLabel('extends', -3.8, 3.5, 0, {color:'#39ff14',fontSize:20,scale:2.2});
+
+  makeArrow(2.5, 3.5, 0, 4, 2.8, 0, 0x39ff14, 0.7);
+  addLabel('extends', 3.8, 3.5, 0, {color:'#39ff14',fontSize:20,scale:2.2});
+
+  // Child 1 — Cat
+  var cat = makeBox(3.5, 2, 2.5, 0x00aaff, -4, 1.5, 0, 0.5);
+  objMeshes.cat = cat;
+  addLabel('class Cat', -4, 3.0, 0, {color:'#00aaff',fontSize:22,scale:2.8});
+  makeSphere(0.2, 0x226644, -4.5, 1.5, 0);
+  addLabel('purr()', -4.5, 0.8, 0, {color:'#39ff14',fontSize:18,scale:2});
+
+  // Inherited fields shown faintly
+  addLabel('name ↑', -3.3, 1.5, 0, {color:'rgba(255,215,0,0.4)',fontSize:16,scale:2});
+  addLabel('age ↑', -3.3, 1.0, 0, {color:'rgba(255,215,0,0.4)',fontSize:16,scale:1.8});
+
+  // Child 2 — Dog
+  var dog = makeBox(3.5, 2, 2.5, 0x8a2be2, 4, 1.5, 0, 0.5);
+  objMeshes.dog = dog;
+  addLabel('class Dog', 4, 3.0, 0, {color:'#8a2be2',fontSize:22,scale:2.8});
+  makeSphere(0.2, 0x226644, 4.5, 1.5, 0);
+  addLabel('fetch()', 4.5, 0.8, 0, {color:'#39ff14',fontSize:18,scale:2});
+
+  addLabel('name ↑', 3.3, 1.5, 0, {color:'rgba(255,215,0,0.4)',fontSize:16,scale:2});
+  addLabel('age ↑', 3.3, 1.0, 0, {color:'rgba(255,215,0,0.4)',fontSize:16,scale:1.8});
+
+  addLabel('CHILD inherits ALL fields + methods from PARENT', 0, -0.8, 0, {color:'#558899',fontSize:20,scale:7});
+}
+
+// ═══════════════════════════════════════
+// MODE: @OVERRIDE
+// ═══════════════════════════════════════
+function buildOverrideMode() {
+  clearScene();
+  // Parent speak()
+  var parentBox = makeBox(4, 2, 2, 0xff8800, 0, 5.5, 0, 0.4);
+  objMeshes.parentBox = parentBox;
+  addLabel('Animal', 0, 7.0, 0, {color:'#ff8800',fontSize:24,scale:2.5});
+  var parentMethod = makeBox(2.5, 0.7, 0.7, 0x885500, 0, 5.5, 1.5, 0.85);
+  objMeshes.parentMethod = parentMethod;
+  addLabel('speak() → "..."', 0, 5.5, 2.5, {color:'#ffd700',fontSize:20,scale:3.5});
+
+  // Cat overrides
+  var catBox = makeBox(3.5, 2, 2, 0x00aaff, -4.5, 1.5, 0, 0.5);
+  objMeshes.catBox = catBox;
+  addLabel('Cat', -4.5, 3.0, 0, {color:'#00aaff',fontSize:24,scale:2});
+  var catMethod = makeBox(2.5, 0.7, 0.7, 0x006699, -4.5, 1.5, 1.5, 0.85);
+  objMeshes.catMethod = catMethod;
+  addLabel('@Override', -4.5, 2.5, 1.5, {color:'#d7ba7d',fontSize:18,scale:2.5});
+  addLabel('speak() → "Meow!"', -4.5, 1.5, 2.5, {color:'#39ff14',fontSize:20,scale:3.5});
+
+  makeArrow(-2.5, 3.8, 0, -4, 2.8, 0, 0x39ff14, 0.6);
+
+  // Dog overrides
+  var dogBox = makeBox(3.5, 2, 2, 0x8a2be2, 4.5, 1.5, 0, 0.5);
+  objMeshes.dogBox = dogBox;
+  addLabel('Dog', 4.5, 3.0, 0, {color:'#8a2be2',fontSize:24,scale:2});
+  var dogMethod = makeBox(2.5, 0.7, 0.7, 0x5500aa, 4.5, 1.5, 1.5, 0.85);
+  objMeshes.dogMethod = dogMethod;
+  addLabel('@Override', 4.5, 2.5, 1.5, {color:'#d7ba7d',fontSize:18,scale:2.5});
+  addLabel('speak() → "Woof!"', 4.5, 1.5, 2.5, {color:'#39ff14',fontSize:20,scale:3.5});
+
+  makeArrow(2.5, 3.8, 0, 4, 2.8, 0, 0x39ff14, 0.6);
+
+  // X on parent method
+  addLabel('REPLACED ↓', 0, 4.5, 1.5, {color:'#ff4444',fontSize:18,scale:2.5});
+
+  addLabel('Child REPLACES the parent\'s method with its own version', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:7.5});
+}
+
+// ═══════════════════════════════════════
+// MODE: SUPER() CONSTRUCTOR CHAINING
+// ═══════════════════════════════════════
+function buildSuperMode() {
+  clearScene();
+  // Step 1: new Cat("Whiskers", 3) is called
+  addLabel('new Cat("Whiskers", 3)', 0, 7.5, 0, {color:'#ffd700',fontSize:24,scale:5.5});
+
+  // Cat constructor box
+  var catCtor = makeBox(4, 2.5, 2, 0x00aaff, 3, 4.5, 0, 0.4);
+  objMeshes.catCtor = catCtor;
+  addLabel('Cat constructor', 3, 6.2, 0, {color:'#00aaff',fontSize:20,scale:3.5});
+  addLabel('super(name, age)', 3, 4.8, 0, {color:'#ffd700',fontSize:20,scale:3.5});
+  addLabel('this.indoor = true', 3, 4.0, 0, {color:'#9cdcfe',fontSize:18,scale:3.2});
+
+  // Arrow from Cat ctor UP to Animal ctor
+  makeArrow(1, 4.5, 0, -1, 4.5, 0, 0xff8800, 0.8);
+  addLabel('calls first!', 0, 5.2, 0, {color:'#ff8800',fontSize:18,scale:2.8});
+
+  // Animal constructor box
+  var animalCtor = makeBox(4, 2.5, 2, 0xff8800, -3, 4.5, 0, 0.4);
+  objMeshes.animalCtor = animalCtor;
+  addLabel('Animal constructor', -3, 6.2, 0, {color:'#ff8800',fontSize:20,scale:3.5});
+  addLabel('this.name = name', -3, 4.8, 0, {color:'#ffd700',fontSize:18,scale:3.2});
+  addLabel('this.age = age', -3, 4.0, 0, {color:'#ffd700',fontSize:18,scale:2.8});
+
+  // Result object
+  var result = makeBox(5, 2.5, 2.5, 0x1a6644, 0, 0.8, 0, 0.5);
+  objMeshes.result = result;
+  addLabel('COMPLETE OBJECT', 0, 2.5, 0, {color:'#39ff14',fontSize:22,scale:4});
+
+  makeSphere(0.25, 0xff8800, -1.5, 1.0, 0);
+  addLabel('name="Whiskers"', -1.5, 0.2, 0, {color:'#ffd700',fontSize:18,scale:3.2});
+  makeSphere(0.25, 0xff8800, 0.5, 1.0, 0);
+  addLabel('age=3', 0.5, 0.2, 0, {color:'#ffd700',fontSize:18,scale:1.8});
+  makeSphere(0.25, 0x00aaff, 1.8, 1.0, 0);
+  addLabel('indoor=true', 1.8, 0.2, 0, {color:'#00d4ff',fontSize:18,scale:2.5});
+
+  // Arrows down from constructors to result
+  makeArrow(-3, 3.0, 0, -1.5, 2.3, 0, 0xff8800, 0.5);
+  makeArrow(3, 3.0, 0, 1.5, 2.3, 0, 0x00aaff, 0.5);
+
+  addLabel('ORDER: super() runs FIRST → then child constructor body', 0, -1.0, 0, {color:'#558899',fontSize:20,scale:7.5});
+}
+
+// ═══════════════════════════════════════
+// MODE: POLYMORPHISM
+// ═══════════════════════════════════════
+function buildPolymorphismMode() {
+  clearScene();
+  // Variable declaration — Animal type
+  var refBox = makeBox(5, 1.5, 1.5, 0xff8800, 0, 6, 0, 0.35);
+  objMeshes.refBox = refBox;
+  addLabel('Animal a', 0, 7.2, 0, {color:'#ff8800',fontSize:24,scale:3});
+  addLabel('← variable TYPE is Animal', 3.5, 7.2, 0, {color:'#558899',fontSize:18,scale:4.5});
+
+  // Arrow down from ref to actual objects
+  makeLine(0, 5.2, 0, -4, 3.5, 0, 0xffd700, 0.4);
+  makeLine(0, 5.2, 0, 0, 3.5, 0, 0xffd700, 0.4);
+  makeLine(0, 5.2, 0, 4, 3.5, 0, 0xffd700, 0.4);
+  addLabel('can point to ANY child!', 0, 4.5, 0, {color:'#ffd700',fontSize:18,scale:4.5});
+
+  // Cat object
+  var catObj = makeBox(3, 2, 2, 0x00aaff, -4, 2, 0, 0.6);
+  objMeshes.catObj = catObj;
+  addLabel('Cat', -4, 3.5, 0, {color:'#00aaff',fontSize:24,scale:2});
+  addLabel('speak()→"Meow!"', -4, 1.5, 1.5, {color:'#39ff14',fontSize:18,scale:3.5});
+
+  // Dog object
+  var dogObj = makeBox(3, 2, 2, 0x8a2be2, 0, 2, 0, 0.6);
+  objMeshes.dogObj = dogObj;
+  addLabel('Dog', 0, 3.5, 0, {color:'#8a2be2',fontSize:24,scale:2});
+  addLabel('speak()→"Woof!"', 0, 1.5, 1.5, {color:'#39ff14',fontSize:18,scale:3.5});
+
+  // Bird object
+  var birdObj = makeBox(3, 2, 2, 0x39ff14, 4, 2, 0, 0.6);
+  objMeshes.birdObj = birdObj;
+  addLabel('Bird', 4, 3.5, 0, {color:'#39ff14',fontSize:24,scale:2});
+  addLabel('speak()→"Tweet!"', 4, 1.5, 1.5, {color:'#39ff14',fontSize:18,scale:3.5});
+
+  addLabel('a.speak() → WHICH one runs? Depends on the ACTUAL object!', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:8});
+}
+
+// ═══════════════════════════════════════
+// MODE: ABSTRACT
+// ═══════════════════════════════════════
+function buildAbstractMode() {
+  clearScene();
+  // Abstract parent — dashed/ghostly
+  var absBox = makeBox(5, 2.5, 3, 0xff4444, 0, 5.5, 0, 0.2);
+  objMeshes.absBox = absBox;
+  addLabel('abstract class Animal', 0, 7.2, 0, {color:'#ff4444',fontSize:22,scale:5});
+
+  // Abstract method — empty slot
+  var absMethod = makeBox(3, 0.6, 0.6, 0x882222, 0, 5.5, 2, 0.5);
+  objMeshes.absMethod = absMethod;
+  addLabel('abstract speak() = ???', 0, 5.5, 3, {color:'#ff6644',fontSize:20,scale:4.5});
+  addLabel('NO BODY! Must be filled by children!', 0, 4.8, 3, {color:'#ff4444',fontSize:16,scale:5.5});
+
+  // Concrete field
+  makeSphere(0.25, 0x2266aa, -1.2, 5.8, 0);
+  addLabel('name', -1.2, 5.0, 0, {color:'#ffd700',fontSize:20,scale:2});
+
+  // Concrete method
+  makeSphere(0.25, 0x226644, 1.2, 5.8, 0);
+  addLabel('eat() — concrete OK', 1.2, 5.0, 0, {color:'#39ff14',fontSize:18,scale:3.5});
+
+  // Cannot instantiate
+  addLabel('new Animal() → ERROR!', 0, 3.8, -1.5, {color:'#ff4444',fontSize:22,scale:4.5});
+
+  // Cat — fills the abstract gap
+  makeArrow(-2, 3.8, 0, -3.5, 3.2, 0, 0x39ff14, 0.6);
+  var catImpl = makeBox(3.5, 2, 2.5, 0x00aaff, -3.5, 1.8, 0, 0.6);
+  objMeshes.catImpl = catImpl;
+  addLabel('class Cat extends Animal', -3.5, 3.2, 0, {color:'#00aaff',fontSize:16,scale:4.5});
+  var catMethodBox = makeBox(2, 0.6, 0.6, 0x006699, -3.5, 1.8, 1.5, 0.85);
+  objMeshes.catMethodBox = catMethodBox;
+  addLabel('speak() → "Meow!"', -3.5, 1.8, 2.5, {color:'#39ff14',fontSize:18,scale:3.5});
+  addLabel('FILLED ✓', -3.5, 1.0, 1.5, {color:'#39ff14',fontSize:18,scale:2.2});
+
+  // Dog — fills the abstract gap
+  makeArrow(2, 3.8, 0, 3.5, 3.2, 0, 0x39ff14, 0.6);
+  var dogImpl = makeBox(3.5, 2, 2.5, 0x8a2be2, 3.5, 1.8, 0, 0.6);
+  objMeshes.dogImpl = dogImpl;
+  addLabel('class Dog extends Animal', 3.5, 3.2, 0, {color:'#8a2be2',fontSize:16,scale:4.5});
+  var dogMethodBox = makeBox(2, 0.6, 0.6, 0x5500aa, 3.5, 1.8, 1.5, 0.85);
+  objMeshes.dogMethodBox = dogMethodBox;
+  addLabel('speak() → "Woof!"', 3.5, 1.8, 2.5, {color:'#39ff14',fontSize:18,scale:3.5});
+  addLabel('FILLED ✓', 3.5, 1.0, 1.5, {color:'#39ff14',fontSize:18,scale:2.2});
+
+  addLabel('abstract = INCOMPLETE on purpose. Children MUST fill the gaps!', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:8});
+}
+
+// ═══════════════════════════════════════
+// MODE: INTERFACE
+// ═══════════════════════════════════════
+function buildInterfaceMode() {
+  clearScene();
+  // Interface — pure contract (wireframe-like)
+  var ifaceBox = makeBox(5, 2, 3, 0xffd700, 0, 6, 0, 0.15);
+  objMeshes.ifaceBox = ifaceBox;
+  addLabel('interface Speakable', 0, 7.5, 0, {color:'#ffd700',fontSize:24,scale:4.5});
+  addLabel('speak() — no body, just signature', 0, 6.3, 1.5, {color:'#ffd700',fontSize:18,scale:5});
+  addLabel('100% abstract — pure CONTRACT', 0, 5.5, 1.5, {color:'#558899',fontSize:16,scale:4.5});
+
+  // Implements arrows
+  makeArrow(-2, 4.8, 0, -4, 3.5, 0, 0x39ff14, 0.6);
+  addLabel('implements', -3.5, 4.5, 0, {color:'#39ff14',fontSize:16,scale:2.5});
+  makeArrow(0, 4.8, 0, 0, 3.5, 0, 0x39ff14, 0.6);
+  addLabel('implements', 0.5, 4.5, 0, {color:'#39ff14',fontSize:16,scale:2.5});
+  makeArrow(2, 4.8, 0, 4, 3.5, 0, 0x39ff14, 0.6);
+  addLabel('implements', 3.5, 4.5, 0, {color:'#39ff14',fontSize:16,scale:2.5});
+
+  // Cat implements
+  var catI = makeBox(3, 2, 2, 0x00aaff, -4, 2, 0, 0.6);
+  objMeshes.catI = catI;
+  addLabel('Cat', -4, 3.5, 0, {color:'#00aaff',fontSize:24,scale:2});
+  addLabel('speak()→"Meow!"', -4, 1.3, 0, {color:'#39ff14',fontSize:16,scale:3});
+
+  // Dog implements
+  var dogI = makeBox(3, 2, 2, 0x8a2be2, 0, 2, 0, 0.6);
+  objMeshes.dogI = dogI;
+  addLabel('Dog', 0, 3.5, 0, {color:'#8a2be2',fontSize:24,scale:2});
+  addLabel('speak()→"Woof!"', 0, 1.3, 0, {color:'#39ff14',fontSize:16,scale:3});
+
+  // Robot implements (not an Animal!)
+  var robotI = makeBox(3, 2, 2, 0xff6600, 4, 2, 0, 0.6);
+  objMeshes.robotI = robotI;
+  addLabel('Robot', 4, 3.5, 0, {color:'#ff6600',fontSize:24,scale:2});
+  addLabel('speak()→"Beep!"', 4, 1.3, 0, {color:'#39ff14',fontSize:16,scale:3});
+
+  addLabel('UNRELATED classes can share a contract! Cat + Robot both Speakable', 0, -0.5, 0, {color:'#558899',fontSize:20,scale:8});
+}
+
+// ═══════════════════════════════════════
+// MODE CONTENT (explanations + actions + code)
+// ═══════════════════════════════════════
+var builders = {
+  inheritance: buildInheritanceMode,
+  override: buildOverrideMode,
+  super: buildSuperMode,
+  polymorphism: buildPolymorphismMode,
+  abstract: buildAbstractMode,
+  interface: buildInterfaceMode
+};
+
+var MODES = {
+  inheritance: {
+    title: 'Inheritance — extends',
+    explain: '<span class="key">Inheritance</span> = a child class <strong>gets everything</strong> from a parent class, for free.<br><br>' +
+      'When you write <em>class Cat extends Animal</em>, Cat automatically gets ALL of Animal\'s fields (name, age) and methods (speak()).<br><br>' +
+      'The child can also add its OWN new fields and methods that the parent doesn\'t have (like <em>purr()</em> for Cat).<br><br>' +
+      '<strong>Why?</strong> To avoid copy-pasting code! If 5 animals all need "name" and "age", define it ONCE in Animal.',
+    analogy: 'Like a family recipe book. The parent writes the basic recipe (Animal). Each child (Cat, Dog) inherits the whole book AND can add their own special recipes on top.',
+    actions: [
+      { label: 'Cat inherits name field', fn: function() { flashMesh(objMeshes.parent, 0xffd700); flashMesh(objMeshes.cat, 0x00d4ff); sndExtend(); showFlow('Cat gets "name" from Animal — no copy needed!', '#ffd700'); setCodeHL(9); } },
+      { label: 'Cat inherits speak()', fn: function() { flashMesh(objMeshes.parent, 0x39ff14); flashMesh(objMeshes.cat, 0x39ff14); sndExtend(); showFlow('Cat gets speak() from Animal automatically!', '#39ff14'); setCodeHL(5); } },
+      { label: 'Cat has its own purr()', fn: function() { flashMesh(objMeshes.cat, 0x00d4ff); sndOk(); showFlow('purr() is Cat-ONLY — Dog cannot purr!', '#00d4ff'); setCodeHL(12); } },
+      { label: 'Dog inherits too!', fn: function() { flashMesh(objMeshes.parent, 0xffd700); flashMesh(objMeshes.dog, 0x8a2be2); sndExtend(); showFlow('Dog also gets name, age, speak() from Animal!', '#8a2be2'); setCodeHL(15); } },
+    ],
+    code: '<span class="kw">public class</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">protected</span> <span class="tp">String</span> <span class="vr">name</span>;\n' +
+      '    <span class="kw">protected int</span> <span class="vr">age</span>;\n' +
+      '\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"..."</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Cat INHERITS name, age, speak() from Animal</span>\n' +
+      '<span class="kw">public class</span> <span class="tp">Cat</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="cm">// Cat gets name, age, speak() for FREE!</span>\n' +
+      '    <span class="kw">public void</span> <span class="fn">purr</span>() { <span class="cm">/* Cat-only */</span> }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Dog</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">public void</span> <span class="fn">fetch</span>() { <span class="cm">/* Dog-only */</span> }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Usage:</span>\n' +
+      '<span class="tp">Cat</span> <span class="vr">c</span> = <span class="kw">new</span> <span class="fn">Cat</span>();\n' +
+      '<span class="vr">c</span>.<span class="vr">name</span> = <span class="str">"Whiskers"</span>; <span class="cm">// inherited!</span>\n' +
+      '<span class="vr">c</span>.<span class="fn">speak</span>();   <span class="cm">// inherited!</span>\n' +
+      '<span class="vr">c</span>.<span class="fn">purr</span>();    <span class="cm">// Cat\'s own</span>',
+    badge: ['INHERITANCE', 'extends = inherit all', '#ff8800']
+  },
+
+  override: {
+    title: '@Override — Replace Parent\'s Method',
+    explain: 'When a child inherits a method but needs <strong>different behavior</strong>, it can <span class="key">override</span> it.<br><br>' +
+      '<em>@Override</em> = "I\'m REPLACING the parent\'s version with MY version."<br><br>' +
+      'Animal.speak() returns "..." — boring and generic.<br>' +
+      'Cat.speak() returns "Meow!" — specific to cats.<br>' +
+      'Dog.speak() returns "Woof!" — specific to dogs.<br><br>' +
+      'The <span class="key">@Override</span> annotation is optional but <strong>strongly recommended</strong> — it tells the compiler to CHECK that you\'re actually overriding a real parent method (catches typos!).',
+    analogy: 'Like a franchise restaurant. The headquarters has a "default menu" (parent). Each branch (child) can REPLACE items with local specials — the menu SLOT stays, but the content changes.',
+    actions: [
+      { label: 'Animal.speak() → "..."', fn: function() { flashMesh(objMeshes.parentMethod, 0xff8800); sndBlock(); showFlow('Animal.speak() → "..." (generic, boring)', '#ff8800'); setCodeHL(3); } },
+      { label: 'Cat.speak() → "Meow!"', fn: function() { flashMesh(objMeshes.catMethod, 0x00d4ff); sndOverride(); showFlow('Cat OVERRIDES speak() → "Meow!"', '#00d4ff'); setCodeHL(8); } },
+      { label: 'Dog.speak() → "Woof!"', fn: function() { flashMesh(objMeshes.dogMethod, 0x8a2be2); sndOverride(); showFlow('Dog OVERRIDES speak() → "Woof!"', '#8a2be2'); setCodeHL(14); } },
+      { label: 'Without @Override (typo)', fn: function() { sndBlock(); showFlow('@Override catches typos: spek() → COMPILE ERROR!', '#ff4444'); setCodeHL(7); } },
+    ],
+    code: '<span class="kw">public class</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">protected</span> <span class="tp">String</span> <span class="vr">name</span>;\n' +
+      '\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"..."</span>;  <span class="cm">// generic</span>\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Cat</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="an">@Override</span>  <span class="cm">// tells compiler: check this!</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Meow!"</span>; <span class="cm">// replaces parent</span>\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Dog</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Woof!"</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Without @Override, a typo compiles:</span>\n' +
+      '<span class="cm">// public String spek() ← NEW method,</span>\n' +
+      '<span class="cm">//   NOT an override! Bug! @Override catches it!</span>',
+    badge: ['@OVERRIDE', 'Replace parent method', '#d7ba7d']
+  },
+
+  super: {
+    title: 'super() — Constructor Chaining',
+    explain: 'When a child is created with <em>new Cat("Whiskers", 3)</em>, the <strong>parent constructor runs FIRST</strong>.<br><br>' +
+      '<span class="key">super(name, age)</span> = "call the PARENT\'s constructor before I do my own stuff."<br><br>' +
+      'This is <strong>mandatory</strong>! If Animal needs name and age to be set up, Cat MUST call super() to let Animal initialize those fields. Then Cat adds its own (indoor).<br><br>' +
+      '<span class="warn">Rule:</span> super() must be the <strong>FIRST line</strong> in the child constructor. Java enforces this — parent builds the foundation, child adds the extras.',
+    analogy: 'Building a house: the FOUNDATION (parent constructor) must be poured FIRST. Only after the foundation is set can you build the second floor (child constructor). You can\'t start with the roof!',
+    actions: [
+      { label: 'new Cat("Whiskers", 3)', fn: function() { sndSuper(); showFlow('Step 1: Cat constructor is called...', '#00d4ff'); setCodeHL(13); } },
+      { label: 'super(name, age) runs FIRST', fn: function() { flashMesh(objMeshes.animalCtor, 0xff8800, 800); sndSuper(); showFlow('Step 2: Animal constructor runs → name="Whiskers", age=3', '#ff8800'); setCodeHL(14); } },
+      { label: 'Then this.indoor = true', fn: function() { flashMesh(objMeshes.catCtor, 0x00d4ff, 800); sndOk(); showFlow('Step 3: Cat adds its own field → indoor=true', '#00d4ff'); setCodeHL(15); } },
+      { label: 'Show complete object', fn: function() { flashMesh(objMeshes.result, 0x39ff14, 800); sndOk(); showFlow('Done! Object has: name, age (from Animal) + indoor (from Cat)', '#39ff14'); setCodeHL(19); } },
+    ],
+    code: '<span class="kw">public class</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">protected</span> <span class="tp">String</span> <span class="vr">name</span>;\n' +
+      '    <span class="kw">protected int</span> <span class="vr">age</span>;\n' +
+      '\n' +
+      '    <span class="kw">public</span> <span class="fn">Animal</span>(<span class="tp">String</span> <span class="vr">name</span>, <span class="kw">int</span> <span class="vr">age</span>) {\n' +
+      '        <span class="kw">this</span>.<span class="vr">name</span> = <span class="vr">name</span>;\n' +
+      '        <span class="kw">this</span>.<span class="vr">age</span> = <span class="vr">age</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Cat</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">private boolean</span> <span class="vr">indoor</span>;\n' +
+      '\n' +
+      '    <span class="kw">public</span> <span class="fn">Cat</span>(<span class="tp">String</span> <span class="vr">name</span>, <span class="kw">int</span> <span class="vr">age</span>) {\n' +
+      '        <span class="kw">super</span>(<span class="vr">name</span>, <span class="vr">age</span>); <span class="cm">// ← MUST be first line!</span>\n' +
+      '        <span class="kw">this</span>.<span class="vr">indoor</span> = <span class="kw">true</span>;  <span class="cm">// Cat\'s own field</span>\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// What happens with: new Cat("Whiskers", 3)</span>\n' +
+      '<span class="cm">// 1. Cat constructor is called</span>\n' +
+      '<span class="cm">// 2. super("Whiskers", 3) → Animal sets name, age</span>\n' +
+      '<span class="cm">// 3. this.indoor = true → Cat adds its own field</span>\n' +
+      '<span class="cm">// 4. Object is complete!</span>',
+    badge: ['SUPER()', 'Parent constructor first', '#ff8800']
+  },
+
+  polymorphism: {
+    title: 'Polymorphism — One Type, Many Forms',
+    explain: '<span class="key">Polymorphism</span> = "many forms." A variable of type <strong>Animal</strong> can hold a Cat, Dog, or Bird.<br><br>' +
+      'When you call <em>a.speak()</em>, Java doesn\'t look at the VARIABLE type (Animal). It looks at the <strong>ACTUAL OBJECT</strong> inside.<br><br>' +
+      'If a holds a Cat → speak() returns "Meow!"<br>' +
+      'If a holds a Dog → speak() returns "Woof!"<br>' +
+      'If a holds a Bird → speak() returns "Tweet!"<br><br>' +
+      'This is decided at <span class="key">runtime</span>, not compile time. The code says Animal, but the BEHAVIOR depends on the real object.',
+    analogy: 'Like a universal remote (Animal type). You point it at a TV → it controls the TV. Point it at a speaker → same button, different result. The REMOTE is the same, the DEVICE determines what happens.',
+    actions: [
+      { label: 'a = new Cat() → a.speak()', fn: function() { flashMesh(objMeshes.refBox, 0xff8800); flashMesh(objMeshes.catObj, 0x00d4ff, 800); sndPoly(); showFlow('Animal a = new Cat() → a.speak() = "Meow!"', '#00d4ff'); setCodeHL(5); } },
+      { label: 'a = new Dog() → a.speak()', fn: function() { flashMesh(objMeshes.refBox, 0xff8800); flashMesh(objMeshes.dogObj, 0x8a2be2, 800); sndPoly(); showFlow('Animal a = new Dog() → a.speak() = "Woof!"', '#8a2be2'); setCodeHL(6); } },
+      { label: 'a = new Bird() → a.speak()', fn: function() { flashMesh(objMeshes.refBox, 0xff8800); flashMesh(objMeshes.birdObj, 0x39ff14, 800); sndPoly(); showFlow('Animal a = new Bird() → a.speak() = "Tweet!"', '#39ff14'); setCodeHL(7); } },
+      { label: 'Loop: makeThemSpeak(animals)', fn: function() { flashMesh(objMeshes.catObj, 0x00d4ff); flashMesh(objMeshes.dogObj, 0x8a2be2); flashMesh(objMeshes.birdObj, 0x39ff14); sndPoly(); showFlow('for(Animal a : animals) a.speak() → each does its OWN thing!', '#ffd700'); setCodeHL(10); } },
+    ],
+    code: '<span class="cm">// Variable type is Animal, actual object varies</span>\n' +
+      '<span class="tp">Animal</span> <span class="vr">a</span>;\n' +
+      '\n' +
+      '<span class="cm">// Same variable, different objects:</span>\n' +
+      '<span class="vr">a</span> = <span class="kw">new</span> <span class="fn">Cat</span>();  <span class="cm">// a holds a Cat</span>\n' +
+      '<span class="vr">a</span>.<span class="fn">speak</span>();     <span class="cm">// → "Meow!" (Cat\'s version)</span>\n' +
+      '<span class="vr">a</span> = <span class="kw">new</span> <span class="fn">Dog</span>();  <span class="cm">// a now holds a Dog</span>\n' +
+      '<span class="vr">a</span>.<span class="fn">speak</span>();     <span class="cm">// → "Woof!" (Dog\'s version)</span>\n' +
+      '<span class="vr">a</span> = <span class="kw">new</span> <span class="fn">Bird</span>(); <span class="cm">// a now holds a Bird</span>\n' +
+      '<span class="vr">a</span>.<span class="fn">speak</span>();     <span class="cm">// → "Tweet!" (Bird\'s version)</span>\n' +
+      '\n' +
+      '<span class="cm">// THE POWER: process ANY animal the same way!</span>\n' +
+      '<span class="tp">Animal</span>[] <span class="vr">zoo</span> = {<span class="kw">new</span> <span class="fn">Cat</span>(), <span class="kw">new</span> <span class="fn">Dog</span>(), <span class="kw">new</span> <span class="fn">Bird</span>()};\n' +
+      '<span class="kw">for</span> (<span class="tp">Animal</span> <span class="vr">animal</span> : <span class="vr">zoo</span>) {\n' +
+      '    <span class="vr">animal</span>.<span class="fn">speak</span>(); <span class="cm">// each does its OWN thing!</span>\n' +
+      '}\n' +
+      '<span class="cm">// Output: Meow! Woof! Tweet!</span>\n' +
+      '<span class="cm">// ONE loop handles ALL types — no if/else needed!</span>',
+    badge: ['POLYMORPHISM', 'One type, many forms', '#8a2be2']
+  },
+
+  abstract: {
+    title: 'abstract — Incomplete on Purpose',
+    explain: 'An <span class="key">abstract class</span> is <strong>intentionally incomplete</strong>. It says: "I have a method called speak(), but I don\'t know what it does. My CHILDREN must fill it in."<br><br>' +
+      '<span class="warn">You CANNOT create an abstract class with new!</span><br>' +
+      '<code>new Animal()</code> → COMPILE ERROR!<br><br>' +
+      'An abstract class CAN have:<br>' +
+      '&#8226; <em>abstract methods</em> — no body, children MUST override<br>' +
+      '&#8226; <em>concrete methods</em> — normal methods with body (eat())<br>' +
+      '&#8226; <em>fields</em> — name, age, etc.<br><br>' +
+      '<strong>Why?</strong> To force a CONTRACT. Every Animal MUST have speak(), but each one implements it differently.',
+    analogy: 'Like a job application form. The form has a blank field "Describe your experience: ___". The form itself is INCOMPLETE — you can\'t submit a blank form. Each applicant FILLS IN the blank differently.',
+    actions: [
+      { label: 'Try: new Animal() → ERROR!', fn: function() { flashMesh(objMeshes.absBox, 0xff0000, 800); sndBlock(); showFlow('COMPILE ERROR! Cannot instantiate abstract class!', '#ff4444'); setCodeHL(1); } },
+      { label: 'Cat fills speak() → "Meow!"', fn: function() { flashMesh(objMeshes.catMethodBox, 0x39ff14, 800); sndOk(); showFlow('Cat implements abstract speak() → "Meow!"', '#39ff14'); setCodeHL(8); } },
+      { label: 'Dog fills speak() → "Woof!"', fn: function() { flashMesh(objMeshes.dogMethodBox, 0x39ff14, 800); sndOk(); showFlow('Dog implements abstract speak() → "Woof!"', '#39ff14'); setCodeHL(14); } },
+      { label: 'eat() works in all (concrete)', fn: function() { flashMesh(objMeshes.absBox, 0x39ff14); sndOk(); showFlow('eat() is concrete — works for ALL animals, no override needed!', '#39ff14'); setCodeHL(5); } },
+    ],
+    code: '<span class="kw">public abstract class</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="kw">protected</span> <span class="tp">String</span> <span class="vr">name</span>;\n' +
+      '\n' +
+      '    <span class="cm">// ABSTRACT — no body! Children MUST implement!</span>\n' +
+      '    <span class="kw">public abstract</span> <span class="tp">String</span> <span class="fn">speak</span>();\n' +
+      '\n' +
+      '    <span class="cm">// CONCRETE — has a body, works for all</span>\n' +
+      '    <span class="kw">public void</span> <span class="fn">eat</span>() {\n' +
+      '        System.out.<span class="fn">println</span>(<span class="vr">name</span> + <span class="str">" is eating"</span>);\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Cat</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Meow!"</span>; <span class="cm">// MUST fill this in!</span>\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Dog</span> <span class="kw">extends</span> <span class="tp">Animal</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Woof!"</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// new Animal() → ERROR! Cannot instantiate!</span>\n' +
+      '<span class="tp">Animal</span> <span class="vr">c</span> = <span class="kw">new</span> <span class="fn">Cat</span>(); <span class="cm">// ✓ Cat IS an Animal</span>\n' +
+      '<span class="vr">c</span>.<span class="fn">speak</span>(); <span class="cm">// → "Meow!"</span>\n' +
+      '<span class="vr">c</span>.<span class="fn">eat</span>();   <span class="cm">// → "Whiskers is eating" (inherited)</span>',
+    badge: ['ABSTRACT', 'Incomplete on purpose', '#ff4444']
+  },
+
+  interface: {
+    title: 'interface — Pure Contract',
+    explain: 'An <span class="key">interface</span> is a <strong>100% abstract contract</strong>. It defines WHAT methods must exist, but not HOW they work.<br><br>' +
+      '<strong>interface vs abstract class:</strong><br>' +
+      '&#8226; abstract class: can have fields, constructors, concrete methods. A class can only extend ONE.<br>' +
+      '&#8226; interface: only method signatures (no body). A class can implement MANY!<br><br>' +
+      '<span class="key">implements</span> = "I promise to provide ALL methods listed in this interface."<br><br>' +
+      '<strong>The power:</strong> UNRELATED classes can share a contract! Cat and Robot are nothing alike, but both can be <em>Speakable</em>.',
+    analogy: 'Like a wall outlet standard. The OUTLET (interface) defines the SHAPE of the plug. ANY device (lamp, fridge, laptop) can plug in if it matches the shape. The devices are totally different, but they share the SAME interface.',
+    actions: [
+      { label: 'Cat implements Speakable', fn: function() { flashMesh(objMeshes.catI, 0x00d4ff, 800); sndOk(); showFlow('Cat implements speak() → "Meow!"', '#00d4ff'); setCodeHL(8); } },
+      { label: 'Dog implements Speakable', fn: function() { flashMesh(objMeshes.dogI, 0x8a2be2, 800); sndOk(); showFlow('Dog implements speak() → "Woof!"', '#8a2be2'); setCodeHL(14); } },
+      { label: 'Robot implements Speakable', fn: function() { flashMesh(objMeshes.robotI, 0xff6600, 800); sndOk(); showFlow('Robot (NOT an Animal!) also implements speak()!', '#ff6600'); setCodeHL(20); } },
+      { label: 'Use interface as type', fn: function() { flashMesh(objMeshes.ifaceBox, 0xffd700, 800); sndPoly(); showFlow('Speakable s = new Cat() OR new Robot() — polymorphism!', '#ffd700'); setCodeHL(24); } },
+    ],
+    code: '<span class="cm">// INTERFACE — pure contract, no body</span>\n' +
+      '<span class="kw">public interface</span> <span class="tp">Speakable</span> {\n' +
+      '    <span class="tp">String</span> <span class="fn">speak</span>(); <span class="cm">// no body, just signature</span>\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Cat implements the contract</span>\n' +
+      '<span class="kw">public class</span> <span class="tp">Cat</span> <span class="kw">implements</span> <span class="tp">Speakable</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Meow!"</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="kw">public class</span> <span class="tp">Dog</span> <span class="kw">implements</span> <span class="tp">Speakable</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Woof!"</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Robot is NOT an Animal — but CAN be Speakable!</span>\n' +
+      '<span class="kw">public class</span> <span class="tp">Robot</span> <span class="kw">implements</span> <span class="tp">Speakable</span> {\n' +
+      '    <span class="an">@Override</span>\n' +
+      '    <span class="kw">public</span> <span class="tp">String</span> <span class="fn">speak</span>() {\n' +
+      '        <span class="kw">return</span> <span class="str">"Beep boop!"</span>;\n' +
+      '    }\n' +
+      '}\n' +
+      '\n' +
+      '<span class="cm">// Interface as type — polymorphism!</span>\n' +
+      '<span class="tp">Speakable</span>[] <span class="vr">things</span> = {<span class="kw">new</span> <span class="fn">Cat</span>(), <span class="kw">new</span> <span class="fn">Robot</span>()};\n' +
+      '<span class="kw">for</span> (<span class="tp">Speakable</span> <span class="vr">s</span> : <span class="vr">things</span>) {\n' +
+      '    <span class="vr">s</span>.<span class="fn">speak</span>(); <span class="cm">// Meow! then Beep boop!</span>\n' +
+      '}',
+    badge: ['INTERFACE', 'Pure contract', '#ffd700']
+  }
+};
+
+// ═══════════════════════════════════════
+// WALKTHROUGH NARRATIONS
+// ═══════════════════════════════════════
+var WALK = {
+  inheritance: [
+    { narr: '<span class="narr-step">Step 1:</span> The <strong style="color:#ff8800">orange box</strong> at the top is the <strong>parent class Animal</strong>. It has fields (name, age) and a method (speak()).', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> <strong style="color:#00aaff">Cat</strong> and <strong style="color:#8a2be2">Dog</strong> both say <code>extends Animal</code>. They INHERIT everything Animal has — name, age, speak() — for free!', action: null },
+    { narr: '<span class="narr-step">Step 3:</span> Watch — Cat can use the inherited "name" field. It didn\'t declare it, but it GOT it from Animal.', action: 0 },
+    { narr: '<span class="narr-step">Step 4:</span> Cat also inherits speak(). It can call it even though it\'s defined in Animal, not in Cat.', action: 1 },
+    { narr: '<span class="narr-step">Step 5:</span> But Cat also has its OWN method: <strong>purr()</strong>. This is Cat-specific — Dog cannot purr!', action: 2 },
+    { narr: '<span class="narr-step">Step 6:</span> Dog inherits the same things from Animal, plus has its own <strong>fetch()</strong> method.', action: 3 },
+    { narr: '&#10003; <strong>Summary:</strong> <code>extends</code> = child gets ALL parent\'s fields and methods automatically. Child can add MORE on top. No copy-pasting needed!', action: null },
+  ],
+  override: [
+    { narr: '<span class="narr-step">Step 1:</span> Animal has a speak() method that returns "..." — a generic default. Not very useful.', action: 0 },
+    { narr: '<span class="narr-step">Step 2:</span> Cat <strong>overrides</strong> speak() with its own version: "Meow!" The method SLOT is the same, but the BEHAVIOR changes.', action: 1 },
+    { narr: '<span class="narr-step">Step 3:</span> Dog also overrides speak() → "Woof!" Each child provides its OWN specific version.', action: 2 },
+    { narr: '<span class="narr-step">Step 4:</span> The <strong style="color:#d7ba7d">@Override</strong> annotation is your safety net. If you make a typo (spek instead of speak), the compiler catches it!', action: 3 },
+    { narr: '<span class="narr-step">Step 5:</span> Without @Override: <code>public String spek()</code> would create a NEW method instead of replacing the parent\'s. A silent bug!', action: null },
+    { narr: '&#10003; <strong>Summary:</strong> @Override = child REPLACES parent\'s method with its own version. Same name, same parameters, different behavior. Always use @Override annotation!', action: null },
+  ],
+  super: [
+    { narr: '<span class="narr-step">Step 1:</span> We write <code>new Cat("Whiskers", 3)</code>. This calls the Cat constructor.', action: 0 },
+    { narr: '<span class="narr-step">Step 2:</span> FIRST thing inside Cat\'s constructor: <strong style="color:#ff8800">super(name, age)</strong>. This calls Animal\'s constructor BEFORE anything else!', action: 1 },
+    { narr: '<span class="narr-step">Step 3:</span> Animal\'s constructor runs: sets name="Whiskers" and age=3. The foundation is built.', action: null },
+    { narr: '<span class="narr-step">Step 4:</span> THEN Cat\'s own code runs: <strong>this.indoor = true</strong>. Cat adds its own field on top of what Animal already set.', action: 2 },
+    { narr: '<span class="narr-step">Step 5:</span> The result: a complete Cat object with ALL fields — name and age from Animal, indoor from Cat.', action: 3 },
+    { narr: '&#10003; <strong>Summary:</strong> super() = call parent\'s constructor. MUST be first line! Order: parent builds foundation → child adds extras. Like building a house from the ground up.', action: null },
+  ],
+  polymorphism: [
+    { narr: '<span class="narr-step">Step 1:</span> We declare a variable <code>Animal a</code>. The TYPE is Animal — but it can hold ANY child!', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> <code>a = new Cat()</code> — now "a" points to a Cat. Calling a.speak() → "Meow!"', action: 0 },
+    { narr: '<span class="narr-step">Step 3:</span> <code>a = new Dog()</code> — SAME variable, now points to Dog. a.speak() → "Woof!"', action: 1 },
+    { narr: '<span class="narr-step">Step 4:</span> <code>a = new Bird()</code> — again, same variable. a.speak() → "Tweet!"', action: 2 },
+    { narr: '<span class="narr-step">Step 5:</span> The REAL power: put them in an array and loop! ONE loop handles ALL types with NO if/else!', action: 3 },
+    { narr: '&#10003; <strong>Summary:</strong> Polymorphism = the VARIABLE type (Animal) stays the same, but the BEHAVIOR changes based on the actual object. Java decides at RUNTIME which speak() to call.', action: null },
+  ],
+  abstract: [
+    { narr: '<span class="narr-step">Step 1:</span> The <strong style="color:#ff4444">red ghostly box</strong> is an <strong>abstract class Animal</strong>. Notice it\'s translucent — it\'s INCOMPLETE.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> Try creating one with <code>new Animal()</code>...', action: 0 },
+    { narr: '<span class="narr-warn">BLOCKED!</span> You CANNOT instantiate an abstract class! It has gaps that must be filled by children.', action: null },
+    { narr: '<span class="narr-step">Step 3:</span> Cat fills the gap: implements speak() → "Meow!" Now Cat is complete and CAN be instantiated.', action: 1 },
+    { narr: '<span class="narr-step">Step 4:</span> Dog also fills it: speak() → "Woof!" Each child fills the abstract gap differently.', action: 2 },
+    { narr: '<span class="narr-step">Step 5:</span> But eat() is a CONCRETE method — it has a body in Animal and works for ALL children without override.', action: 3 },
+    { narr: '&#10003; <strong>Summary:</strong> abstract class = mix of complete (concrete) and incomplete (abstract) methods. Forces children to implement the gaps. Cannot be instantiated directly.', action: null },
+  ],
+  interface: [
+    { narr: '<span class="narr-step">Step 1:</span> The <strong style="color:#ffd700">golden wireframe</strong> at top is an <strong>interface Speakable</strong>. It\'s 100% abstract — just a CONTRACT.', action: null },
+    { narr: '<span class="narr-step">Step 2:</span> Cat <strong>implements</strong> Speakable — it promises to provide speak() → "Meow!"', action: 0 },
+    { narr: '<span class="narr-step">Step 3:</span> Dog also implements it → "Woof!"', action: 1 },
+    { narr: '<span class="narr-step">Step 4:</span> Here\'s the magic: <strong style="color:#ff6600">Robot</strong> also implements Speakable! Robot is NOT an Animal — but it CAN speak!', action: 2 },
+    { narr: '<span class="narr-step">Step 5:</span> You can use the interface as a TYPE: <code>Speakable s = new Cat()</code> or <code>new Robot()</code>. Polymorphism through interfaces!', action: 3 },
+    { narr: '&#10003; <strong>Summary:</strong> Interface = pure contract. Any class can implement it. A class can implement MANY interfaces. Unrelated classes can share behavior through interfaces!', action: null },
+  ]
+};
+
+// ═══════════════════════════════════════
+// CODE HIGHLIGHTING
+// ═══════════════════════════════════════
+var currentMode = 'inheritance';
+var codeLine = -1;
+
+function setCodeHL(line) { codeLine = line; renderCode(); }
+
+function renderCode() {
+  var data = MODES[currentMode];
+  if (!data) return;
+  var lines = data.code.split('\n');
+  document.getElementById('cd').innerHTML = lines.map(function(l, i) {
+    var cls = 'cl';
+    if (i === codeLine) cls += ' cl-active';
+    var ptr = i === codeLine ? '<span class="exec-ptr">\u25BA</span>' : '  ';
+    return '<span class="' + cls + '">' + ptr + l + '</span>';
+  }).join('\n');
+}
+
+// ═══════════════════════════════════════
+// SWITCH MODE
+// ═══════════════════════════════════════
+function switchMode(mode) {
+  currentMode = mode;
+  codeLine = -1;
+  objMeshes = {};
+  walkStep = 0;
+  setNarration('Click <strong>\u25B6 PLAY</strong> or press <strong>Space</strong> to start a guided walkthrough. Or click <strong>STEP</strong> / press <strong>S</strong> to go one step at a time.');
+
+  builders[mode]();
+
+  var data = MODES[mode];
+  document.getElementById('explain-title').textContent = data.title;
+  var explainHTML = data.explain;
+  if (data.analogy) {
+    explainHTML += '<div class="analogy"><div class="analogy-label">ANALOGY</div><div class="analogy-text">' + data.analogy + '</div></div>';
+  }
+  document.getElementById('explain-text').innerHTML = explainHTML;
+
+  var actEl = document.getElementById('act-buttons');
+  actEl.innerHTML = '';
+  data.actions.forEach(function(a) {
+    var btn = document.createElement('button');
+    btn.className = 'act-btn';
+    btn.textContent = a.label;
+    btn.onclick = function() { initAudio(); a.fn(); };
+    actEl.appendChild(btn);
+  });
+
+  renderCode();
+  setBadge(data.badge[0], data.badge[1], data.badge[2]);
+
+  document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.mode === mode); });
+
+  camTheta = 0.3; camPhi = 0.45;
+  camDist = (mode === 'polymorphism' || mode === 'interface') ? 26 : (mode === 'super') ? 28 : 24;
+  camTarget.set(0, 2, 0);
+  updateCamera();
+}
+
+// ═══════════════════════════════════════
+// GUIDED WALKTHROUGH (PLAY/STEP)
+// ═══════════════════════════════════════
+var playing = false, walkStep = 0, playTimer = null;
+var walkSpeed = 3;
+function getWalkDelay() { return Math.max(1000, 7000 - walkSpeed * 600); }
+
+function setNarration(html) {
+  document.getElementById('narr-text').innerHTML = html;
+}
+
+function doWalkStep() {
+  var steps = WALK[currentMode];
+  if (!steps || walkStep >= steps.length) { stopPlaying(); return; }
+  var step = steps[walkStep];
+  setNarration(step.narr);
+  if (step.action !== null) {
+    var actions = MODES[currentMode].actions;
+    if (actions[step.action]) { initAudio(); actions[step.action].fn(); }
+  }
+  walkStep++;
+  if (walkStep >= steps.length) {
+    playTimer = setTimeout(stopPlaying, 4000);
+  }
+}
+
+function startPlaying() {
+  playing = true;
+  var btn = document.getElementById('btn-play');
+  btn.textContent = '\u23F8 PAUSE'; btn.classList.add('on');
+  doWalkStep();
+  function scheduleNext() {
+    if (!playing || walkStep >= WALK[currentMode].length) return;
+    playTimer = setTimeout(function() {
+      if (!playing) return;
+      doWalkStep();
+      scheduleNext();
+    }, getWalkDelay());
+  }
+  scheduleNext();
+}
+
+function stopPlaying() {
+  playing = false;
+  if (playTimer) { clearTimeout(playTimer); playTimer = null; }
+  var btn = document.getElementById('btn-play');
+  btn.textContent = '\u25B6 PLAY'; btn.classList.remove('on');
+}
+
+function togglePlay() {
+  if (playing) { stopPlaying(); }
+  else { walkStep = 0; startPlaying(); }
+}
+
+function stepForward() {
+  if (playing) stopPlaying();
+  var steps = WALK[currentMode];
+  if (!steps) return;
+  if (walkStep >= steps.length) walkStep = 0;
+  doWalkStep();
+}
+
+// ═══════════════════════════════════════
+// EVENT HANDLERS
+// ═══════════════════════════════════════
+document.querySelectorAll('.mode-btn').forEach(function(b) {
+  b.addEventListener('click', function() { stopPlaying(); switchMode(b.dataset.mode); });
+});
+document.getElementById('btn-play').onclick = function() { initAudio(); togglePlay(); };
+document.getElementById('btn-step').onclick = function() { initAudio(); stepForward(); };
+document.getElementById('btn-reset').onclick = function() { stopPlaying(); switchMode(currentMode); };
+document.getElementById('sl-speed').addEventListener('input', function(e) {
+  walkSpeed = parseInt(e.target.value, 10);
+  document.getElementById('speed-val').textContent = walkSpeed;
+});
+function toggleMute() {
+  muted = !muted;
+  var el = document.getElementById('btn-mute');
+  el.classList.toggle('muted', muted);
+  el.textContent = muted ? 'MUTED' : 'SND';
+}
+document.getElementById('btn-mute').onclick = toggleMute;
+document.getElementById('btn-help').onclick = function() { document.getElementById('info-overlay').classList.toggle('show'); };
+
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT') return;
+  switch(e.key) {
+    case ' ': e.preventDefault(); initAudio(); togglePlay(); break;
+    case 's': case 'S': initAudio(); stepForward(); break;
+    case 'r': case 'R': stopPlaying(); switchMode(currentMode); break;
+    case 'm': case 'M': toggleMute(); break;
+    case '?': document.getElementById('info-overlay').classList.toggle('show'); break;
+    case '1': stopPlaying(); switchMode('inheritance'); break;
+    case '2': stopPlaying(); switchMode('override'); break;
+    case '3': stopPlaying(); switchMode('super'); break;
+    case '4': stopPlaying(); switchMode('polymorphism'); break;
+    case '5': stopPlaying(); switchMode('abstract'); break;
+    case '6': stopPlaying(); switchMode('interface'); break;
+    case 'ArrowLeft': walkSpeed = Math.max(1, walkSpeed - 1); document.getElementById('sl-speed').value = walkSpeed; document.getElementById('speed-val').textContent = walkSpeed; break;
+    case 'ArrowRight': walkSpeed = Math.min(10, walkSpeed + 1); document.getElementById('sl-speed').value = walkSpeed; document.getElementById('speed-val').textContent = walkSpeed; break;
+    case 'Escape': document.getElementById('info-overlay').classList.remove('show'); break;
+  }
+});
+
+// Mouse orbit
+canvas.addEventListener('mousedown', function(e) { isDragging=true; lastMX=e.clientX; lastMY=e.clientY; });
+canvas.addEventListener('mousemove', function(e) {
+  if (!isDragging) return;
+  camTheta -= (e.clientX-lastMX)*0.005;
+  camPhi = Math.max(0.05, Math.min(1.5, camPhi+(e.clientY-lastMY)*0.005));
+  lastMX=e.clientX; lastMY=e.clientY; updateCamera();
+});
+canvas.addEventListener('mouseup', function() { isDragging=false; });
+canvas.addEventListener('mouseleave', function() { isDragging=false; });
+canvas.addEventListener('wheel', function(e) { camDist=Math.max(8,Math.min(50,camDist+e.deltaY*0.02)); updateCamera(); });
+
+// Touch
+var touchDist=0;
+canvas.addEventListener('touchstart', function(e) {
+  if (e.touches.length===1) { isDragging=true; lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY; }
+  if (e.touches.length===2) touchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+});
+canvas.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (e.touches.length===1&&isDragging) {
+    camTheta-=(e.touches[0].clientX-lastMX)*0.005;
+    camPhi=Math.max(0.05,Math.min(1.5,camPhi+(e.touches[0].clientY-lastMY)*0.005));
+    lastMX=e.touches[0].clientX; lastMY=e.touches[0].clientY; updateCamera();
+  }
+  if (e.touches.length===2) {
+    var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    camDist=Math.max(8,Math.min(50,camDist-(d-touchDist)*0.05)); touchDist=d; updateCamera();
+  }
+}, {passive:false});
+canvas.addEventListener('touchend', function() { isDragging=false; });
+
+window.addEventListener('resize', function() {
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ═══════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════
+var time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.01;
+  sceneMeshes.forEach(function(obj, i) {
+    if (obj.userData && obj.userData.baseY !== undefined && !obj.isLine) {
+      obj.position.y = obj.userData.baseY + Math.sin(time*1.8 + i*0.4)*0.04;
+    }
+  });
+  pt1.position.x = Math.sin(time*0.3)*10;
+  pt1.position.z = Math.cos(time*0.3)*8;
+  renderer.render(scene, camera);
+}
+
+switchMode('inheritance');
+animate();
+</script>
+</body>
+</html>

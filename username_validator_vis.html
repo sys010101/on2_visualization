@@ -282,6 +282,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
    ============================================================ */
 function el(id){return document.getElementById(id)}
 function setText(id,t){var e=el(id);if(e)e.textContent=t}
+function escHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function setHTML(id,t){var e=el(id);if(e)e.innerHTML=t}
 function setNarration(html){var e=el('narr-text');if(e)e.innerHTML=html}
 
@@ -526,7 +527,6 @@ renderer.domElement.addEventListener('touchend',function(){touchStart=null},{pas
    CHARACTER CUBES
    ============================================================ */
 var charCubes=[];
-var disposables=[];
 var CUBE_SIZE=1.2;
 var CUBE_GAP=0.3;
 var scanBeam=null;
@@ -907,7 +907,7 @@ function renderCode(activePhase,extra){
     case 'do_start':
       activeLine=LINE.DO;activeClass='cl-loop';annotation='<span class="annot annot-flow">\u25B6 entering do-while loop</span>';break;
     case 'read_input':
-      activeLine=LINE.READ_INPUT;annotation='<span class="annot annot-var">username = "'+username+'"</span>';break;
+      activeLine=LINE.READ_INPUT;annotation='<span class="annot annot-var">username = "'+escHTML(username)+'"</span>';break;
     case 'valid_true':
       activeLine=LINE.VALID_TRUE;annotation='<span class="annot annot-var">valid = true</span>';break;
     case 'r1_check':
@@ -978,7 +978,7 @@ function renderCode(activePhase,extra){
       annotation='<span class="annot annot-var">valid = '+valid+'</span> <span class="annot '+(valid?'annot-ok':'annot-fail')+'">'+(valid?'\u2713 accepted!':'\u2717 not valid')+'</span>';
       activeClass=valid?'cl-pass':'cl-fail';break;
     case 'valid_print':
-      activeLine=LINE.R4_PRINT;activeClass='cl-pass';annotation='<span class="annot annot-ok">"Username accepted: '+username+'"</span>';break;
+      activeLine=LINE.R4_PRINT;activeClass='cl-pass';annotation='<span class="annot annot-ok">"Username accepted: '+escHTML(username)+'"</span>';break;
     case 'while_check':
       activeLine=LINE.WHILE;activeClass='cl-loop';
       annotation='<span class="annot annot-var">!valid = '+(!valid)+'</span> <span class="annot '+(valid?'annot-ok':'annot-flow')+'">'+(valid?'\u2713 exit loop':'\u21BA loop again!')+'</span>';
@@ -1025,9 +1025,9 @@ function advancePhase(){
 
     case 'read_input':
       renderCode('read_input');
-      showFlow('READ INPUT','username = "'+username+'"');
+      showFlow('READ INPUT','username = "'+escHTML(username)+'"');
       setText('s-status','READING');el('s-status').className='sv warn';
-      setNarration('Reading user input: <strong>username = "'+username+'"</strong>. Now we\'ll check it against 3 rules.');
+      setNarration('Reading user input: <strong>username = "'+escHTML(username)+'"</strong>. Now we\'ll check it against 3 rules.');
       phase='valid_true';
       break;
 
@@ -1326,7 +1326,7 @@ function advancePhase(){
 
     case 'valid_print':
       renderCode('valid_print');
-      showFlow('USERNAME ACCEPTED','"'+username+'" passed all 3 rules!');
+      showFlow('USERNAME ACCEPTED','"'+escHTML(username)+'" passed all 3 rules!');
       sndPass();
       phase='while_check';
       break;
@@ -1388,9 +1388,9 @@ function advancePhase(){
     case 'complete':
       renderCode('complete');
       setText('s-status','VALID!');el('s-status').className='sv pass';
-      showFlow('VALIDATION COMPLETE','\u2713 "'+username+'" is a valid username!');
+      showFlow('VALIDATION COMPLETE','\u2713 "'+escHTML(username)+'" is a valid username!');
       updateConceptBadge('COMPLETE','ALL RULES PASSED','The do-while loop exits because valid = true');
-      setNarration('\u2713 <strong>VALIDATION COMPLETE!</strong><br>"<strong>'+username+'</strong>" passed all 3 rules!<br>The while(!valid) condition is <strong>false</strong>, so the do-while loop exits. Username accepted!');
+      setNarration('\u2713 <strong>VALIDATION COMPLETE!</strong><br>"<strong>'+escHTML(username)+'</strong>" passed all 3 rules!<br>The while(!valid) condition is <strong>false</strong>, so the do-while loop exits. Username accepted!');
       sndComplete();
 
       // Celebration animation
